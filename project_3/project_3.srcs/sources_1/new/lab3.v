@@ -50,6 +50,10 @@ module lab3(
     wire enable;
     reg led_enable;
     reg [31:0] startup_counter;
+    reg [2:0] display_state;
+    reg unlocked;
+    reg [1:0] unlocked_step_counter;
+    reg [31:0] ld15_counter;
 
     initial begin
         led <= 16'b0000000000000000;    //shut all LED off
@@ -58,6 +62,10 @@ module lab3(
 
         led_enable <= 1'b0;
         startup_counter <= 32'b0;
+        display_state <= 3'b0;
+        unlocked <= 1'b0;
+        unlocked_step_counter <= 2'b0;
+        ld15_counter <= 32'b0;
     end
 
     Clock_Enable CE(clk, sw[2:0], enable);
@@ -69,11 +77,12 @@ module lab3(
     end
 
     always @(posedge clk) begin
-        if (startup_counter < 32'd100000000) begin
+        if (startup_counter < 32'd100000000) begin  //wait for TIME_COUNT before turning on
             startup_counter <= startup_counter + 1;
         end
         else begin
-            led[7:3] <= 5'b11111;
+            //led and switches tasks
+            led[14:3] <= 12'b000000011111;  //don't change LD15
             if (sw[2] == 1'b1) begin
                 led[2:0] <= {led_enable, 2'b11};
             end
@@ -85,6 +94,53 @@ module lab3(
             end
             else begin
                 led[2:0] <= 3'b111;
+            end
+
+            //display and pushbutton tasks
+            //piggyback off same code for cycling by button and by clocks
+            if (display_state == 0) begin
+                seg <= 8'b10101111; //display 'r'
+                an <= 4'b1110;
+                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
+                                 btnR ? display_state + 1 : display_state;
+            end
+            else if (display_state == 1) begin
+                seg <= 8'b11100011; //display 'u'
+                an <= 4'b1101;
+                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
+                                 btnU ? display_state + 1 : display_state;
+            end
+            else if (display_state == 2) begin
+                seg <= 8'b11001111; //display 'l'
+                an <= 4'b1011;
+                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? 3'b0 : display_state) :   //loop back to step 1 in unlocked mode
+                                 btnL ? display_state + 1 : display_state;
+            end
+            else if (display_state == 3) begin
+                seg <= 8'b11100011; //display 'u'
+                an <= 4'b0111;
+                display_state <= btnU ? display_state + 1 : display_state;
+            end
+            else begin //display_state == 4 == newly entered unlocked mode
+                unlocked <= 1'b1;
+                led[15] <= 1'b1;
+                display_state <= 3'b0;
+            end
+
+            //subtask D
+            if (sw[15]) begin
+                if (ld15_counter == 32'd300000000) begin
+                    //non-blocking assignments used throughout so these values will overwrite everything before
+                    seg <= 8'b10001000;
+                    an <= 4'b0000;
+                    led <= 16'b00000001010100001;   //LD 0,5,7,9
+                end
+                else begin
+                    ld15_counter <= ld15_counter + 1;
+                end
+            end
+            else begin
+                ld15_counter <= 0;  //reset counter
             end
         end
     end

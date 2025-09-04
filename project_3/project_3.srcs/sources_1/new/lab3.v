@@ -143,6 +143,7 @@ module lab3(
             end
             else begin
                 ld15_counter <= 0;  //reset counter
+                led[15] <= unlocked ? 1'b1 : 1'b0;
             end
         end
     end

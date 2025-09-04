@@ -6,7 +6,7 @@
 //5 rightmost values: 0, 5, 7, 9
 
 
-module Clock_Enable(    //use enable signal instead of clock divider for synthesisability
+module Clock_Enable(    //use enable pulse instead of clock divider for synthesisability
     input clk,
     input [2:0] sw,   //sw[0]: 1Hz, sw[1]: 10Hz, sw[2]: 100Hz
     output reg enable
@@ -30,7 +30,7 @@ module Clock_Enable(    //use enable signal instead of clock divider for synthes
         else if (sw[1] == 1'b1) begin
             counter = (counter >= threshold_10hz ? 0: counter + 1);
         end
-        else begin  //default 1hz rate, can ignore in main module
+        else begin  //default 1hz pulse rate, can ignore in main module
             counter = (counter >= threshold_1hz ? 0: counter + 1);
         end;
 
@@ -98,39 +98,41 @@ module lab3(
 
             //display and pushbutton tasks
             //piggyback off same code for cycling by button and by clocks
-            if (display_state == 0) begin
-                seg <= 8'b10101111; //display 'r'
-                an <= 4'b1110;
-                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
-                                 btnR ? display_state + 1 : display_state;
-            end
-            else if (display_state == 1) begin
-                seg <= 8'b11100011; //display 'u'
-                an <= 4'b1101;
-                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
-                                 btnU ? display_state + 1 : display_state;
-            end
-            else if (display_state == 2) begin
-                seg <= 8'b11001111; //display 'l'
-                an <= 4'b1011;
-                display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? 3'b0 : display_state) :   //loop back to step 1 in unlocked mode
-                                 btnL ? display_state + 1 : display_state;
-            end
-            else if (display_state == 3) begin
-                seg <= 8'b11100011; //display 'u'
-                an <= 4'b0111;
-                display_state <= btnU ? display_state + 1 : display_state;
-            end
-            else begin //display_state == 4 == newly entered unlocked mode
-                unlocked <= 1'b1;
-                led[15] <= 1'b1;
-                display_state <= 3'b0;
-            end
+            case (display_state)
+                3'd0: begin
+                    seg <= 8'b10101111; //display 'r'
+                    an <= 4'b1110;
+                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
+                                    btnR ? display_state + 1 : display_state;
+                end
+                3'd1: begin
+                    seg <= 8'b11100011; //display 'u'
+                    an <= 4'b1101;
+                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
+                                    btnU ? display_state + 1 : display_state;
+                end
+                3'd2: begin
+                    seg <= 8'b11001111; //display 'l'
+                    an <= 4'b1011;
+                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? 3'b0 : display_state) :   //loop back to step 1 in unlocked mode
+                                    btnL ? display_state + 1 : display_state;
+                end
+                3'd3: begin
+                    seg <= 8'b11100011; //display 'u'
+                    an <= 4'b0111;
+                    display_state <= btnU ? display_state + 1 : display_state;
+                end
+                3'd4: begin   //newly entered unlocked mode
+                    unlocked <= 1'b1;
+                    led[15] <= 1'b1;
+                    display_state <= 3'b0;
+                end
+            endcase
 
             //subtask D
+            //non-blocking assignments used throughout so these values will overwrite everything before in this always block
             if (sw[15]) begin
                 if (ld15_counter == 32'd300000000) begin
-                    //non-blocking assignments used throughout so these values will overwrite everything before
                     seg <= 8'b10001000;
                     an <= 4'b0000;
                     led <= 16'b00000001010100001;   //LD 0,5,7,9

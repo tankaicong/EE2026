@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Thu Sep  4 23:23:44 2025
+| Date         : Thu Sep  4 23:34:42 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_control_sets -verbose -file lab3_control_sets_placed.rpt
 | Design       : lab3
@@ -23,8 +23,8 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Number of unique control sets                            |     8 |
-| Unused register locations in slices containing registers |    20 |
+| Number of unique control sets                            |     9 |
+| Unused register locations in slices containing registers |    22 |
 +----------------------------------------------------------+-------+
 
 
@@ -38,6 +38,7 @@ Table of Contents
 |      4 |            1 |
 |      6 |            1 |
 |      8 |            1 |
+|     10 |            1 |
 |    16+ |            4 |
 +--------+--------------+
 
@@ -48,29 +49,30 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
-| No           | No                    | No                     |              76 |           13 |
+| No           | No                    | No                     |              70 |           11 |
 | No           | No                    | Yes                    |               0 |            0 |
 | No           | Yes                   | No                     |               0 |            0 |
-| Yes          | No                    | No                     |              54 |            7 |
+| Yes          | No                    | No                     |              64 |            9 |
 | Yes          | No                    | Yes                    |               0 |            0 |
-| Yes          | Yes                   | No                     |             106 |           17 |
+| Yes          | Yes                   | No                     |             108 |           15 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
 4. Detailed Control Set Information
 -----------------------------------
 
-+----------------+-------------------------+------------------+------------------+----------------+
-|  Clock Signal  |      Enable Signal      | Set/Reset Signal | Slice Load Count | Bel Load Count |
-+----------------+-------------------------+------------------+------------------+----------------+
-|  clk_IBUF_BUFG | led[15]_i_2_n_0         | led[15]_i_1_n_0  |                1 |              2 |
-|  clk_IBUF_BUFG | led[7]_i_2_n_0          | led[7]_i_1_n_0   |                1 |              4 |
-|  clk_IBUF_BUFG | p_1_in0                 | led[15]_i_1_n_0  |                1 |              6 |
-|  clk_IBUF_BUFG | led[9]_i_1_n_0          | led[15]_i_1_n_0  |                2 |              8 |
-|  clk_IBUF_BUFG | seg[4]_i_1_n_0          | led[15]_i_1_n_0  |                4 |             22 |
-|  clk_IBUF_BUFG | sel                     |                  |                7 |             54 |
-|  clk_IBUF_BUFG | ld15_counter[0]_i_1_n_0 | led[7]_i_2_n_0   |                8 |             64 |
-|  clk_IBUF_BUFG |                         |                  |               13 |             76 |
-+----------------+-------------------------+------------------+------------------+----------------+
++----------------+-------------------------------------+------------------+------------------+----------------+
+|  Clock Signal  |            Enable Signal            | Set/Reset Signal | Slice Load Count | Bel Load Count |
++----------------+-------------------------------------+------------------+------------------+----------------+
+|  clk_IBUF_BUFG | unlocked1_out                       | led[15]_i_1_n_0  |                1 |              2 |
+|  clk_IBUF_BUFG | led[7]_i_2_n_0                      | led[7]_i_1_n_0   |                1 |              4 |
+|  clk_IBUF_BUFG | p_1_in0                             | led[15]_i_1_n_0  |                1 |              6 |
+|  clk_IBUF_BUFG | led[9]_i_1_n_0                      | led[15]_i_1_n_0  |                2 |              8 |
+|  clk_IBUF_BUFG | FSM_onehot_display_state[4]_i_1_n_0 |                  |                2 |             10 |
+|  clk_IBUF_BUFG | seg[7]_i_1_n_0                      | led[15]_i_1_n_0  |                2 |             24 |
+|  clk_IBUF_BUFG | sel                                 |                  |                7 |             54 |
+|  clk_IBUF_BUFG | ld15_counter[0]_i_1_n_0             | led[7]_i_2_n_0   |                8 |             64 |
+|  clk_IBUF_BUFG |                                     |                  |               11 |             70 |
++----------------+-------------------------------------+------------------+------------------+----------------+
 
 

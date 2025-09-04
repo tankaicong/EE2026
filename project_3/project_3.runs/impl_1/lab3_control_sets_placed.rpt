@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Fri Sep  5 00:17:54 2025
+| Date         : Fri Sep  5 01:19:01 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_control_sets -verbose -file lab3_control_sets_placed.rpt
 | Design       : lab3
@@ -23,8 +23,8 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Number of unique control sets                            |     9 |
-| Unused register locations in slices containing registers |    22 |
+| Number of unique control sets                            |    22 |
+| Unused register locations in slices containing registers |   112 |
 +----------------------------------------------------------+-------+
 
 
@@ -34,11 +34,8 @@ Table of Contents
 +--------+--------------+
 | Fanout | Control Sets |
 +--------+--------------+
-|      2 |            1 |
-|      4 |            1 |
-|      6 |            1 |
-|      8 |            1 |
-|     10 |            1 |
+|      2 |           16 |
+|     10 |            2 |
 |    16+ |            4 |
 +--------+--------------+
 
@@ -52,9 +49,9 @@ Table of Contents
 | No           | No                    | No                     |              70 |           10 |
 | No           | No                    | Yes                    |               0 |            0 |
 | No           | Yes                   | No                     |               0 |            0 |
-| Yes          | No                    | No                     |              64 |            9 |
+| Yes          | No                    | No                     |              52 |           19 |
 | Yes          | No                    | Yes                    |               0 |            0 |
-| Yes          | Yes                   | No                     |             108 |           17 |
+| Yes          | Yes                   | No                     |             142 |           18 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
@@ -64,13 +61,26 @@ Table of Contents
 +----------------+-------------------------------------+-------------------------+------------------+----------------+
 |  Clock Signal  |            Enable Signal            |     Set/Reset Signal    | Slice Load Count | Bel Load Count |
 +----------------+-------------------------------------+-------------------------+------------------+----------------+
-|  clk_IBUF_BUFG | led[15]_i_2_n_0                     | led[15]_i_1_n_0         |                1 |              2 |
-|  clk_IBUF_BUFG | p_1_in0                             | led[7]_i_1_n_0          |                1 |              4 |
-|  clk_IBUF_BUFG | p_1_in0                             | led[15]_i_1_n_0         |                1 |              6 |
-|  clk_IBUF_BUFG | led[9]_i_1_n_0                      | led[15]_i_1_n_0         |                2 |              8 |
+|  clk_IBUF_BUFG | led[14]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[7]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[6]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[5]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[4]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[3]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[2]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[1]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[15]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[13]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[12]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[11]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[10]_i_1_n_0                     |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[0]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[8]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | led[9]_i_1_n_0                      |                         |                1 |              2 |
+|  clk_IBUF_BUFG | startup_state2_out                  |                         |                1 |             10 |
 |  clk_IBUF_BUFG | FSM_onehot_display_state[4]_i_1_n_0 |                         |                2 |             10 |
-|  clk_IBUF_BUFG | seg[7]_i_1_n_0                      | led[15]_i_1_n_0         |                4 |             24 |
-|  clk_IBUF_BUFG | sel                                 |                         |                7 |             54 |
+|  clk_IBUF_BUFG | seg[7]_i_2_n_0                      | seg[7]_i_1_n_0          |                3 |             24 |
+|  clk_IBUF_BUFG | p_1_in0                             | startup_state2_out      |                7 |             54 |
 |  clk_IBUF_BUFG | ld15_counter[0]_i_2_n_0             | ld15_counter[0]_i_1_n_0 |                8 |             64 |
 |  clk_IBUF_BUFG |                                     |                         |               10 |             70 |
 +----------------+-------------------------------------+-------------------------+------------------+----------------+

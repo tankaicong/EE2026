@@ -49,6 +49,8 @@ module lab3(
 
     wire enable;
     reg led_enable;
+    reg startup_state;
+    reg [3:0] led_counter;
     reg [31:0] startup_counter;
     reg [2:0] display_state;
     reg unlocked;
@@ -61,6 +63,7 @@ module lab3(
         an <= 4'b1111; // shut all display off
 
         led_enable <= 1'b0;
+        startup_state <= 1'b0;
         startup_counter <= 32'b0;
         display_state <= 3'b0;
         unlocked <= 1'b0;
@@ -77,8 +80,16 @@ module lab3(
     end
 
     always @(posedge clk) begin
-        if (startup_counter < 32'd100000000) begin  //wait for TIME_COUNT before turning on
-            startup_counter <= startup_counter + 1;
+        if (~startup_state) begin
+            if (startup_counter < 32'd100000000) begin  //wait for TIME_COUNT before turning on
+                startup_counter <= startup_counter + 1;
+            end
+            else begin
+                led[led_counter] <= 1'b1;
+                startup_counter <= 0;
+                led_counter = led_counter + 1;
+                startup_state = (led_counter == 8) ? 1'b1 : 1'b0;
+            end
         end
         else begin
             //led and switches tasks

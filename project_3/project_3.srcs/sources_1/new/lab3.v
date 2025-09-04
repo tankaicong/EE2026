@@ -1,26 +1,92 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 09/04/2025 09:52:23 PM
-// Design Name: 
-// Module Name: lab3
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
+//number: A0309057A
+//1st rightmost value: 7
+//2rd rightmost value: 5
+//5 rightmost values: 0, 5, 7, 9
+
+
+module Clock_Enable(    //use enable signal instead of clock divider for synthesisability
+    input clk,
+    input [2:0] sw,   //sw[0]: 1Hz, sw[1]: 10Hz, sw[2]: 100Hz
+    output reg enable
+    );
+
+    reg [31:0] threshold_1hz = 50000000;    //2hz since 0.5s ON, 0.5s OFF
+    reg [31:0] threshold_10hz = 5000000;
+    reg [31:0] threshold_100hz = 500000;
+
+    reg [31:0] counter;
+    
+    initial begin
+        counter <= 0;
+        enable <= 0;
+    end
+
+    always @(posedge clk) begin
+        if (sw[2] == 1'b1) begin
+            counter = (counter >= threshold_100hz ? 0: counter + 1);
+        end
+        else if (sw[1] == 1'b1) begin
+            counter = (counter >= threshold_10hz ? 0: counter + 1);
+        end
+        else begin  //default 1hz rate, can ignore in main module
+            counter = (counter >= threshold_1hz ? 0: counter + 1);
+        end;
+
+        enable <= (counter == 0) ? 1'b1 : 1'b0;
+    end
+endmodule
 
 module lab3(
-
+    input clk,
+    input btnU, btnL, btnR,
+    input [15:0] sw,
+    output reg [15:0] led,
+    output reg [7:0] seg,
+    output reg [3:0] an
     );
+
+    wire enable;
+    reg led_enable;
+    reg [31:0] startup_counter;
+
+    initial begin
+        led <= 16'b0000000000000000;    //shut all LED off
+        seg <= 8'b11111111; //0
+        an <= 4'b1111; // shut all display off
+
+        led_enable <= 1'b0;
+        startup_counter <= 32'b0;
+    end
+
+    Clock_Enable CE(clk, sw[2:0], enable);
+
+    always @(posedge clk) begin //flipping value for led blinking
+        if (enable) begin
+            led_enable <= ~led_enable;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (startup_counter < 32'd100000000) begin
+            startup_counter <= startup_counter + 1;
+        end
+        else begin
+            led[7:3] <= 5'b11111;
+            if (sw[2] == 1'b1) begin
+                led[2:0] <= {led_enable, 2'b11};
+            end
+            else if (sw[1] == 1'b1) begin
+                led[2:0] <= {1'b1, led_enable, 1'b1};
+            end
+            else if (sw[0] == 1'b1) begin
+                led[2:0] <= {2'b11, led_enable};
+            end
+            else begin
+                led[2:0] <= 3'b111;
+            end
+        end
+    end
+
 endmodule

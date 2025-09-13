@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 
 //number: A0309057A
-//1st rightmost value: 7
-//2rd rightmost value: 5
+//1st rightmost value: 7 --> TIME_COUNT = 1s
+//2rd rightmost value: 5 --> u,l,u,d,l,d
 //5 rightmost values: 0, 5, 7, 9
 
 
@@ -40,8 +40,8 @@ endmodule
 
 module lab3(
     input clk,
-    input btnU, btnL, btnR,
-    input [15:0] sw,
+    input btnU, btnL, btnD,
+    input [2:0] sw,
     output reg [15:0] led,
     output reg [7:0] seg,
     output reg [3:0] an
@@ -54,8 +54,6 @@ module lab3(
     reg [31:0] startup_counter;
     reg [2:0] display_state;
     reg unlocked;
-    reg [1:0] unlocked_step_counter;
-    reg [31:0] ld15_counter;
 
     initial begin
         led <= 16'b0000000000000000;    //shut all LED off
@@ -67,8 +65,6 @@ module lab3(
         startup_counter <= 32'b0;
         display_state <= 3'b0;
         unlocked <= 1'b0;
-        unlocked_step_counter <= 2'b0;
-        ld15_counter <= 32'b0;
     end
 
     Clock_Enable CE(clk, sw[2:0], enable);
@@ -111,27 +107,37 @@ module lab3(
             //piggyback off same code for cycling by button (locked mode) and showing first step (unlocked mode)
             case (display_state)
                 3'd0: begin
-                    seg <= 8'b10101111; //display 'r'
+                    seg <= 8'b11100011; //display 'u'
                     an <= 4'b1110;
                     display_state <= unlocked ? display_state : //leave unchanged if in unlocked mode
-                                     btnR ? display_state + 1 : display_state;
+                                     btnU ? display_state + 1 : display_state;
                 end
                 3'd1: begin
-                    seg <= 8'b11100011; //display 'u'
-                    an <= 4'b1101;
-                    display_state <= btnU ? display_state + 1 : display_state;
-                end
-                3'd2: begin
                     seg <= 8'b11001111; //display 'l'
-                    an <= 4'b1011;
+                    an <= 4'b1101;
                     display_state <= btnL ? display_state + 1 : display_state;
                 end
-                3'd3: begin
+                3'd2: begin
                     seg <= 8'b11100011; //display 'u'
-                    an <= 4'b0111;
+                    an <= 4'b1011;
                     display_state <= btnU ? display_state + 1 : display_state;
                 end
-                3'd4: begin   //newly entered unlocked mode
+                3'd3: begin
+                    seg <= 8'b10100001; //display 'd'
+                    an <= 4'b0111;
+                    display_state <= btnD ? display_state + 1 : display_state;
+                end
+                3'd4: begin
+                    seg <= 8'b11001111; //display 'l'
+                    an <= 4'b1101;
+                    display_state <= btnL ? display_state + 1 : display_state;
+                end
+                3'd5: begin
+                    seg <= 8'b10100001; //display 'd'
+                    an <= 4'b0111;
+                    display_state <= btnD ? display_state + 1 : display_state;
+                end
+                3'd6: begin   //newly entered unlocked mode
                     unlocked <= 1'b1;
                     led[15] <= 1'b1;
                     display_state <= 3'b0;

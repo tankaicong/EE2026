@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Sun Sep 14 02:52:50 2025
+| Date         : Sun Sep 14 03:18:20 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_control_sets -verbose -file lab3_control_sets_placed.rpt
 | Design       : lab3
@@ -24,7 +24,7 @@ Table of Contents
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
 | Number of unique control sets                            |    21 |
-| Unused register locations in slices containing registers |   112 |
+| Unused register locations in slices containing registers |   108 |
 +----------------------------------------------------------+-------+
 
 
@@ -35,7 +35,8 @@ Table of Contents
 | Fanout | Control Sets |
 +--------+--------------+
 |      2 |           16 |
-|     10 |            2 |
+|     10 |            1 |
+|     14 |            1 |
 |    16+ |            3 |
 +--------+--------------+
 
@@ -46,10 +47,10 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
-| No           | No                    | No                     |              70 |           11 |
+| No           | No                    | No                     |              70 |           12 |
 | No           | No                    | Yes                    |               0 |            0 |
 | No           | Yes                   | No                     |               0 |            0 |
-| Yes          | No                    | No                     |              76 |           24 |
+| Yes          | No                    | No                     |              80 |           25 |
 | Yes          | No                    | Yes                    |               0 |            0 |
 | Yes          | Yes                   | No                     |              54 |            7 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
@@ -78,10 +79,10 @@ Table of Contents
 |  clk_IBUF_BUFG | led[0]_i_1_n_0                      |                    |                1 |              2 |
 |  clk_IBUF_BUFG | led[9]_i_1_n_0                      |                    |                1 |              2 |
 |  clk_IBUF_BUFG | startup_state2_out                  |                    |                2 |             10 |
-|  clk_IBUF_BUFG | FSM_onehot_display_state[4]_i_1_n_0 |                    |                2 |             10 |
-|  clk_IBUF_BUFG | seg[7]_i_1_n_0                      |                    |                4 |             24 |
+|  clk_IBUF_BUFG | FSM_onehot_display_state[6]_i_1_n_0 |                    |                2 |             14 |
+|  clk_IBUF_BUFG | seg[7]_i_1_n_0                      |                    |                5 |             24 |
 |  clk_IBUF_BUFG | p_1_in0                             | startup_state2_out |                7 |             54 |
-|  clk_IBUF_BUFG |                                     |                    |               11 |             70 |
+|  clk_IBUF_BUFG |                                     |                    |               12 |             70 |
 +----------------+-------------------------------------+--------------------+------------------+----------------+
 
 

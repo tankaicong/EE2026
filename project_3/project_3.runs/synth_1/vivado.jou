@@ -2,8 +2,8 @@
 # Vivado v2018.2 (64-bit)
 # SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
 # IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
-# Start of session at: Sun Sep 14 02:51:40 2025
-# Process ID: 30232
+# Start of session at: Sun Sep 14 03:17:08 2025
+# Process ID: 49976
 # Current directory: /media/kc/Data/EE2026/project_3/project_3.runs/synth_1
 # Command line: vivado -log lab3.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source lab3.tcl
 # Log file: /media/kc/Data/EE2026/project_3/project_3.runs/synth_1/lab3.vds

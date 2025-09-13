@@ -5,15 +5,15 @@ module lab3_sim(
     );
 
     reg clk;
-    reg btnU, btnL, btnR;
+    reg btnU, btnL, btnD;
     reg [15:0] sw;
     wire [15:0] led;
     wire [7:0] seg;
     wire [3:0] an;
-    lab3 sim(clk, btnU, btnL, btnR, sw, led, seg, an);
+    lab3 sim(clk, btnU, btnL, btnD, sw, led, seg, an);
 
     initial begin
-        btnU = 0; btnL = 0; btnR = 0;
+        btnU = 0; btnL = 0; btnD = 0;
         sw[15:3] = 13'b0;
         sw[2:0] = 3'b000; #1000000000;
         sw[2:0] = 3'b001; #1000000000;

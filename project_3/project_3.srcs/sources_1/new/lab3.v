@@ -108,25 +108,23 @@ module lab3(
             end
 
             //display and pushbutton tasks
-            //piggyback off same code for cycling by button and by clocks
+            //piggyback off same code for cycling by button (locked mode) and showing first step (unlocked mode)
             case (display_state)
                 3'd0: begin
                     seg <= 8'b10101111; //display 'r'
                     an <= 4'b1110;
-                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
-                                    btnR ? display_state + 1 : display_state;
+                    display_state <= unlocked ? display_state : //leave unchanged if in unlocked mode
+                                     btnR ? display_state + 1 : display_state;
                 end
                 3'd1: begin
                     seg <= 8'b11100011; //display 'u'
                     an <= 4'b1101;
-                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? display_state + 1 : display_state) :
-                                    btnU ? display_state + 1 : display_state;
+                    display_state <= btnU ? display_state + 1 : display_state;
                 end
                 3'd2: begin
                     seg <= 8'b11001111; //display 'l'
                     an <= 4'b1011;
-                    display_state <= unlocked ? ((enable && |sw[2:0]==1'b1) ? 3'b0 : display_state) :   //loop back to step 1 in unlocked mode
-                                    btnL ? display_state + 1 : display_state;
+                    display_state <= btnL ? display_state + 1 : display_state;
                 end
                 3'd3: begin
                     seg <= 8'b11100011; //display 'u'
@@ -140,22 +138,6 @@ module lab3(
                 end
             endcase
 
-            //subtask D
-            //non-blocking assignments used throughout so these values will overwrite everything before in this always block
-            if (sw[15]) begin
-                if (ld15_counter == 32'd300000000) begin
-                    seg <= 8'b10001000;
-                    an <= 4'b0000;
-                    led <= 16'b00000001010100001;   //LD 0,5,7,9
-                end
-                else begin
-                    ld15_counter <= ld15_counter + 1;
-                end
-            end
-            else begin
-                ld15_counter <= 0;  //reset counter
-                led[15] <= unlocked ? 1'b1 : 1'b0;
-            end
         end
     end
 

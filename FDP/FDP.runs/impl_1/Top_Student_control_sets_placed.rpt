@@ -1,0 +1,77 @@
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
+| Date         : Fri Oct  3 22:49:24 2025
+| Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
+| Command      : report_control_sets -verbose -file Top_Student_control_sets_placed.rpt
+| Design       : Top_Student
+| Device       : xc7a35t
+----------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Number of unique control sets                            |    10 |
+| Unused register locations in slices containing registers |    34 |
++----------------------------------------------------------+-------+
+
+
+2. Histogram
+------------
+
++--------+--------------+
+| Fanout | Control Sets |
++--------+--------------+
+|      2 |            2 |
+|      4 |            1 |
+|     10 |            1 |
+|    16+ |            6 |
++--------+--------------+
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |               8 |            3 |
+| No           | No                    | Yes                    |               0 |            0 |
+| No           | Yes                   | No                     |             134 |           20 |
+| Yes          | No                    | No                     |              64 |           12 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |             104 |           13 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++------------------------+-----------------------------------+---------------------------+------------------+----------------+
+|      Clock Signal      |           Enable Signal           |      Set/Reset Signal     | Slice Load Count | Bel Load Count |
++------------------------+-----------------------------------+---------------------------+------------------+----------------+
+| ~clk_6p25MHz_BUFG      |                                   |                           |                1 |              2 |
+|  clk_IBUF_BUFG         |                                   |                           |                1 |              2 |
+|  oled_frame_begin_BUFG |                                   |                           |                1 |              4 |
+|  clk_IBUF_BUFG         |                                   | clear                     |                1 |             10 |
+|  oled_frame_begin_BUFG | r_offset_zero                     |                           |                6 |             32 |
+|  oled_frame_begin_BUFG | c_offset_seven                    |                           |                6 |             32 |
+| ~clk_6p25MHz_BUFG      |                                   | btnU_IBUF                 |                3 |             34 |
+| ~clk_6p25MHz_BUFG      | disp/delay[0]_i_1_n_0             | btnU_IBUF                 |                5 |             40 |
+| ~clk_6p25MHz_BUFG      | disp/FSM_onehot_state[31]_i_1_n_0 | btnU_IBUF                 |                8 |             64 |
+| ~clk_6p25MHz_BUFG      |                                   | disp/spi_word[39]_i_1_n_0 |               16 |             90 |
++------------------------+-----------------------------------+---------------------------+------------------+----------------+
+
+

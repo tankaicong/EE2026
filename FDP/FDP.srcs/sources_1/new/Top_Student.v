@@ -1,0 +1,133 @@
+`timescale 1ns / 1ps
+
+//////////////////////////////////////////////////////////////////////////////////
+//
+//  FILL IN THE FOLLOWING INFORMATION:
+//  STUDENT A NAME: 
+//  STUDENT B NAME:
+//  STUDENT C NAME: 
+//  STUDENT D NAME:  
+//
+//////////////////////////////////////////////////////////////////////////////////
+
+// Number: A0309057A
+// 3rd rightmost number: 0
+// 1st rightmost number: 7
+
+module Top_Student (
+    input clk, btnU, sw1, sw3,
+    // input [12:0] sim_oled_pixel_index, //0 to 6143
+    // input sim_oled_frame_begin,
+    output [7:0] JB
+);
+
+localparam CHAR_WIDTH = 16;
+localparam CHAR_HEIGHT = 26;
+localparam CHAR_THICKNESS = 4;
+
+reg [4:0] counter_6p25mhz = 0;
+reg [4:0] counter_frames_zero = 0;
+reg [4:0] counter_frames_seven = 0;
+reg clk_6p25MHz = 0;
+reg [15:0] oled_data = 16'h0000;
+wire oled_frame_begin, oled_sending_pixels, oled_sample_pixel;
+wire [12:0] oled_pixel_index;
+reg [12:0] oled_pixel_idx = 0; //0 to 6143
+
+reg [7:0] row = 0;
+reg [6:0] col = 0;
+reg [7:0] r_offset_zero = 0;
+reg [7:0] c_offset_zero = (96-CHAR_WIDTH)/2;  //96 screen width/2 (=48) for centre then - CHAR_WIDTH/2
+reg [7:0] r_offset_seven = (64-CHAR_HEIGHT)/2;   //64 screen height/2 (=32) for centre then - CHAR_HEIGHT/2
+reg [7:0] c_offset_seven = 0;
+reg [7:0] offset_seven = 0;
+reg [7:0] offset_zero = 0;
+
+
+// divide 100 Mhz clock to 6.25Mhz
+always @ (posedge clk) begin
+    counter_6p25mhz = counter_6p25mhz + 1;
+    if (counter_6p25mhz == 16) begin
+        counter_6p25mhz = 0;
+        clk_6p25MHz = ~clk_6p25MHz;
+    end
+end
+
+//draws the actual numbers
+always @(oled_pixel_index) begin  //everytime current pixel being updated changes
+    oled_pixel_idx = oled_pixel_index;
+    row = oled_pixel_idx / 96; //64 rows so divide 96 columns
+    col = oled_pixel_idx % 96;
+
+    //draw number 0 in orange, 7 in blue
+    if ((row>=r_offset_seven && row<r_offset_seven+CHAR_HEIGHT) && (col>=c_offset_seven && col<c_offset_seven+CHAR_WIDTH) &&   //positive mask for 7
+        ~(row>=r_offset_seven+CHAR_THICKNESS && col<c_offset_seven+CHAR_WIDTH-CHAR_THICKNESS))   //negative mask for 7
+    begin
+        oled_data = 16'h2f5d;
+    end
+    else if ((row>=r_offset_zero && row<r_offset_zero+CHAR_HEIGHT) && (col>=c_offset_zero && col<c_offset_zero+CHAR_WIDTH) &&   //positive mask for 0
+            ~((row>=r_offset_zero+CHAR_THICKNESS && row<r_offset_zero+CHAR_HEIGHT-CHAR_THICKNESS) && (col>=c_offset_zero+CHAR_THICKNESS && col<c_offset_zero+CHAR_WIDTH-CHAR_THICKNESS)))  //negative mask for 0
+    begin
+        oled_data = 16'hfd60;
+    end
+    else begin
+        oled_data = 16'h0000;
+    end
+end
+
+//updates the movement of numbers
+always @(posedge oled_frame_begin) begin    //this is a ~30hz signal
+    if (sw1) begin
+        if (counter_frames_seven < 0) begin  //oled_frame signals divided by 3 makes number move down screen in about 5s
+            counter_frames_seven = counter_frames_seven + 1;
+        end
+        else begin
+            counter_frames_seven = 0;
+            if (offset_seven < 96-CHAR_WIDTH) begin //raw oled_frame signal makes number move across screen in about 2.7s
+                c_offset_seven = c_offset_seven + 1;
+                offset_seven = offset_seven + 1;
+            end
+            else if (offset_seven < 2*(96-CHAR_WIDTH)) begin 
+                c_offset_seven = c_offset_seven - 1;
+                offset_seven = (offset_seven == 2*(96-CHAR_WIDTH)-1) ? 0 : offset_seven + 1;
+            end
+        end
+    end
+    
+    if (sw3) begin
+        if (counter_frames_zero < 3) begin  //oled_frame signals divided by 3 makes number move down screen in about 5s
+            counter_frames_zero = counter_frames_zero + 1;
+        end
+        else begin
+            counter_frames_zero = 0;
+            if (offset_zero < 64-CHAR_HEIGHT) begin
+                r_offset_zero = r_offset_zero + 1;
+                offset_zero = offset_zero + 1;
+            end
+            else if (offset_zero < 2*(64-CHAR_HEIGHT)) begin
+                r_offset_zero = r_offset_zero - 1;
+                offset_zero = (offset_zero == 2*(64-CHAR_HEIGHT)-1) ? 0 : offset_zero + 1;
+            end
+        end
+    end
+end
+
+
+Oled_Display disp(
+    clk_6p25MHz,    //clk
+    btnU,   //reset
+    oled_frame_begin, //frame_begin
+    oled_sending_pixels,  //sending_pixels
+    oled_sample_pixel,    //sample_pixel
+    oled_pixel_index[12:0],    //pixel_index
+    oled_data,  //pixel_data
+    JB[0],  //cs
+    JB[1],  //sdin
+    JB[3],  //sclk
+    JB[4],  //d_cn
+    JB[5],  //resn
+    JB[6],  //vccen
+    JB[7]   //pmoden
+);
+
+endmodule

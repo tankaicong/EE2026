@@ -1,0 +1,20 @@
+Vivado Simulator 2018.2
+Copyright 1986-1999, 2001-2018 Xilinx, Inc. All Rights Reserved.
+Running: /opt/Xilinx/Vivado/2018.2/bin/unwrapped/lnx64.o/xelab -wto 24e5d7a1779144f797f24297896a26e0 --incr --debug typical --relax --mt 8 -L xil_defaultlib -L unisims_ver -L secureip --snapshot taskR_sim_func_impl xil_defaultlib.taskR_sim xil_defaultlib.glbl -log elaborate.log 
+Using 8 slave threads.
+Starting static elaboration
+ERROR: [VRFC 10-426] cannot find port sim_oled_frame_begin on this module [/media/kc/Data/EE2026/FDP/FDP.srcs/sim_1/new/taskR_sim.v:35]
+ERROR: [VRFC 10-2063] Module <OBUF> not found while processing module instance <JB_OBUF[0]_inst> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5631]
+ERROR: [VRFC 10-2063] Module <OBUFT> not found while processing module instance <JB_OBUF[2]_inst> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5637]
+ERROR: [VRFC 10-2063] Module <LUT1> not found while processing module instance <JB_OBUF[7]_inst_i_1> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5656]
+ERROR: [VRFC 10-2063] Module <IBUF> not found while processing module instance <btnU_IBUF_inst> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5661]
+ERROR: [VRFC 10-2063] Module <LUT2> not found while processing module instance <c_offset_zero[4]_i_3> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5674]
+ERROR: [VRFC 10-2063] Module <LUT4> not found while processing module instance <c_offset_zero[4]_i_6> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5692]
+ERROR: [VRFC 10-2063] Module <LUT6> not found while processing module instance <c_offset_zero[4]_i_7> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5700]
+ERROR: [VRFC 10-2063] Module <FDRE> not found while processing module instance <c_offset_zero_reg[0]> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5728]
+ERROR: [VRFC 10-2063] Module <CARRY4> not found while processing module instance <c_offset_zero_reg[4]_i_1> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5768]
+ERROR: [VRFC 10-2063] Module <BUFG> not found while processing module instance <clk_6p25MHz_BUFG_inst> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5808]
+ERROR: [VRFC 10-2063] Module <LUT3> not found while processing module instance <counter_6p25mhz[2]_i_1> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5847]
+ERROR: [VRFC 10-2063] Module <LUT5> not found while processing module instance <counter_6p25mhz[4]_i_1> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:5864]
+ERROR: [VRFC 10-2063] Module <Oled_Display> not found while processing module instance <disp> [/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v:6000]
+ERROR: [XSIM 43-3322] Static elaboration of top level Verilog design unit(s) in library work failed.

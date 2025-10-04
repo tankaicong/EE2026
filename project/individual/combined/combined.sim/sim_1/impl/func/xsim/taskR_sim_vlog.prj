@@ -1,0 +1,7 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"taskR_sim_func_impl.v" \
+"../../../../../FDP.srcs/sim_1/new/taskR_sim.v" \
+
+# Do not sort compile order
+nosort

@@ -1,0 +1,77 @@
+Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
+| Date         : Sat Oct  4 23:12:31 2025
+| Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
+| Command      : report_control_sets -verbose -file Top_Student_control_sets_placed.rpt
+| Design       : Top_Student
+| Device       : xc7a35t
+----------------------------------------------------------------------------------------
+
+Control Set Information
+
+Table of Contents
+-----------------
+1. Summary
+2. Histogram
+3. Flip-Flop Distribution
+4. Detailed Control Set Information
+
+1. Summary
+----------
+
++----------------------------------------------------------+-------+
+|                          Status                          | Count |
++----------------------------------------------------------+-------+
+| Number of unique control sets                            |    12 |
+| Unused register locations in slices containing registers |    18 |
++----------------------------------------------------------+-------+
+
+
+2. Histogram
+------------
+
++--------+--------------+
+| Fanout | Control Sets |
++--------+--------------+
+|      2 |            1 |
+|    16+ |           11 |
++--------+--------------+
+
+
+3. Flip-Flop Distribution
+-------------------------
+
++--------------+-----------------------+------------------------+-----------------+--------------+
+| Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
++--------------+-----------------------+------------------------+-----------------+--------------+
+| No           | No                    | No                     |              50 |            8 |
+| No           | No                    | Yes                    |              32 |            4 |
+| No           | Yes                   | No                     |             124 |           23 |
+| Yes          | No                    | No                     |              24 |            3 |
+| Yes          | No                    | Yes                    |               0 |            0 |
+| Yes          | Yes                   | No                     |             296 |           40 |
++--------------+-----------------------+------------------------+-----------------+--------------+
+
+
+4. Detailed Control Set Information
+-----------------------------------
+
++-----------------------------------+-----------------------------+-----------------------------------------+------------------+----------------+
+|            Clock Signal           |        Enable Signal        |             Set/Reset Signal            | Slice Load Count | Bel Load Count |
++-----------------------------------+-----------------------------+-----------------------------------------+------------------+----------------+
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                             |                                         |                1 |              2 |
+|  clk_IBUF_BUFG                    | ss/seg[6]_i_1_n_0           |                                         |                3 |             24 |
+|  taskR/disp/oled_frame_begin      |                             | taskR/disp/AR[0]                        |                4 |             32 |
+|  clk_IBUF_BUFG                    | taskR/offset_zero           | taskR/disp/AR[0]                        |                6 |             32 |
+|  clk_IBUF_BUFG                    | taskR/offset_seven          | taskR/disp/AR[0]                        |                5 |             32 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                             | taskR/disp/AR[0]                        |                5 |             34 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 | taskR/disp/delay[0]_i_1_n_0 | taskR/disp/AR[0]                        |                5 |             40 |
+|  clk_IBUF_BUFG                    |                             |                                         |                7 |             48 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 | taskR/disp/state            | taskR/disp/AR[0]                        |                8 |             64 |
+|  clk_IBUF_BUFG                    | sw_IBUF[1]                  | taskR/movement_counter_seven[0]_i_1_n_0 |                8 |             64 |
+|  clk_IBUF_BUFG                    | sw_IBUF[3]                  | taskR/movement_counter_zero[0]_i_1_n_0  |                8 |             64 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                             | taskR/disp/spi_word[39]_i_1_n_0         |               18 |             90 |
++-----------------------------------+-----------------------------+-----------------------------------------+------------------+----------------+
+
+

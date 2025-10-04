@@ -1,0 +1,8 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "C:/Users/joelk/Documents/ee_files/proj_lab/FDP.sim/sim_1/impl/func/xsim/Top_Student_func_impl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Oled_Display
+INFO: [VRFC 10-311] analyzing module Top_Student
+INFO: [VRFC 10-311] analyzing module next_color
+INFO: [VRFC 10-311] analyzing module next_color_0
+INFO: [VRFC 10-311] analyzing module next_color_1
+INFO: [VRFC 10-311] analyzing module screen_625mhz
+INFO: [VRFC 10-311] analyzing module glbl

@@ -1,0 +1,13 @@
+#-----------------------------------------------------------
+# Webtalk v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Fri Oct  3 10:45:42 2025
+# Process ID: 187560
+# Current directory: /media/kc/Data/EE2026/FDP/FDP.sim/sim_1/behav/xsim
+# Command line: wbtcv -mode batch -source /media/kc/Data/EE2026/FDP/FDP.sim/sim_1/behav/xsim/xsim.dir/taskR_sim_behav/webtalk/xsim_webtalk.tcl -notrace
+# Log file: /media/kc/Data/EE2026/FDP/FDP.sim/sim_1/behav/xsim/webtalk.log
+# Journal file: /media/kc/Data/EE2026/FDP/FDP.sim/sim_1/behav/xsim/webtalk.jou
+#-----------------------------------------------------------
+source /media/kc/Data/EE2026/FDP/FDP.sim/sim_1/behav/xsim/xsim.dir/taskR_sim_behav/webtalk/xsim_webtalk.tcl -notrace
+INFO: [Common 17-206] Exiting Webtalk at Fri Oct  3 10:45:42 2025...

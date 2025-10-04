@@ -15,7 +15,7 @@
 // 1st rightmost number: 7
 
 module Top_Student (
-    input clk, btnU, sw1, sw3,
+    input clk, sw1, sw3,
     // input [12:0] sim_oled_pixel_index, //0 to 6143
     // input sim_oled_frame_begin,
     output [7:0] JB
@@ -126,7 +126,7 @@ end
 
 Oled_Display disp(
     clk_6p25MHz,    //clk
-    btnU,   //reset
+    1'b0,   //reset
     oled_frame_begin, //frame_begin
     oled_sending_pixels,  //sending_pixels
     oled_sample_pixel,    //sample_pixel

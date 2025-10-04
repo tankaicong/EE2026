@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Sat Oct  4 21:47:19 2025
+| Date         : Sun Oct  5 04:24:34 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_drc -file Top_Student_drc_routed.rpt -pb Top_Student_drc_routed.pb -rpx Top_Student_drc_routed.rpx
 | Design       : Top_Student
@@ -36,7 +36,7 @@ Table of Contents
 -----------------
 PDRC-153#1 Warning
 Gated clock check  
-Net disp/oled_frame_begin is a gated clock net sourced by a combinational pin disp/r_offset_zero[7]_i_1/O, cell disp/r_offset_zero[7]_i_1. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
+Net disp/CLK is a gated clock net sourced by a combinational pin disp/r_offset_zero[7]_i_1/O, cell disp/r_offset_zero[7]_i_1. This is not good design practice and will likely impact performance. For SLICE registers, for example, use the CE pin to control the loading of data.
 Related violations: <none>
 
 PLHOLDVIO-2#1 Warning

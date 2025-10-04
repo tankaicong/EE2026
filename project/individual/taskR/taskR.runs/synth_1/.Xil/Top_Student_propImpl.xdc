@@ -5,8 +5,6 @@ set_property src_info {type:XDC file:1 line:13 export:INPUT save:INPUT read:READ
 set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 } [get_ports {sw1}]
 set_property src_info {type:XDC file:1 line:15 export:INPUT save:INPUT read:READ} [current_design]
 set_property -dict { PACKAGE_PIN W17   IOSTANDARD LVCMOS33 } [get_ports {sw3}]
-set_property src_info {type:XDC file:1 line:67 export:INPUT save:INPUT read:READ} [current_design]
-set_property -dict { PACKAGE_PIN T18   IOSTANDARD LVCMOS33 } [get_ports btnU]
 set_property src_info {type:XDC file:1 line:84 export:INPUT save:INPUT read:READ} [current_design]
 set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports {JB[0]}];#Sch name = JB1
 set_property src_info {type:XDC file:1 line:85 export:INPUT save:INPUT read:READ} [current_design]

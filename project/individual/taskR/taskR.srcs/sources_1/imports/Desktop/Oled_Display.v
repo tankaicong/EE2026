@@ -152,7 +152,7 @@ function [StateWidth-1:0] fsm_next_state;
     SetColAddress: fsm_next_state = SetRowAddress;
     SetRowAddress: fsm_next_state = WaitNextFrame;
     WaitNextFrame: fsm_next_state = frame_begin ? SendPixel : WaitNextFrame;
-    SendPixel: fsm_next_state = (pixel_index == PixelCount-1) ?
+    SendPixel: fsm_next_state = (pixel_index == PixelCount) ?
       PrepareNextFrame : SendPixel;
     default: fsm_next_state = PowerUp;
   endcase

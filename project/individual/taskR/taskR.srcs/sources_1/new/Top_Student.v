@@ -25,9 +25,9 @@ localparam CHAR_WIDTH = 16;
 localparam CHAR_HEIGHT = 26;
 localparam CHAR_THICKNESS = 4;
 
-reg [4:0] counter_6p25mhz = 0;
-reg [4:0] counter_frames_zero = 0;
-reg [4:0] counter_frames_seven = 0;
+reg [2:0] counter_6p25mhz = 0;
+reg [31:0] movement_counter_zero = 0;
+reg [31:0] movement_counter_seven = 0;
 reg clk_6p25MHz = 0;
 reg [15:0] oled_data = 16'h0000;
 wire oled_frame_begin, oled_sending_pixels, oled_sample_pixel;
@@ -43,13 +43,18 @@ reg [7:0] c_offset_seven = 0;
 reg [7:0] offset_seven = 0;
 reg [7:0] offset_zero = 0;
 
+// offsets for next frame, updated in movement logic, applied on frame begin signal
+reg [7:0] next_r_offset_zero = 0;
+reg [7:0] next_c_offset_zero = (96-CHAR_WIDTH)/2;
+reg [7:0] next_r_offset_seven = (64-CHAR_HEIGHT)/2;
+reg [7:0] next_c_offset_seven = 0;
+
 
 // divide 100 Mhz clock to 6.25Mhz
 always @ (posedge clk) begin
     counter_6p25mhz = counter_6p25mhz + 1;
-    if (counter_6p25mhz == 16) begin
-        counter_6p25mhz = 0;
-        clk_6p25MHz = ~clk_6p25MHz;
+    if (counter_6p25mhz == 0) begin //3 bit counter overflows back to 0 every 8 cycles
+        clk_6p25MHz = ~clk_6p25MHz; //invert signal every 8 cycles = 16 cycles per period = 6.25 mhz
     end
 end
 
@@ -75,41 +80,47 @@ always @(oled_pixel_index) begin  //everytime current pixel being updated change
     end
 end
 
-//updates the movement of numbers
-always @(posedge oled_frame_begin) begin    //this is a ~30hz signal
+// buffers next positions into regs
+always @ (posedge clk) begin
+    // counter for seven movement (3 secs)
     if (sw1) begin
-        if (counter_frames_seven < 0) begin  //oled_frame signals divided by 3 makes number move down screen in about 5s
-            counter_frames_seven = counter_frames_seven + 1;
-        end
-        else begin
-            counter_frames_seven = 0;
-            if (offset_seven < 96-CHAR_WIDTH) begin //raw oled_frame signal makes number move across screen in about 2.7s
-                c_offset_seven = c_offset_seven + 1;
+        movement_counter_seven = movement_counter_seven + 1;
+        if (movement_counter_seven >= 3750000) begin  // 100000000 CCs * 3secs / 80px = 3750000 cycles per pixel
+            movement_counter_seven = 0;
+            if (offset_seven < 96-CHAR_WIDTH) begin
+                next_c_offset_seven = next_c_offset_seven + 1;
                 offset_seven = offset_seven + 1;
             end
             else if (offset_seven < 2*(96-CHAR_WIDTH)) begin 
-                c_offset_seven = c_offset_seven - 1;
+                next_c_offset_seven = next_c_offset_seven - 1;
                 offset_seven = (offset_seven == 2*(96-CHAR_WIDTH)-1) ? 0 : offset_seven + 1;
             end
         end
     end
     
+    // counter for zero movement (5 secs)  
     if (sw3) begin
-        if (counter_frames_zero < 3) begin  //oled_frame signals divided by 3 makes number move down screen in about 5s
-            counter_frames_zero = counter_frames_zero + 1;
-        end
-        else begin
-            counter_frames_zero = 0;
+        movement_counter_zero = movement_counter_zero + 1;
+        if (movement_counter_zero >= 13157895) begin  // 100000000 CCs * 5secs / 38px = 13157895 cycles per pixel
+            movement_counter_zero = 0;
             if (offset_zero < 64-CHAR_HEIGHT) begin
-                r_offset_zero = r_offset_zero + 1;
+                next_r_offset_zero = next_r_offset_zero + 1;
                 offset_zero = offset_zero + 1;
             end
             else if (offset_zero < 2*(64-CHAR_HEIGHT)) begin
-                r_offset_zero = r_offset_zero - 1;
+                next_r_offset_zero = next_r_offset_zero - 1;
                 offset_zero = (offset_zero == 2*(64-CHAR_HEIGHT)-1) ? 0 : offset_zero + 1;
             end
         end
     end
+end
+
+// apply next position only at frame start (search "screen tearing")
+always @(posedge oled_frame_begin) begin
+    r_offset_zero = next_r_offset_zero;
+    c_offset_zero = next_c_offset_zero;
+    r_offset_seven = next_r_offset_seven;
+    c_offset_seven = next_c_offset_seven;
 end
 
 

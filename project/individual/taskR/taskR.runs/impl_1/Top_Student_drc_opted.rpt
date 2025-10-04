@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Fri Oct  3 22:49:21 2025
+| Date         : Sat Oct  4 21:47:07 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_drc -file Top_Student_drc_opted.rpt -pb Top_Student_drc_opted.pb -rpx Top_Student_drc_opted.rpx
 | Design       : Top_Student
@@ -24,12 +24,28 @@ Table of Contents
       Design limits: <entire design considered>
            Ruledeck: default
              Max violations: <unlimited>
-             Violations found: 0
-+------+----------+-------------+------------+
-| Rule | Severity | Description | Violations |
-+------+----------+-------------+------------+
-+------+----------+-------------+------------+
+             Violations found: 1
++-------------+----------+-------------------------------------------------------------+------------+
+| Rule        | Severity | Description                                                 | Violations |
++-------------+----------+-------------------------------------------------------------+------------+
+| PLHOLDVIO-2 | Warning  | Non-Optimal connections which could lead to hold violations | 1          |
++-------------+----------+-------------------------------------------------------------+------------+
 
 2. REPORT DETAILS
 -----------------
+PLHOLDVIO-2#1 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT disp/r_offset_zero[7]_i_1 is driving clock pin of 16 cells. This could lead to large hold time violations. First few involved cells are:
+    c_offset_seven_reg[0] {FDRE}
+    c_offset_seven_reg[1] {FDRE}
+    c_offset_seven_reg[2] {FDRE}
+    c_offset_seven_reg[3] {FDRE}
+    c_offset_seven_reg[4] {FDRE}
+    c_offset_seven_reg[5] {FDRE}
+    c_offset_seven_reg[6] {FDRE}
+    c_offset_seven_reg[7] {FDRE}
+    r_offset_zero_reg[0] {FDRE}
+
+Related violations: <none>
+
 

@@ -20,7 +20,7 @@ else
 fi
 export LD_LIBRARY_PATH
 
-HD_PWD='/media/kc/Data/EE2026/FDP/FDP.runs/synth_1'
+HD_PWD='/media/kc/Data/EE2026/project/individual/taskR/taskR.runs/synth_1'
 cd "$HD_PWD"
 
 HD_LOG=runme.log

@@ -39,7 +39,7 @@ module task_S(
     parameter CIRCLE_RADIUS = 12; // in pixels
 
     parameter SQUARE_TOP_LEFT_X = 4; 
-    parameter SQUARE_TOP_LEFT_Y = 40; 
+    parameter SQUARE_TOP_LEFT_Y = 38; 
     parameter SQUARE_SIDE_LENGTH = 25;
     parameter LINE_THICKNESS = 3; 
 
@@ -270,10 +270,10 @@ endmodule
 module get_next_check_collision #(
     parameter WIDTH = 96,
     parameter HEIGHT = 64,
-    parameter SQUARE_X   = 4,
-    parameter SQUARE_Y   = 40,
-    parameter SQUARE_SIDE= 20,
-    parameter LINE_THICKNESS   = 3
+    parameter SQUARE_X = 4,
+    parameter SQUARE_Y = 40,
+    parameter SQUARE_SIDE = 20,
+    parameter LINE_THICKNESS = 3
 )(
     input [6:0] circle_x,
     input [6:0] circle_y,
@@ -309,34 +309,34 @@ module get_next_check_collision #(
     // wire [7:0] cmaxx = cx8 + r8;
     // wire [7:0] cmaxy = cy8 + r8;
 
-    // Four band rectangles
+    // Four band square (points of the square)
     parameter X0 = SQUARE_X;
     parameter Y0 = SQUARE_Y;
     parameter X1 = SQUARE_X + SQUARE_SIDE - 1;
     parameter Y1 = SQUARE_Y + SQUARE_SIDE - 1;
     parameter T = LINE_THICKNESS;
 
-    // Precompute the band (currently a rectangle around the circle)
-    // // Left band
-    // wire [7:0] lb_x0 = X0[7:0];
-    // wire [7:0] lb_x1 = X0+T-1;
-    // wire [7:0] lb_y0 = Y0[7:0];
-    // wire [7:0] lb_y1 = Y1[7:0];
-    // // Right band
-    // wire [7:0] rb_x0 = X1-T+1;
-    // wire [7:0] rb_x1 = X1[7:0];
-    // wire [7:0] rb_y0 = Y0[7:0];
-    // wire [7:0] rb_y1 = Y1[7:0];
-    // // Top band
-    // wire [7:0] tb_x0 = X0[7:0];
-    // wire [7:0] tb_x1 = X1[7:0];
-    // wire [7:0] tb_y0 = Y0[7:0];
-    // wire [7:0] tb_y1 = Y0+T-1;
-    // // Bottom band
-    // wire [7:0] bb_x0 = X0[7:0];
-    // wire [7:0] bb_x1 = X1[7:0];
-    // wire [7:0] bb_y0 = Y1-T+1;
-    // wire [7:0] bb_y1 = Y1[7:0];
+    // band the 4 boundary areas (which are the 4 walls of the square)
+    // Left band
+    wire [7:0] lb_x0 = X0;
+    wire [7:0] lb_x1 = X0 + T - 1;
+    wire [7:0] lb_y0 = Y0;
+    wire [7:0] lb_y1 = Y1;
+    // Right band
+    wire [7:0] rb_x0 = X1 - T + 1;
+    wire [7:0] rb_x1 = X1;  
+    wire [7:0] rb_y0 = Y0;
+    wire [7:0] rb_y1 = Y1;
+    // Top band
+    wire [7:0] tb_x0 = X0;
+    wire [7:0] tb_x1 = X1;
+    wire [7:0] tb_y0 = Y0;
+    wire [7:0] tb_y1 = Y0 + T - 1;
+    // Bottom band
+    wire [7:0] bb_x0 = X0;
+    wire [7:0] bb_x1 = X1;
+    wire [7:0] bb_y0 = Y1 - T + 1;
+    wire [7:0] bb_y1 = Y1;
 
     // function automatic overlap(input [7:0] ax0, input [7:0] ay0, input [7:0] ax1, input [7:0] ay1,
     //                            input [7:0] bx0, input [7:0] by0, input [7:0] bx1, input [7:0] by1);
@@ -349,35 +349,93 @@ module get_next_check_collision #(
     // wire hit_bottom = overlap(cminx, cminy, cmaxx, cmaxy, bb_x0, bb_y0, bb_x1, bb_y1);
     // wire hits_square = hit_left | hit_right | hit_top | hit_bottom;
 
-    // Four sample points on circle boundary
-    wire [6:0] p_top_x = next_cx;
-    wire [6:0] p_top_y = next_cy - radius;
-    wire [6:0] p_bot_x = next_cx;
-    wire [6:0] p_bot_y = next_cy + radius;
-    wire [6:0] p_left_x = next_cx - radius;
-    wire [6:0] p_left_y = next_cy;
-    wire [6:0] p_right_x = next_cx + radius;
-    wire [6:0] p_right_y = next_cy;
+    // // Four sample points on circle boundary
+    // wire [6:0] p_top_x = next_cx;
+    // wire [6:0] p_top_y = next_cy - radius;
+    // wire [6:0] p_bot_x = next_cx;
+    // wire [6:0] p_bot_y = next_cy + radius;
+    // wire [6:0] p_left_x = next_cx - radius;
+    // wire [6:0] p_left_y = next_cy;
+    // wire [6:0] p_right_x = next_cx + radius;
+    // wire [6:0] p_right_y = next_cy;
 
-    // Point-in-band test (any of the 4 bands)
-    function automatic point_hits_square(input [6:0] px, input [6:0] py);
-        reg in_left, in_right, in_top, in_bottom;
+    // // Point-in-band test (any of the 4 bands)
+    // function automatic point_hits_square(input [6:0] px, input [6:0] py);
+    //     reg in_left, in_right, in_top, in_bottom;
+    //     begin
+    //         in_left = (px >= X0) && (px <= X0+T-1) && (py >= Y0) && (py <= Y1);
+    //         in_right = (px >= X1-T+1) && (px <= X1) && (py >= Y0) && (py <= Y1);
+    //         in_top = (py >= Y0) && (py <= Y0+T-1) && (px >= X0) && (px <= X1);
+    //         in_bottom = (py >= Y1-T+1) && (py <= Y1) && (px >= X0) && (px <= X1);
+    //         point_hits_square = in_left | in_right | in_top | in_bottom;
+    //     end
+    // endfunction
+
+    //     // Four-point collision: acceptable if small diagonal overlap occurs elsewhere
+    // wire hits_square =
+    //       point_hits_square(p_top_x,   p_top_y)
+    //     | point_hits_square(p_bot_x,   p_bot_y)
+    //     | point_hits_square(p_left_x,  p_left_y)
+    //     | point_hits_square(p_right_x, p_right_y);
+
+    // assign can_move = within_walls && !hits_square;
+
+    // Distance^2 from a point to rectangle (0 if inside)
+    function [15:0] dist2_to_rect;
+        input [7:0] px, py;
+        input [7:0] rx0, ry0, rx1, ry1;
+        reg [8:0] dx, dy;
         begin
-            in_left = (px >= X0) && (px <= X0+T-1) && (py >= Y0) && (py <= Y1);
-            in_right = (px >= X1-T+1) && (px <= X1) && (py >= Y0) && (py <= Y1);
-            in_top = (py >= Y0) && (py <= Y0+T-1) && (px >= X0) && (px <= X1);
-            in_bottom = (py >= Y1-T+1) && (py <= Y1) && (px >= X0) && (px <= X1);
-            point_hits_square = in_left | in_right | in_top | in_bottom;
+            if (px < rx0) dx = rx0 - px;
+            else if (px > rx1) dx = px - rx1;
+            else dx = 9'd0;
+
+            if (py < ry0) dy = ry0 - py;
+            else if (py > ry1) dy = py - ry1;
+            else dy = 9'd0;
+
+            dist2_to_rect = dx*dx + dy*dy;
         end
     endfunction
 
-        // Four-point collision: acceptable if small diagonal overlap occurs elsewhere
-    wire hits_square =
-          point_hits_square(p_top_x,   p_top_y)
-        | point_hits_square(p_bot_x,   p_bot_y)
-        | point_hits_square(p_left_x,  p_left_y)
-        | point_hits_square(p_right_x, p_right_y);
+    // Min distance^2 from circle center to union of bands
+    function [15:0] min4; //(find min of 4 values a b c d)
+        input [15:0] a, b, c, d;
+        reg   [15:0] m1, m2;
+        begin
+            m1 = (a < b) ? a : b;
+            m2 = (c < d) ? c : d;
+            min4 = (m1 < m2) ? m1 : m2;
+        end
+    endfunction
 
-    assign can_move = within_walls && !hits_square;
+    wire [7:0] ncx8 = next_cx;
+    wire [7:0] ncy8 = next_cy;
+    wire [7:0] ccx8 = circle_x;
+    wire [7:0] ccy8 = circle_y;
+
+    wire [15:0] d2_left_next = dist2_to_rect(ncx8, ncy8, lb_x0, lb_y0, lb_x1, lb_y1);
+    wire [15:0] d2_right_next = dist2_to_rect(ncx8, ncy8, rb_x0, rb_y0, rb_x1, rb_y1);
+    wire [15:0] d2_top_next = dist2_to_rect(ncx8, ncy8, tb_x0, tb_y0, tb_x1, tb_y1);
+    wire [15:0] d2_bottom_next = dist2_to_rect(ncx8, ncy8, bb_x0, bb_y0, bb_x1, bb_y1);
+    // min_d2_next is smallest sq dist from next center to any of the 4 bands
+    wire [15:0] min_d2_next = min4(d2_left_next, d2_right_next, d2_top_next, d2_bottom_next);
+
+    wire [15:0] d2_left_curr = dist2_to_rect(ccx8, ccy8, lb_x0, lb_y0, lb_x1, lb_y1);
+    wire [15:0] d2_right_curr = dist2_to_rect(ccx8, ccy8, rb_x0, rb_y0, rb_x1, rb_y1);
+    wire [15:0] d2_top_curr = dist2_to_rect(ccx8, ccy8, tb_x0, tb_y0, tb_x1, tb_y1);
+    wire [15:0] d2_bottom_curr = dist2_to_rect(ccx8, ccy8, bb_x0, bb_y0, bb_x1, bb_y1);
+    // as name implies, this is same as above but for current center
+    wire [15:0] min_d2_curr = min4(d2_left_curr, d2_right_curr, d2_top_curr, d2_bottom_curr);
+
+    // to compare against the circle radius^2
+    wire [15:0] r2 = radius * radius;
+
+    // Hitting if center-to-band distance <= radius (i.e. a red pixel would overlap the band)
+    wire hits_next = (min_d2_next <= r2); //circle at the next center would overlap a band since distance<=radius
+    wire hits_curr = (min_d2_curr <= r2); //circle at the current center already overlaps a band
+
+    // Allow the first contact step, then block further penetration
+    assign can_move = within_walls && ( (!hits_next) ); //|| (!hits_curr) );
 
 endmodule

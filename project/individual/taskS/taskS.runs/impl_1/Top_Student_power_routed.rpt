@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
-| Date             : Sun Oct  5 12:38:46 2025
+| Date             : Sun Oct  5 13:19:17 2025
 | Host             : LAPTOP-5OB0NPE4 running 64-bit major release  (build 9200)
 | Command          : report_power -file Top_Student_power_routed.rpt -pb Top_Student_power_summary_routed.pb -rpx Top_Student_power_routed.rpx
 | Design           : Top_Student
@@ -30,10 +30,10 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-| Total On-Chip Power (W)  | 0.081        |
+| Total On-Chip Power (W)  | 0.087        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.010        |
+| Dynamic (W)              | 0.015        |
 | Device Static (W)        | 0.072        |
 | Effective TJA (C/W)      | 5.0          |
 | Max Ambient (C)          | 84.6         |
@@ -52,18 +52,17 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-| Clocks         |     0.001 |        3 |       --- |             --- |
-| Slice Logic    |     0.003 |      833 |       --- |             --- |
-|   LUT as Logic |     0.003 |      484 |     20800 |            2.33 |
-|   CARRY4       |    <0.001 |       66 |      8150 |            0.81 |
+| Clocks         |    <0.001 |        3 |       --- |             --- |
+| Slice Logic    |     0.007 |     1436 |       --- |             --- |
+|   LUT as Logic |     0.006 |      933 |     20800 |            4.49 |
+|   CARRY4       |    <0.001 |      152 |      8150 |            1.87 |
 |   Register     |    <0.001 |      146 |     41600 |            0.35 |
 |   BUFG         |    <0.001 |        1 |        32 |            3.13 |
-|   F7/F8 Muxes  |    <0.001 |        1 |     32600 |           <0.01 |
-|   Others       |     0.000 |       10 |       --- |             --- |
-| Signals        |     0.003 |      600 |       --- |             --- |
+|   Others       |     0.000 |       11 |       --- |             --- |
+| Signals        |     0.006 |     1090 |       --- |             --- |
 | I/O            |     0.002 |       14 |       106 |           13.21 |
 | Static Power   |     0.072 |          |           |                 |
-| Total          |     0.081 |          |           |                 |
+| Total          |     0.087 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -73,9 +72,9 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) |
 +-----------+-------------+-----------+-------------+------------+
-| Vccint    |       1.000 |     0.017 |       0.007 |      0.010 |
+| Vccint    |       1.000 |     0.023 |       0.014 |      0.010 |
 | Vccaux    |       1.800 |     0.013 |       0.000 |      0.013 |
-| Vcco33    |       3.300 |     0.002 |       0.001 |      0.001 |
+| Vcco33    |       3.300 |     0.001 |       0.000 |      0.001 |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |
 | Vcco18    |       1.800 |     0.000 |       0.000 |      0.000 |
 | Vcco15    |       1.500 |     0.000 |       0.000 |      0.000 |
@@ -142,12 +141,12 @@ Table of Contents
 +--------------------------+-----------+
 | Name                     | Power (W) |
 +--------------------------+-----------+
-| Top_Student              |     0.010 |
+| Top_Student              |     0.015 |
 |   clk6p25m_inst          |    <0.001 |
-|   oled_display_inst      |     0.001 |
-|   task_s_inst            |     0.005 |
-|     check_collision_inst |    <0.001 |
-|     circle_test          |     0.004 |
+|   oled_display_inst      |     0.002 |
+|   task_s_inst            |     0.012 |
+|     check_collision_inst |     0.007 |
+|     circle_test          |     0.003 |
 +--------------------------+-----------+
 
 

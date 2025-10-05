@@ -64,37 +64,37 @@ module Task_P(
     localparam MIN_WIDTH  = 30;
     localparam MIN_THICKNESS = 8;
     // Digit offsets
-    localparam LEFT_ROW_OFFSET  = 7;
+    localparam ROW_OFFSET  = 7;
     localparam LEFT_COL_OFFSET  = 22;
-    localparam RIGHT_ROW_OFFSET = 7;
     localparam RIGHT_COL_OFFSET = 60;
 
     // Generate pixel for 2
     wire left_digit = (
         // Top horizontal
-        (y_coord >= LEFT_ROW_OFFSET && y_coord < LEFT_ROW_OFFSET + MIN_THICKNESS &&
+        (y_coord >= ROW_OFFSET && y_coord < ROW_OFFSET + MIN_THICKNESS &&
          x_coord >= LEFT_COL_OFFSET && x_coord < LEFT_COL_OFFSET + MIN_WIDTH) ||
     
         // top right vertical
-        (y_coord >= LEFT_ROW_OFFSET && 
-        y_coord <= LEFT_ROW_OFFSET + MIN_HEIGHT/2 &&
+        (y_coord >= ROW_OFFSET && 
+        y_coord <= ROW_OFFSET + MIN_HEIGHT/2 &&
          x_coord >= LEFT_COL_OFFSET + MIN_WIDTH - MIN_THICKNESS &&
          x_coord <= LEFT_COL_OFFSET + MIN_WIDTH) ||
     
         // Middle horizontal
-        (y_coord >= LEFT_ROW_OFFSET + MIN_HEIGHT/2 - MIN_THICKNESS/2 &&
-         y_coord <= LEFT_ROW_OFFSET + MIN_HEIGHT/2 + MIN_THICKNESS/2 &&
-         x_coord >= LEFT_COL_OFFSET && x_coord < LEFT_COL_OFFSET + MIN_WIDTH) ||
+        (y_coord >= ROW_OFFSET + MIN_HEIGHT/2 - MIN_THICKNESS/2 &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT/2 + MIN_THICKNESS/2 &&
+         x_coord >= LEFT_COL_OFFSET && 
+         x_coord <= LEFT_COL_OFFSET + MIN_WIDTH) ||
     
         // Bottom left vertical
-        (y_coord >= LEFT_ROW_OFFSET + MIN_HEIGHT/2 &&
-         y_coord <= LEFT_ROW_OFFSET + MIN_HEIGHT &&
+        (y_coord >= ROW_OFFSET + MIN_HEIGHT/2 &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT &&
          x_coord >= LEFT_COL_OFFSET &&
          x_coord <= LEFT_COL_OFFSET + MIN_THICKNESS) ||
     
         // Bottom horizontal
-        (y_coord >= LEFT_ROW_OFFSET + MIN_HEIGHT - MIN_THICKNESS &&
-         y_coord <= LEFT_ROW_OFFSET + MIN_HEIGHT &&
+        (y_coord >= ROW_OFFSET + MIN_HEIGHT - MIN_THICKNESS &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT &&
          x_coord >= LEFT_COL_OFFSET &&
          x_coord <= LEFT_COL_OFFSET + MIN_WIDTH)
     );
@@ -102,32 +102,32 @@ module Task_P(
     // Generate pixel for 9
     wire right_digit = (
         // Top horizontal
-        (y_coord >= RIGHT_ROW_OFFSET && 
-         y_coord <= RIGHT_ROW_OFFSET + MIN_THICKNESS &&
+        (y_coord >= ROW_OFFSET && 
+         y_coord <= ROW_OFFSET + MIN_THICKNESS &&
          x_coord >= RIGHT_COL_OFFSET && 
          x_coord <= RIGHT_COL_OFFSET + MIN_WIDTH) ||
     
         // Top right vertical
-        (y_coord >= RIGHT_ROW_OFFSET + MIN_THICKNESS && 
-         y_coord <= RIGHT_ROW_OFFSET + MIN_HEIGHT/2 &&
+        (y_coord >= ROW_OFFSET + MIN_THICKNESS && 
+         y_coord <= ROW_OFFSET + MIN_HEIGHT/2 &&
          x_coord >= RIGHT_COL_OFFSET + MIN_WIDTH - MIN_THICKNESS &&
          x_coord <= RIGHT_COL_OFFSET + MIN_WIDTH) ||
     
         // Middle horizontal
-        (y_coord >= RIGHT_ROW_OFFSET + MIN_HEIGHT/2 - MIN_THICKNESS/2 &&
-         y_coord <= RIGHT_ROW_OFFSET + MIN_HEIGHT/2 + MIN_THICKNESS/2 &&
+        (y_coord >= ROW_OFFSET + MIN_HEIGHT/2 - MIN_THICKNESS/2 &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT/2 + MIN_THICKNESS/2 &&
          x_coord >= RIGHT_COL_OFFSET && 
          x_coord <= RIGHT_COL_OFFSET + MIN_WIDTH) ||
     
         // Bottom right vertical
-        (y_coord >= RIGHT_ROW_OFFSET + MIN_HEIGHT/2 &&
-         y_coord <= RIGHT_ROW_OFFSET + MIN_HEIGHT &&
+        (y_coord >= ROW_OFFSET + MIN_HEIGHT/2 &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT &&
          x_coord >= RIGHT_COL_OFFSET + MIN_WIDTH - MIN_THICKNESS &&
          x_coord <= RIGHT_COL_OFFSET + MIN_WIDTH) ||
     
         // Top left vertical (for the top part of 9)
-        (y_coord >= RIGHT_ROW_OFFSET + MIN_THICKNESS &&
-         y_coord <= RIGHT_ROW_OFFSET + MIN_HEIGHT/2 &&
+        (y_coord >= ROW_OFFSET + MIN_THICKNESS &&
+         y_coord <= ROW_OFFSET + MIN_HEIGHT/2 &&
          x_coord >= RIGHT_COL_OFFSET &&
          x_coord <= RIGHT_COL_OFFSET + MIN_THICKNESS)
     );

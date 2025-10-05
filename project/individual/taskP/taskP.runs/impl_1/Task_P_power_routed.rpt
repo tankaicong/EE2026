@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
-| Date             : Sun Oct  5 12:54:48 2025
+| Date             : Sun Oct  5 13:42:53 2025
 | Host             : Ekko running 64-bit major release  (build 9200)
 | Command          : report_power -file Task_P_power_routed.rpt -pb Task_P_power_summary_routed.pb -rpx Task_P_power_routed.rpx
 | Design           : Task_P
@@ -53,14 +53,14 @@ Table of Contents
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
 | Clocks         |    <0.001 |        3 |       --- |             --- |
-| Slice Logic    |     0.002 |      749 |       --- |             --- |
+| Slice Logic    |     0.002 |      750 |       --- |             --- |
 |   LUT as Logic |     0.002 |      446 |     20800 |            2.14 |
 |   CARRY4       |    <0.001 |       55 |      8150 |            0.67 |
 |   Register     |    <0.001 |      173 |     41600 |            0.42 |
 |   BUFG         |    <0.001 |        1 |        32 |            3.13 |
 |   F7/F8 Muxes  |    <0.001 |        2 |     32600 |           <0.01 |
 |   Others       |     0.000 |        7 |       --- |             --- |
-| Signals        |     0.003 |      735 |       --- |             --- |
+| Signals        |     0.003 |      737 |       --- |             --- |
 | DSPs           |     0.006 |        6 |        90 |            6.67 |
 | I/O            |     0.001 |       11 |       106 |           10.38 |
 | Static Power   |     0.072 |          |           |                 |
@@ -144,7 +144,7 @@ Table of Contents
 | Name        | Power (W) |
 +-------------+-----------+
 | Task_P      |     0.013 |
-|   oled_inst |     0.003 |
+|   oled_inst |     0.004 |
 +-------------+-----------+
 
 

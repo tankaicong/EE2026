@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:03:12 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Sun Oct  5 13:41:15 2025
+# Process ID: 68224
+# Current directory: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/taskP/taskP.runs/synth_1
+# Command line: vivado.exe -log Task_P.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Task_P.tcl
+# Log file: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/taskP/taskP.runs/synth_1/Task_P.vds
+# Journal file: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/taskP/taskP.runs/synth_1\vivado.jou
+#-----------------------------------------------------------
+source Task_P.tcl -notrace

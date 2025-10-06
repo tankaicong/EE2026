@@ -1,4 +1,4 @@
-set_property SRC_FILE_INFO {cfile:C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc rfile:../../../combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc id:1} [current_design]
+set_property SRC_FILE_INFO {cfile:C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc rfile:../../../combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc id:1} [current_design]
 set_property src_info {type:XDC file:1 line:7 export:INPUT save:INPUT read:READ} [current_design]
 set_property -dict { PACKAGE_PIN W5   IOSTANDARD LVCMOS33 } [get_ports clk]
 set_property src_info {type:XDC file:1 line:12 export:INPUT save:INPUT read:READ} [current_design]

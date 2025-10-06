@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="38" Path="C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.xpr">
+<Project Version="7" Minor="38" Path="C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="b41a790bedc946a5860fb4c22093fc75"/>
@@ -69,6 +69,13 @@
         </FileInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/new/Seven_Seg.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../taskP/taskP.srcs/sources_1/new/Task_P.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

@@ -14,40 +14,40 @@ Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: Launching helper process for spawning children vivado processes
-INFO: Helper process launched with PID 36668 
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:300]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:301]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:302]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:303]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:304]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:325]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:326]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:327]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:328]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:329]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:382]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:383]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:384]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:385]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:386]
+INFO: Helper process launched with PID 36444 
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:300]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:301]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:302]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:303]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:304]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:325]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:326]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:327]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:328]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:329]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:382]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:383]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:384]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:385]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:386]
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 369.434 ; gain = 112.488
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 368.855 ; gain = 111.652
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-6157] synthesizing module 'Top_Student' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:13]
-INFO: [Synth 8-6157] synthesizing module 'Seven_Seg' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:23]
-INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:61]
-WARNING: [Synth 8-6014] Unused sequential element clock_enable_381hz_reg was removed.  [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:38]
-WARNING: [Synth 8-6014] Unused sequential element current_digit_reg was removed.  [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:46]
-INFO: [Synth 8-6155] done synthesizing module 'Seven_Seg' (1#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:23]
-INFO: [Synth 8-6157] synthesizing module 'Task_R' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:7]
+INFO: [Synth 8-6157] synthesizing module 'Top_Student' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:13]
+INFO: [Synth 8-6157] synthesizing module 'Seven_Seg' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:23]
+INFO: [Synth 8-226] default block is never used [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:61]
+WARNING: [Synth 8-6014] Unused sequential element clock_enable_381hz_reg was removed.  [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:38]
+WARNING: [Synth 8-6014] Unused sequential element current_digit_reg was removed.  [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:46]
+INFO: [Synth 8-6155] done synthesizing module 'Seven_Seg' (1#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v:23]
+INFO: [Synth 8-6157] synthesizing module 'Task_R' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:7]
 	Parameter CHAR_WIDTH bound to: 16 - type: integer 
 	Parameter CHAR_HEIGHT bound to: 26 - type: integer 
 	Parameter CHAR_THICKNESS bound to: 4 - type: integer 
-WARNING: [Synth 8-567] referenced signal 'r_offset_seven' should be on the sensitivity list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
-WARNING: [Synth 8-567] referenced signal 'c_offset_seven' should be on the sensitivity list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
-WARNING: [Synth 8-567] referenced signal 'r_offset_zero' should be on the sensitivity list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
-WARNING: [Synth 8-567] referenced signal 'c_offset_zero' should be on the sensitivity list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
-INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
+WARNING: [Synth 8-567] referenced signal 'r_offset_seven' should be on the sensitivity list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
+WARNING: [Synth 8-567] referenced signal 'c_offset_seven' should be on the sensitivity list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
+WARNING: [Synth 8-567] referenced signal 'r_offset_zero' should be on the sensitivity list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
+WARNING: [Synth 8-567] referenced signal 'c_offset_zero' should be on the sensitivity list [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:55]
+INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
 	Parameter Width bound to: 96 - type: integer 
 	Parameter Height bound to: 64 - type: integer 
 	Parameter PixelCount bound to: 6144 - type: integer 
@@ -98,15 +98,15 @@ INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/Kenneth/Deskto
 	Parameter SendPixel bound to: 5'b10000 
 	Parameter SpiCommandMaxWidth bound to: 40 - type: integer 
 	Parameter SpiCommandBitCountWidth bound to: 6 - type: integer 
-INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:123]
-INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:198]
-WARNING: [Synth 8-693] zero replication count - replication ignored [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:346]
-INFO: [Synth 8-6155] done synthesizing module 'Oled_Display' (2#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
-INFO: [Synth 8-6155] done synthesizing module 'Task_R' (3#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:7]
-INFO: [Synth 8-6157] synthesizing module 'Task_S' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:14]
-INFO: [Synth 8-6157] synthesizing module 'clk6p25m' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:70]
-INFO: [Synth 8-6155] done synthesizing module 'clk6p25m' (4#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:70]
-INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:92]
+INFO: [Synth 8-226] default block is never used [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:123]
+INFO: [Synth 8-226] default block is never used [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:198]
+WARNING: [Synth 8-693] zero replication count - replication ignored [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:346]
+INFO: [Synth 8-6155] done synthesizing module 'Oled_Display' (2#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
+INFO: [Synth 8-6155] done synthesizing module 'Task_R' (3#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:7]
+INFO: [Synth 8-6157] synthesizing module 'Task_S' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:14]
+INFO: [Synth 8-6157] synthesizing module 'clk6p25m' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:70]
+INFO: [Synth 8-6155] done synthesizing module 'clk6p25m' (4#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:70]
+INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:92]
 	Parameter SCREEN_WIDTH bound to: 96 - type: integer 
 	Parameter SCREEN_HEIGHT bound to: 64 - type: integer 
 	Parameter SCREEN_CENTER_X bound to: 48 - type: integer 
@@ -127,9 +127,9 @@ INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/Kenneth/Desktop/ee20
 	Parameter CHAR_TOP_LEFT_X bound to: 12 - type: integer 
 	Parameter CHAR_TOP_LEFT_Y bound to: 44 - type: integer 
 	Parameter MOVE_EVERY_FRAMES bound to: 24 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'identify_circle' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:267]
-INFO: [Synth 8-6155] done synthesizing module 'identify_circle' (5#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:267]
-INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:290]
+INFO: [Synth 8-6157] synthesizing module 'identify_circle' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:267]
+INFO: [Synth 8-6155] done synthesizing module 'identify_circle' (5#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:267]
+INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:290]
 	Parameter TOP_LEFT_X bound to: 4 - type: integer 
 	Parameter TOP_LEFT_Y bound to: 38 - type: integer 
 	Parameter SIDE_LENGTH bound to: 25 - type: integer 
@@ -139,8 +139,8 @@ INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/Ke
 	Parameter X1 bound to: 28 - type: integer 
 	Parameter Y1 bound to: 62 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'identify_square_boundary' (6#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:290]
-INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:314]
+INFO: [Synth 8-6155] done synthesizing module 'identify_square_boundary' (6#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:290]
+INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:314]
 	Parameter TOP_LEFT_X bound to: 12 - type: integer 
 	Parameter TOP_LEFT_Y bound to: 44 - type: integer 
 	Parameter WIDTH bound to: 8 - type: integer 
@@ -151,8 +151,8 @@ INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/Kennet
 	Parameter RX1 bound to: 19 - type: integer 
 	Parameter RY1 bound to: 55 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'identify_rect_border' (7#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:314]
-INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:339]
+INFO: [Synth 8-6155] done synthesizing module 'identify_rect_border' (7#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:314]
+INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:339]
 	Parameter WIDTH bound to: 96 - type: integer 
 	Parameter HEIGHT bound to: 64 - type: integer 
 	Parameter SQUARE_X bound to: 4 - type: integer 
@@ -164,12 +164,34 @@ INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/Ke
 	Parameter X1 bound to: 28 - type: integer 
 	Parameter Y1 bound to: 62 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'get_next_check_collision' (8#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:339]
-INFO: [Synth 8-6155] done synthesizing module 'task_S' (9#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:92]
-INFO: [Synth 8-6155] done synthesizing module 'Task_S' (10#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:14]
-WARNING: [Synth 8-3848] Net JB_Q in module/entity Top_Student does not have driver. [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:24]
-WARNING: [Synth 8-3848] Net JB_P in module/entity Top_Student does not have driver. [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:25]
-INFO: [Synth 8-6155] done synthesizing module 'Top_Student' (11#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:13]
+INFO: [Synth 8-6155] done synthesizing module 'get_next_check_collision' (8#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:339]
+INFO: [Synth 8-6155] done synthesizing module 'task_S' (9#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:92]
+INFO: [Synth 8-6155] done synthesizing module 'Task_S' (10#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:14]
+INFO: [Synth 8-6157] synthesizing module 'Task_P' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_P.v:8]
+	Parameter Width bound to: 96 - type: integer 
+	Parameter Height bound to: 64 - type: integer 
+	Parameter PixelCount bound to: 6144 - type: integer 
+	Parameter CIRCLE_X bound to: 10 - type: integer 
+	Parameter CIRCLE_Y bound to: 10 - type: integer 
+	Parameter CIRCLE_R bound to: 8 - type: integer 
+	Parameter MIN_HEIGHT bound to: 50 - type: integer 
+	Parameter MIN_WIDTH bound to: 30 - type: integer 
+	Parameter MIN_THICKNESS bound to: 8 - type: integer 
+	Parameter ROW_OFFSET bound to: 7 - type: integer 
+	Parameter LEFT_COL_OFFSET bound to: 22 - type: integer 
+	Parameter RIGHT_COL_OFFSET bound to: 60 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'Task_P' (11#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_P.v:8]
+INFO: [Synth 8-6157] synthesizing module 'Task_Q' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:64]
+INFO: [Synth 8-6157] synthesizing module 'screen_625mhz' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:13]
+INFO: [Synth 8-6155] done synthesizing module 'screen_625mhz' (12#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:13]
+INFO: [Synth 8-6157] synthesizing module 'btn_debounce' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:37]
+INFO: [Synth 8-6155] done synthesizing module 'btn_debounce' (13#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:37]
+INFO: [Synth 8-6157] synthesizing module 'next_color' [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:23]
+INFO: [Synth 8-6155] done synthesizing module 'next_color' (14#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:23]
+INFO: [Synth 8-6155] done synthesizing module 'Task_Q' (15#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_Q.v:64]
+INFO: [Synth 8-6155] done synthesizing module 'Top_Student' (16#1) [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v:13]
+WARNING: [Synth 8-3331] design Task_Q has unconnected port JB[2]
+WARNING: [Synth 8-3331] design Task_P has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Task_S has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Task_R has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[11]
@@ -183,7 +205,7 @@ WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[4]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[0]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 406.609 ; gain = 149.664
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 408.957 ; gain = 151.754
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -196,54 +218,56 @@ Report Check Netlist:
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 406.609 ; gain = 149.664
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 408.957 ; gain = 151.754
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 406.609 ; gain = 149.664
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 408.957 ; gain = 151.754
 ---------------------------------------------------------------------------------
 INFO: [Device 21-403] Loading part xc7a35tcpg236-1
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
 Initializing timing engine
-Parsing XDC File [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
-Finished Parsing XDC File [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
-INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/Top_Student_propImpl.xdc].
+Parsing XDC File [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+Finished Parsing XDC File [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/Top_Student_propImpl.xdc].
 Resolution: To avoid this warning, move constraints listed in [.Xil/Top_Student_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Completed Processing XDC Constraints
 
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 740.348 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 751.789 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 740.348 ; gain = 483.402
+Finished Constraint Validation : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 751.789 ; gain = 494.586
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7a35tcpg236-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 740.348 ; gain = 483.402
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 751.789 ; gain = 494.586
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:09 ; elapsed = 00:00:11 . Memory (MB): peak = 740.348 ; gain = 483.402
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 751.789 ; gain = 494.586
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'Oled_Display'
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
 INFO: [Synth 8-5544] ROM "fsm_next_state0" won't be mapped to Block RAM because address size (1) smaller than threshold (5)
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:110]
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:94]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:110]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v:94]
 INFO: [Synth 8-5544] ROM "slow_clk" won't be mapped to Block RAM because address size (3) smaller than threshold (5)
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:282]
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:281]
-DSP Debug: swapped A/B pins for adder 000002D8B6164D30
-DSP Debug: swapped A/B pins for adder 000002D8B6165E70
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:282]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v:281]
+DSP Debug: swapped A/B pins for adder 00000195128F0560
+DSP Debug: swapped A/B pins for adder 00000195128F1100
 INFO: [Synth 8-5546] ROM "move_now" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5544] ROM "clk6p25m" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5546] ROM "screen0" won't be mapped to RAM because it is too sparse
 ---------------------------------------------------------------------------------------------------
                    State |                     New Encoding |                Previous Encoding 
 ---------------------------------------------------------------------------------------------------
@@ -282,7 +306,7 @@ INFO: [Synth 8-5546] ROM "move_now" won't be mapped to RAM because it is too spa
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'Oled_Display'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:09 ; elapsed = 00:00:12 . Memory (MB): peak = 740.348 ; gain = 483.402
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:14 ; elapsed = 00:00:17 . Memory (MB): peak = 751.789 ; gain = 494.586
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -295,47 +319,56 @@ Start RTL Component Statistics
 ---------------------------------------------------------------------------------
 Detailed RTL Component Info : 
 +---Adders : 
-	   2 Input     32 Bit       Adders := 2     
-	   2 Input     17 Bit       Adders := 2     
+	   2 Input     32 Bit       Adders := 5     
+	   2 Input     17 Bit       Adders := 4     
 	   3 Input     10 Bit       Adders := 1     
 	   2 Input      9 Bit       Adders := 17    
 	   2 Input      8 Bit       Adders := 6     
 	   3 Input      8 Bit       Adders := 2     
 	   2 Input      7 Bit       Adders := 5     
-	   2 Input      6 Bit       Adders := 2     
-	   2 Input      3 Bit       Adders := 2     
+	   2 Input      6 Bit       Adders := 4     
+	   2 Input      5 Bit       Adders := 1     
+	   2 Input      4 Bit       Adders := 1     
+	   2 Input      3 Bit       Adders := 5     
 	   2 Input      2 Bit       Adders := 1     
 +---Registers : 
-	               40 Bit    Registers := 2     
-	               17 Bit    Registers := 2     
-	               16 Bit    Registers := 1     
+	               40 Bit    Registers := 4     
+	               17 Bit    Registers := 4     
+	               16 Bit    Registers := 2     
 	                8 Bit    Registers := 11    
 	                7 Bit    Registers := 3     
-	                6 Bit    Registers := 2     
-	                4 Bit    Registers := 1     
-	                3 Bit    Registers := 2     
+	                6 Bit    Registers := 4     
+	                5 Bit    Registers := 1     
+	                4 Bit    Registers := 2     
+	                3 Bit    Registers := 5     
 	                2 Bit    Registers := 2     
-	                1 Bit    Registers := 3     
+	                1 Bit    Registers := 18    
++---Multipliers : 
+	                32x32  Multipliers := 2     
 +---Muxes : 
-	   2 Input     40 Bit        Muxes := 6     
-	  32 Input     32 Bit        Muxes := 2     
-	   2 Input     32 Bit        Muxes := 4     
-	  32 Input     20 Bit        Muxes := 2     
-	   2 Input     17 Bit        Muxes := 2     
-	   3 Input     16 Bit        Muxes := 1     
-	   2 Input     16 Bit        Muxes := 6     
+	   2 Input     40 Bit        Muxes := 12    
+	  32 Input     32 Bit        Muxes := 4     
+	   2 Input     32 Bit        Muxes := 8     
+	  32 Input     20 Bit        Muxes := 4     
+	   2 Input     17 Bit        Muxes := 4     
+	   3 Input     16 Bit        Muxes := 2     
+	   2 Input     16 Bit        Muxes := 10    
+	   6 Input     16 Bit        Muxes := 3     
+	   4 Input     16 Bit        Muxes := 1     
 	   2 Input      9 Bit        Muxes := 8     
 	   2 Input      8 Bit        Muxes := 6     
 	   2 Input      7 Bit        Muxes := 2     
-	  32 Input      6 Bit        Muxes := 2     
-	   2 Input      6 Bit        Muxes := 2     
+	  32 Input      6 Bit        Muxes := 4     
+	   2 Input      6 Bit        Muxes := 4     
 	   4 Input      5 Bit        Muxes := 1     
-	   2 Input      5 Bit        Muxes := 4     
-	  32 Input      5 Bit        Muxes := 2     
+	   2 Input      5 Bit        Muxes := 9     
+	  32 Input      5 Bit        Muxes := 4     
 	   4 Input      4 Bit        Muxes := 1     
+	   2 Input      4 Bit        Muxes := 1     
 	   2 Input      3 Bit        Muxes := 1     
+	   3 Input      3 Bit        Muxes := 2     
 	   2 Input      2 Bit        Muxes := 7     
-	   2 Input      1 Bit        Muxes := 18    
+	   2 Input      1 Bit        Muxes := 38    
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -431,6 +464,53 @@ Detailed RTL Component Info :
 	   2 Input     16 Bit        Muxes := 2     
 	   2 Input      2 Bit        Muxes := 3     
 	   2 Input      1 Bit        Muxes := 7     
+Module Task_P 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     32 Bit       Adders := 3     
+	   2 Input      4 Bit       Adders := 1     
++---Registers : 
+	                4 Bit    Registers := 1     
+	                1 Bit    Registers := 5     
++---Multipliers : 
+	                32x32  Multipliers := 2     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 2     
+	   3 Input     16 Bit        Muxes := 1     
+	   2 Input      4 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 3     
+Module screen_625mhz 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      5 Bit       Adders := 1     
++---Registers : 
+	                5 Bit    Registers := 1     
+	                1 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      5 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module btn_debounce 
+Detailed RTL Component Info : 
++---Registers : 
+	                1 Bit    Registers := 3     
++---Muxes : 
+	   2 Input      1 Bit        Muxes := 2     
+Module next_color 
+Detailed RTL Component Info : 
++---Muxes : 
+	   6 Input     16 Bit        Muxes := 1     
+Module Task_Q 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      3 Bit       Adders := 3     
++---Registers : 
+	               16 Bit    Registers := 1     
+	                3 Bit    Registers := 3     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 2     
+	   4 Input     16 Bit        Muxes := 1     
+	   3 Input      3 Bit        Muxes := 2     
+	   2 Input      1 Bit        Muxes := 6     
 ---------------------------------------------------------------------------------
 Finished RTL Hierarchical Component Statistics
 ---------------------------------------------------------------------------------
@@ -452,6 +532,38 @@ INFO: [Synth 8-5546] ROM "disp/fsm_next_state0" won't be mapped to RAM because i
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
 INFO: [Synth 8-5546] ROM "move_now" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "oled_inst/fsm_next_state0" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "oled_inst/fsm_next_state0" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5845] Not enough pipeline registers after wide multiplier. Recommended levels of pipeline registers is 4 [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_P.v:52]
+INFO: [Synth 8-5845] Not enough pipeline registers after wide multiplier. Recommended levels of pipeline registers is 4 [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_P.v:51]
+DSP Report: Generating DSP circle_pixel1, operation Mode is: A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: Generating DSP circle_pixel1, operation Mode is: (PCIN>>17)+A*B.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+DSP Report: operator circle_pixel1 is absorbed into DSP circle_pixel1.
+INFO: [Synth 8-5546] ROM "oled/fsm_next_state0" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "oled/fsm_next_state0" won't be mapped to RAM because it is too sparse
+WARNING: [Synth 8-3331] design Task_Q has unconnected port JB[2]
+WARNING: [Synth 8-3331] design Task_P has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Task_S has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Task_R has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[11]
@@ -464,18 +576,31 @@ WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[5]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[4]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[0]
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[0]' (FDE) to 'taskQ/pixel_data_reg[4]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[0]' (FDCE) to 'taskS/task_s_inst/pix_reg[4]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[1]' (FDE) to 'taskQ/pixel_data_reg[4]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[1]' (FDCE) to 'taskS/task_s_inst/pix_reg[4]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[2]' (FDE) to 'taskQ/pixel_data_reg[4]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[2]' (FDCE) to 'taskS/task_s_inst/pix_reg[4]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[3]' (FDE) to 'taskQ/pixel_data_reg[4]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[3]' (FDCE) to 'taskS/task_s_inst/pix_reg[4]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[5]' (FDE) to 'taskQ/pixel_data_reg[10]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[5]' (FDCE) to 'taskS/task_s_inst/pix_reg[10]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[6]' (FDE) to 'taskQ/pixel_data_reg[10]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[6]' (FDCE) to 'taskS/task_s_inst/pix_reg[10]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[7]' (FDE) to 'taskQ/pixel_data_reg[10]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[7]' (FDCE) to 'taskS/task_s_inst/pix_reg[10]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[8]' (FDE) to 'taskQ/pixel_data_reg[10]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[8]' (FDCE) to 'taskS/task_s_inst/pix_reg[10]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[9]' (FDE) to 'taskQ/pixel_data_reg[10]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[9]' (FDCE) to 'taskS/task_s_inst/pix_reg[10]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[11]' (FDE) to 'taskQ/pixel_data_reg[15]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[11]' (FDCE) to 'taskS/task_s_inst/pix_reg[15]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[12]' (FDE) to 'taskQ/pixel_data_reg[15]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[12]' (FDCE) to 'taskS/task_s_inst/pix_reg[15]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[13]' (FDE) to 'taskQ/pixel_data_reg[15]'
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[13]' (FDCE) to 'taskS/task_s_inst/pix_reg[15]'
+INFO: [Synth 8-3886] merging instance 'taskQ/pixel_data_reg[14]' (FDE) to 'taskQ/pixel_data_reg[15]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_c_offset_zero_reg[0]' (FDRE) to 'taskR/next_r_offset_seven_reg[2]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_c_offset_zero_reg[1]' (FDRE) to 'taskR/next_r_offset_seven_reg[2]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_c_offset_zero_reg[2]' (FDRE) to 'taskR/next_r_offset_seven_reg[2]'
@@ -488,10 +613,10 @@ INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[0]' (FDSE) 
 INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[1]' (FDSE) to 'taskR/next_r_offset_seven_reg[4]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[2]' (FDRE) to 'taskR/next_r_offset_seven_reg[3]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[3]' (FDRE) to 'taskR/next_r_offset_seven_reg[5]'
-INFO: [Synth 8-3333] propagating constant 1 across sequential element (\taskR/next_r_offset_seven_reg[4] )
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (taskR/\next_r_offset_seven_reg[4] )
 INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[5]' (FDRE) to 'taskR/next_r_offset_seven_reg[6]'
 INFO: [Synth 8-3886] merging instance 'taskR/next_r_offset_seven_reg[6]' (FDRE) to 'taskR/next_r_offset_seven_reg[7]'
-INFO: [Synth 8-3333] propagating constant 0 across sequential element (\taskR/next_r_offset_seven_reg[7] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (taskR/\next_r_offset_seven_reg[7] )
 INFO: [Synth 8-3886] merging instance 'taskS/task_s_inst/pix_reg[14]' (FDCE) to 'taskS/task_s_inst/pix_reg[15]'
 INFO: [Synth 8-3886] merging instance 'taskR/c_offset_zero_reg[0]' (FDC) to 'taskR/r_offset_seven_reg[7]'
 INFO: [Synth 8-3886] merging instance 'taskR/c_offset_zero_reg[1]' (FDC) to 'taskR/r_offset_seven_reg[7]'
@@ -507,12 +632,34 @@ INFO: [Synth 8-3886] merging instance 'taskR/r_offset_seven_reg[2]' (FDC) to 'ta
 INFO: [Synth 8-3886] merging instance 'taskR/r_offset_seven_reg[3]' (FDC) to 'taskR/r_offset_seven_reg[7]'
 INFO: [Synth 8-3886] merging instance 'taskR/r_offset_seven_reg[5]' (FDC) to 'taskR/r_offset_seven_reg[7]'
 INFO: [Synth 8-3886] merging instance 'taskR/r_offset_seven_reg[6]' (FDC) to 'taskR/r_offset_seven_reg[7]'
-WARNING: [Synth 8-3332] Sequential element (taskR/next_r_offset_seven_reg[4]) is unused and will be removed from module Top_Student.
-WARNING: [Synth 8-3332] Sequential element (taskR/next_r_offset_seven_reg[7]) is unused and will be removed from module Top_Student.
-WARNING: [Synth 8-3332] Sequential element (taskR/r_offset_seven_reg[7]) is unused and will be removed from module Top_Student.
-WARNING: [Synth 8-3332] Sequential element (taskR/r_offset_seven_reg[4]) is unused and will be removed from module Top_Student.
+WARNING: [Synth 8-3332] Sequential element (next_r_offset_seven_reg[4]) is unused and will be removed from module Task_R.
+WARNING: [Synth 8-3332] Sequential element (next_r_offset_seven_reg[7]) is unused and will be removed from module Task_R.
+WARNING: [Synth 8-3332] Sequential element (r_offset_seven_reg[7]) is unused and will be removed from module Task_R.
+WARNING: [Synth 8-3332] Sequential element (r_offset_seven_reg[4]) is unused and will be removed from module Task_R.
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:16 ; elapsed = 00:00:19 . Memory (MB): peak = 740.348 ; gain = 483.402
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:28 ; elapsed = 00:00:31 . Memory (MB): peak = 751.789 ; gain = 494.586
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+DSP: Preliminary Mapping  Report (see note below)
++------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name | DSP Mapping    | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Task_P      | A*B            | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | (PCIN>>17)+A*B | 16     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | A*B            | 18     | 18     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | (PCIN>>17)+A*B | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | A*B            | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | (PCIN>>17)+A*B | 16     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | A*B            | 18     | 18     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|Task_P      | (PCIN>>17)+A*B | 18     | 16     | -      | -      | 48     | 0    | 0    | -    | -    | -     | 0    | 0    | 
++------------+----------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -524,13 +671,13 @@ Report RTL Partitions:
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:24 ; elapsed = 00:00:29 . Memory (MB): peak = 746.180 ; gain = 489.234
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:42 ; elapsed = 00:00:46 . Memory (MB): peak = 798.633 ; gain = 541.430
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:26 ; elapsed = 00:00:31 . Memory (MB): peak = 802.617 ; gain = 545.672
+Finished Timing Optimization : Time (s): cpu = 00:00:45 ; elapsed = 00:00:49 . Memory (MB): peak = 855.965 ; gain = 598.762
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -544,7 +691,7 @@ Start Technology Mapping
 INFO: [Synth 8-3886] merging instance 'ss/an_reg[2]' (FDE) to 'ss/seg_reg[7]'
 INFO: [Synth 8-3886] merging instance 'ss/seg_reg[0]' (FDE) to 'ss/seg_reg[3]'
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:27 ; elapsed = 00:00:32 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Technology Mapping : Time (s): cpu = 00:00:47 ; elapsed = 00:00:52 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -564,11 +711,13 @@ Finished Flattening Before IO Insertion
 ---------------------------------------------------------------------------------
 Start Final Netlist Cleanup
 ---------------------------------------------------------------------------------
+INFO: [Synth 8-6064] Net n_0_1663 is driving 70 big block pins (URAM, BRAM and DSP loads). Created 7 replicas of its driver. 
+INFO: [Synth 8-6064] Net \taskP/circle_pixel2 [16] is driving 70 big block pins (URAM, BRAM and DSP loads). Created 7 replicas of its driver. 
 ---------------------------------------------------------------------------------
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished IO Insertion : Time (s): cpu = 00:00:48 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -581,7 +730,7 @@ Report Check Netlist:
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:48 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -593,25 +742,25 @@ Report RTL Partitions:
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:49 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:49 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:49 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:49 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -624,64 +773,73 @@ Report BlackBoxes:
 +-+--------------+----------+
 
 Report Cell Usage: 
-+------+-------+------+
-|      |Cell   |Count |
-+------+-------+------+
-|1     |BUFG   |     3|
-|2     |CARRY4 |   238|
-|3     |LUT1   |    40|
-|4     |LUT2   |   438|
-|5     |LUT3   |   176|
-|6     |LUT4   |   272|
-|7     |LUT5   |   242|
-|8     |LUT6   |   488|
-|9     |MUXF7  |     1|
-|10    |FDCE   |    40|
-|11    |FDPE   |     3|
-|12    |FDRE   |   300|
-|13    |FDRE_1 |    62|
-|14    |FDSE_1 |     2|
-|15    |IBUF   |     9|
-|16    |OBUF   |    20|
-+------+-------+------+
++------+--------+------+
+|      |Cell    |Count |
++------+--------+------+
+|1     |BUFG    |     5|
+|2     |CARRY4  |   339|
+|3     |DSP48E1 |     6|
+|4     |LUT1    |    75|
+|5     |LUT2    |   716|
+|6     |LUT3    |   306|
+|7     |LUT4    |   369|
+|8     |LUT5    |   365|
+|9     |LUT6    |   745|
+|10    |MUXF7   |     2|
+|11    |FDCE    |    97|
+|12    |FDPE    |     5|
+|13    |FDRE    |   568|
+|14    |FDRE_1  |   124|
+|15    |FDSE_1  |     4|
+|16    |IBUF    |    12|
+|17    |OBUF    |    20|
++------+--------+------+
 
 Report Instance Areas: 
 +------+---------------------------+-------------------------+------+
 |      |Instance                   |Module                   |Cells |
 +------+---------------------------+-------------------------+------+
-|1     |top                        |                         |  2334|
+|1     |top                        |                         |  3758|
 |2     |  ss                       |Seven_Seg                |    51|
-|3     |  taskR                    |Task_R                   |   823|
-|4     |    disp                   |Oled_Display_0           |   562|
-|5     |  taskS                    |Task_S                   |  1421|
-|6     |    clk6p25m_inst          |clk6p25m                 |     8|
-|7     |    oled_display_inst      |Oled_Display             |   441|
-|8     |    task_s_inst            |task_S                   |   972|
-|9     |      check_collision_inst |get_next_check_collision |   630|
-|10    |      circle_test          |identify_circle          |   233|
+|3     |  taskP                    |Task_P                   |   777|
+|4     |    oled_inst              |Oled_Display_4           |   561|
+|5     |  taskQ                    |Task_Q                   |   649|
+|6     |    bC                     |btn_debounce             |    49|
+|7     |    bL                     |btn_debounce_1           |    49|
+|8     |    bR                     |btn_debounce_2           |    49|
+|9     |    oled                   |Oled_Display_3           |   451|
+|10    |    scr                    |screen_625mhz            |    13|
+|11    |  taskR                    |Task_R                   |   817|
+|12    |    disp                   |Oled_Display_0           |   601|
+|13    |  taskS                    |Task_S                   |  1408|
+|14    |    clk6p25m_inst          |clk6p25m                 |     8|
+|15    |    oled_display_inst      |Oled_Display             |   436|
+|16    |    task_s_inst            |task_S                   |   964|
+|17    |      check_collision_inst |get_next_check_collision |   622|
+|18    |      circle_test          |identify_circle          |   235|
 +------+---------------------------+-------------------------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:49 ; elapsed = 00:00:53 . Memory (MB): peak = 936.086 ; gain = 678.883
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 0 critical warnings and 16 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:21 ; elapsed = 00:00:27 . Memory (MB): peak = 846.559 ; gain = 255.875
-Synthesis Optimization Complete : Time (s): cpu = 00:00:28 ; elapsed = 00:00:33 . Memory (MB): peak = 846.559 ; gain = 589.613
+Synthesis finished with 0 errors, 0 critical warnings and 18 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:39 ; elapsed = 00:00:45 . Memory (MB): peak = 936.086 ; gain = 336.051
+Synthesis Optimization Complete : Time (s): cpu = 00:00:49 ; elapsed = 00:00:54 . Memory (MB): peak = 936.086 ; gain = 678.883
 INFO: [Project 1-571] Translating synthesized netlist
-INFO: [Netlist 29-17] Analyzing 312 Unisim elements for replacement
-INFO: [Netlist 29-28] Unisim Transformation completed in 1 CPU seconds
+INFO: [Netlist 29-17] Analyzing 487 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
 INFO: [Project 1-111] Unisim Transformation Summary:
-  A total of 64 instances were transformed.
-  FDRE_1 => FDRE (inverted pins: C): 62 instances
-  FDSE_1 => FDSE (inverted pins: C): 2 instances
+  A total of 128 instances were transformed.
+  FDRE_1 => FDRE (inverted pins: C): 124 instances
+  FDSE_1 => FDSE (inverted pins: C): 4 instances
 
 INFO: [Common 17-83] Releasing license: Synthesis
-98 Infos, 52 Warnings, 0 Critical Warnings and 0 Errors encountered.
+131 Infos, 54 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:31 ; elapsed = 00:00:36 . Memory (MB): peak = 846.559 ; gain = 602.438
+synth_design: Time (s): cpu = 00:00:52 ; elapsed = 00:00:57 . Memory (MB): peak = 936.086 ; gain = 691.949
 WARNING: [Constraints 18-5210] No constraint will be written out.
-INFO: [Common 17-1381] The checkpoint 'C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/combined/combined.runs/synth_1/Top_Student.dcp' has been generated.
+INFO: [Common 17-1381] The checkpoint 'C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.runs/synth_1/Top_Student.dcp' has been generated.
 INFO: [runtcl-4] Executing : report_utilization -file Top_Student_utilization_synth.rpt -pb Top_Student_utilization_synth.pb
-report_utilization: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.040 . Memory (MB): peak = 846.559 ; gain = 0.000
-INFO: [Common 17-206] Exiting Vivado at Mon Oct  6 23:00:39 2025...
+report_utilization: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.047 . Memory (MB): peak = 936.086 ; gain = 0.000
+INFO: [Common 17-206] Exiting Vivado at Tue Oct  7 03:11:31 2025...

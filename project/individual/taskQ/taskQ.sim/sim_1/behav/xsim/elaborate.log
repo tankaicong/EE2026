@@ -1,0 +1,11 @@
+Vivado Simulator 2018.2
+Copyright 1986-1999, 2001-2018 Xilinx, Inc. All Rights Reserved.
+Running: C:/Users/joelk/Documents/Xilinx/Vivado/2018.2/bin/unwrapped/win64.o/xelab.exe -wto a05e7090b1a8447389b068e4603a88d0 --incr --debug typical --relax --mt 2 -L blk_mem_gen_v8_4_1 -L xil_defaultlib -L unisims_ver -L unimacro_ver -L secureip -L xpm --snapshot proj_lab_sim_behav xil_defaultlib.proj_lab_sim xil_defaultlib.glbl -log elaborate.log 
+Using 2 slave threads.
+Starting static elaboration
+ERROR: [VRFC 10-426] cannot find port clk on this module [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/taskQ/taskQ.srcs/sim_1/new/proj_lab_sim.v:33]
+ERROR: [VRFC 10-2063] Module <screen_625mhz> not found while processing module instance <scr> [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/taskQ/taskQ.srcs/sources_1/new/Top_Student.v:70]
+ERROR: [VRFC 10-2063] Module <Oled_Display> not found while processing module instance <oled> [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/taskQ/taskQ.srcs/sources_1/new/Top_Student.v:76]
+ERROR: [VRFC 10-2063] Module <btn_debounce> not found while processing module instance <bC> [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/taskQ/taskQ.srcs/sources_1/new/Top_Student.v:91]
+ERROR: [VRFC 10-2063] Module <next_color> not found while processing module instance <leftnc> [C:/Users/joelk/Documents/ee_files/EE2026/project/individual/taskQ/taskQ.srcs/sources_1/new/Top_Student.v:95]
+ERROR: [XSIM 43-3322] Static elaboration of top level Verilog design unit(s) in library work failed.

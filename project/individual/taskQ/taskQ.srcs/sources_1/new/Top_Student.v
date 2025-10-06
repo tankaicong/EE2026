@@ -36,25 +36,26 @@ endmodule
 
 module btn_debounce(input btn, input CLOCK, output reg db_btn);     // Debounce for 200ms
     reg [24:0] count = 25'b0;
-    reg locked = 0, started = 0;
+    reg locked = 0, hold = 0;
     always @ (posedge CLOCK) begin
         db_btn <= 0;
-        if (btn == 1 && locked == 0 && started == 0) begin
-            db_btn <= 1;
-            count <= count + 1;
-            locked <= 1;
-            started <= 1;
-        end
-        if (started == 1) begin
+        if (locked == 1) begin
             if (count < 25'd20000000) begin
                 count <= count + 1;
             end
             else begin
-                started <= 0;
+                count <= 0;
+                locked <= 0;
             end
         end
-        if (btn == 0 && locked == 1) begin
-            locked <= 0;
+        else if (btn == 1 && locked == 0 && hold == 0) begin
+            db_btn <= 1;
+            count <= count + 1;
+            locked <= 1;
+            hold <= 1;
+        end
+        else if (btn == 0 && hold == 1) begin
+            hold <= 0;
         end
     end
 endmodule
@@ -62,21 +63,22 @@ endmodule
 
 module Top_Student (
     input CLOCK,
+    input sw_rst,
     input [2:0] btn,
-    output [7:0] JC
+    output [7:0] JB
 );
     wire scr_clk;
     screen_625mhz scr(CLOCK, scr_clk);
     
     wire [12:0] pixel_index;
-    wire frame_begin, sending_pixels;
+    wire frame_begin, sending_pixels, sample_pixel;
     reg [15:0] pixel_data;
 
-    Oled_Display oled(.clk(scr_clk), .reset(1'b0),
+    Oled_Display oled(.clk(scr_clk), .reset(sw_rst),
     .frame_begin(frame_begin), .sending_pixels(sending_pixels),
     .sample_pixel(sample_pixel), .pixel_index(pixel_index), .pixel_data(pixel_data),
-    .cs(JC[0]), .sdin(JC[1]), .sclk(JC[3]),
-    .d_cn(JC[4]), .resn(JC[5]), .vccen(JC[6]), .pmoden(JC[7]));
+    .cs(JB[0]), .sdin(JB[1]), .sclk(JB[3]),
+    .d_cn(JB[4]), .resn(JB[5]), .vccen(JB[6]), .pmoden(JB[7]));
     
     reg [2:0] left_state, ctr_state, right_state;
     
@@ -85,6 +87,8 @@ module Top_Student (
     wire [6:0] x, y;
     assign x = pixel_index % 96;
     assign y = pixel_index / 96;
+
+    assign led_test = frame_begin;
 
     wire btnL, btnC, btnR;
     btn_debounce bC(btn[0], CLOCK, btnC);
@@ -115,30 +119,37 @@ module Top_Student (
     end
 
     always @ (posedge CLOCK) begin
-        // Button press
-        if (btnC == 1) begin      // Center button
-            ctr_state <= ctr_state + 1;
-        end
-        if (btnL == 1) begin      // Left button
-            left_state <= left_state + 1;
-        end
-        if (btnR == 1) begin      // Right button
-            right_state <= right_state + 1;
-        end
-        
-        // Loop back to red if overflowed
-        if (left_state > 3'd4) begin
+        if (sw_rst == 1) begin
             left_state <= 3'd0;
+            ctr_state <= 3'd3;
+            right_state <= 3'd1;
         end
-        if (ctr_state > 3'd4) begin
-            ctr_state <= 3'd0;
-        end
-        if (right_state > 3'd4) begin
-            right_state <= 3'd0;
+        else begin                      // Button press
+            if (btnC == 1) begin      // Center button
+                ctr_state <= ctr_state + 1;
+            end
+            if (btnL == 1) begin      // Left button
+                left_state <= left_state + 1;
+            end
+            if (btnR == 1) begin      // Right button
+                right_state <= right_state + 1;
+            end
+            
+            // Loop back to red if overflowed
+            if (left_state > 3'd4) begin
+                left_state <= 3'd0;
+            end
+            if (ctr_state > 3'd4) begin
+                ctr_state <= 3'd0;
+            end
+            if (right_state > 3'd4) begin
+                right_state <= 3'd0;
+            end
         end
     end
     
-    always @ (posedge scr_clk) begin
+    always @ (posedge CLOCK) begin
+    // always @ (posedge frame_begin) begin
         if (left_state == 3'd2 && ctr_state == 3'd4 && right_state == 3'd2) begin
             if (x >= 87 && x <= 93 && y >= 2 && y <= 15) begin
                 pixel_data <= 16'hF81F;
@@ -147,7 +158,7 @@ module Top_Student (
                 pixel_data <= 16'h0000;
             end
         end
-    
+
         if (x >= 9 && x <= 28 && y >= 35 && y <= 54) begin
             pixel_data <= left_color;
         end

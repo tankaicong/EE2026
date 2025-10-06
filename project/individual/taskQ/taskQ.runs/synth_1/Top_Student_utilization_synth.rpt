@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
-| Date         : Sun Oct  5 00:22:37 2025
+| Date         : Tue Oct  7 02:40:46 2025
 | Host         : DESKTOP-2GF0LO4 running 64-bit major release  (build 9200)
 | Command      : report_utilization -file Top_Student_utilization_synth.rpt -pb Top_Student_utilization_synth.pb
 | Design       : Top_Student
@@ -30,8 +30,8 @@ Table of Contents
 +-------------------------+------+-------+-----------+-------+
 |        Site Type        | Used | Fixed | Available | Util% |
 +-------------------------+------+-------+-----------+-------+
-| Slice LUTs*             |  305 |     0 |     20800 |  1.47 |
-|   LUT as Logic          |  305 |     0 |     20800 |  1.47 |
+| Slice LUTs*             |  325 |     0 |     20800 |  1.56 |
+|   LUT as Logic          |  325 |     0 |     20800 |  1.56 |
 |   LUT as Memory         |    0 |     0 |      9600 |  0.00 |
 | Slice Registers         |  217 |     0 |     41600 |  0.52 |
 |   Register as Flip Flop |  217 |     0 |     41600 |  0.52 |
@@ -56,8 +56,8 @@ Table of Contents
 | 0     |          Yes |           - |            - |
 | 0     |          Yes |           - |          Set |
 | 0     |          Yes |           - |        Reset |
-| 0     |          Yes |         Set |            - |
-| 217   |          Yes |       Reset |            - |
+| 1     |          Yes |         Set |            - |
+| 216   |          Yes |       Reset |            - |
 +-------+--------------+-------------+--------------+
 
 
@@ -90,7 +90,7 @@ Table of Contents
 +-----------------------------+------+-------+-----------+-------+
 |          Site Type          | Used | Fixed | Available | Util% |
 +-----------------------------+------+-------+-----------+-------+
-| Bonded IOB                  |   12 |     0 |       106 | 11.32 |
+| Bonded IOB                  |   14 |     0 |       106 | 13.21 |
 | Bonded IPADs                |    0 |     0 |        10 |  0.00 |
 | Bonded OPADs                |    0 |     0 |         4 |  0.00 |
 | PHY_CONTROL                 |    0 |     0 |         5 |  0.00 |
@@ -149,19 +149,20 @@ Table of Contents
 +----------+------+---------------------+
 | Ref Name | Used | Functional Category |
 +----------+------+---------------------+
-| FDRE     |  217 |        Flop & Latch |
-| LUT6     |  111 |                 LUT |
-| LUT4     |   69 |                 LUT |
-| LUT5     |   65 |                 LUT |
-| LUT3     |   57 |                 LUT |
-| LUT2     |   53 |                 LUT |
+| FDRE     |  216 |        Flop & Latch |
+| LUT6     |  129 |                 LUT |
+| LUT2     |   78 |                 LUT |
+| LUT5     |   62 |                 LUT |
+| LUT3     |   54 |                 LUT |
+| LUT4     |   51 |                 LUT |
 | CARRY4   |   46 |          CarryLogic |
-| LUT1     |   20 |                 LUT |
-| OBUF     |    7 |                  IO |
-| IBUF     |    4 |                  IO |
+| LUT1     |   22 |                 LUT |
+| OBUF     |    8 |                  IO |
+| IBUF     |    5 |                  IO |
 | BUFG     |    2 |               Clock |
 | OBUFT    |    1 |                  IO |
 | MUXF7    |    1 |               MuxFx |
+| FDSE     |    1 |        Flop & Latch |
 +----------+------+---------------------+
 
 

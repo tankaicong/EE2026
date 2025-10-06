@@ -21,23 +21,22 @@
 
 
 module proj_lab_sim(
-
     );
 
-    input CLOCK;
-    input [2:0] btn;
-    output [7:0] JC;
+    reg CLOCK = 0;
+    always #1 CLOCK = ~CLOCK;
 
-    Top_Student ts(CLOCK, btn, JC);
+    reg sw_rst;
+    reg [2:0] btn;
+    wire [7:0] JB;
 
-    always begin
-        #5 CLOCK = ~CLOCK;
-    end
+    Top_Student ts(.clk(CLOCK), .sw_rst(sw_rst), .btn(btn), .JB(JB));
 
     initial begin
-        btn = 3'b010; #10;
-        btn = 3'b001; #10;
-        btn = 3'b100; #10;
+        btn = 3'b000;
+        sw_rst = 0;
+        CLOCK = 0;
+        #10;
     end
 
 endmodule

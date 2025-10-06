@@ -1,0 +1,20 @@
+# compile verilog/system verilog design source files
+verilog xil_defaultlib  \
+"../../../../taskQ.srcs/sources_1/ip/blk_mem_gen_const/sim/blk_mem_gen_const.v" \
+"../../../../taskQ.srcs/sources_1/ip/blk_mem_gen_img/sim/blk_mem_gen_img.v" \
+"../../../../taskQ.srcs/sources_1/ip/blk_mem_gen_inter/sim/blk_mem_gen_inter.v" \
+"../../../../taskQ.srcs/sources_1/ip/blk_mem_gen_0_1/sim/blk_mem_gen_0.v" \
+"../../../../taskQ.srcs/sources_1/new/CanvasTransfer.v" \
+"../../../../taskQ.srcs/sources_1/imports/Desktop/Oled_Display.v" \
+"../../../../taskQ.srcs/sources_1/new/Top_Student.v" \
+"../../../../taskQ.srcs/sources_1/new/module_pack.v" \
+"../../../../taskQ.srcs/sources_1/new/neural_net.v" \
+"../../../../taskQ.srcs/sources_1/new/paint.v" \
+"../../../../taskQ.srcs/sources_1/new/ss_display.v" \
+"../../../../taskQ.srcs/sim_1/new/proj_lab_sim.v" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

@@ -14,29 +14,29 @@ Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: Launching helper process for spawning children vivado processes
-INFO: Helper process launched with PID 13228 
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:231]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:232]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:233]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:234]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:235]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:256]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:257]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:258]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:259]
-WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:260]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:313]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:314]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:315]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:316]
-WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:317]
+INFO: Helper process launched with PID 36224 
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:301]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:302]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:303]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:304]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_square_boundary with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:305]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:326]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:327]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:328]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:329]
+WARNING: [Synth 8-2507] parameter declaration becomes local in identify_rect_border with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:330]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:383]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:384]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:385]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:386]
+WARNING: [Synth 8-2507] parameter declaration becomes local in get_next_check_collision with formal parameter declaration list [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:387]
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 368.043 ; gain = 111.387
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:04 . Memory (MB): peak = 367.879 ; gain = 110.992
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-6157] synthesizing module 'Top_Student' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/Top_Student.v:14]
-INFO: [Synth 8-6157] synthesizing module 'clk6p25m' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/Top_Student.v:71]
-INFO: [Synth 8-6155] done synthesizing module 'clk6p25m' (1#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/Top_Student.v:71]
-INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
+INFO: [Synth 8-6157] synthesizing module 'Top_Student' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:14]
+INFO: [Synth 8-6157] synthesizing module 'clk6p25m' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:71]
+INFO: [Synth 8-6155] done synthesizing module 'clk6p25m' (1#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:71]
+INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
 	Parameter Width bound to: 96 - type: integer 
 	Parameter Height bound to: 64 - type: integer 
 	Parameter PixelCount bound to: 6144 - type: integer 
@@ -87,11 +87,11 @@ INFO: [Synth 8-6157] synthesizing module 'Oled_Display' [C:/Users/Kenneth/Docume
 	Parameter SendPixel bound to: 5'b10000 
 	Parameter SpiCommandMaxWidth bound to: 40 - type: integer 
 	Parameter SpiCommandBitCountWidth bound to: 6 - type: integer 
-INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/imports/Desktop/Oled_Display.v:123]
-INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/imports/Desktop/Oled_Display.v:198]
-WARNING: [Synth 8-693] zero replication count - replication ignored [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/imports/Desktop/Oled_Display.v:346]
-INFO: [Synth 8-6155] done synthesizing module 'Oled_Display' (2#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
-INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:23]
+INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/imports/Desktop/Oled_Display.v:123]
+INFO: [Synth 8-226] default block is never used [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/imports/Desktop/Oled_Display.v:198]
+WARNING: [Synth 8-693] zero replication count - replication ignored [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/imports/Desktop/Oled_Display.v:346]
+INFO: [Synth 8-6155] done synthesizing module 'Oled_Display' (2#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/imports/Desktop/Oled_Display.v:36]
+INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:93]
 	Parameter SCREEN_WIDTH bound to: 96 - type: integer 
 	Parameter SCREEN_HEIGHT bound to: 64 - type: integer 
 	Parameter SCREEN_CENTER_X bound to: 48 - type: integer 
@@ -112,9 +112,9 @@ INFO: [Synth 8-6157] synthesizing module 'task_S' [C:/Users/Kenneth/Documents/Vi
 	Parameter CHAR_TOP_LEFT_X bound to: 12 - type: integer 
 	Parameter CHAR_TOP_LEFT_Y bound to: 44 - type: integer 
 	Parameter MOVE_EVERY_FRAMES bound to: 24 - type: integer 
-INFO: [Synth 8-6157] synthesizing module 'identify_circle' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:198]
-INFO: [Synth 8-6155] done synthesizing module 'identify_circle' (3#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:198]
-INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:221]
+INFO: [Synth 8-6157] synthesizing module 'identify_circle' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:268]
+INFO: [Synth 8-6155] done synthesizing module 'identify_circle' (3#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:268]
+INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:291]
 	Parameter TOP_LEFT_X bound to: 4 - type: integer 
 	Parameter TOP_LEFT_Y bound to: 38 - type: integer 
 	Parameter SIDE_LENGTH bound to: 25 - type: integer 
@@ -124,8 +124,8 @@ INFO: [Synth 8-6157] synthesizing module 'identify_square_boundary' [C:/Users/Ke
 	Parameter X1 bound to: 28 - type: integer 
 	Parameter Y1 bound to: 62 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'identify_square_boundary' (4#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:221]
-INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:245]
+INFO: [Synth 8-6155] done synthesizing module 'identify_square_boundary' (4#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:291]
+INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:315]
 	Parameter TOP_LEFT_X bound to: 12 - type: integer 
 	Parameter TOP_LEFT_Y bound to: 44 - type: integer 
 	Parameter WIDTH bound to: 8 - type: integer 
@@ -136,8 +136,8 @@ INFO: [Synth 8-6157] synthesizing module 'identify_rect_border' [C:/Users/Kennet
 	Parameter RX1 bound to: 19 - type: integer 
 	Parameter RY1 bound to: 55 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'identify_rect_border' (5#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:245]
-INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:270]
+INFO: [Synth 8-6155] done synthesizing module 'identify_rect_border' (5#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:315]
+INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:340]
 	Parameter WIDTH bound to: 96 - type: integer 
 	Parameter HEIGHT bound to: 64 - type: integer 
 	Parameter SQUARE_X bound to: 4 - type: integer 
@@ -149,9 +149,9 @@ INFO: [Synth 8-6157] synthesizing module 'get_next_check_collision' [C:/Users/Ke
 	Parameter X1 bound to: 28 - type: integer 
 	Parameter Y1 bound to: 62 - type: integer 
 	Parameter T bound to: 3 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'get_next_check_collision' (6#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:270]
-INFO: [Synth 8-6155] done synthesizing module 'task_S' (7#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:23]
-INFO: [Synth 8-6155] done synthesizing module 'Top_Student' (8#1) [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/Top_Student.v:14]
+INFO: [Synth 8-6155] done synthesizing module 'get_next_check_collision' (6#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:340]
+INFO: [Synth 8-6155] done synthesizing module 'task_S' (7#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:93]
+INFO: [Synth 8-6155] done synthesizing module 'Top_Student' (8#1) [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:14]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port JB[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[15]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[14]
@@ -170,7 +170,7 @@ WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[2]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[1]
 WARNING: [Synth 8-3331] design Top_Student has unconnected port sw[0]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 404.207 ; gain = 147.551
+Finished RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:04 . Memory (MB): peak = 404.086 ; gain = 147.199
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -183,51 +183,51 @@ Report Check Netlist:
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 404.207 ; gain = 147.551
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 404.086 ; gain = 147.199
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:02 ; elapsed = 00:00:03 . Memory (MB): peak = 404.207 ; gain = 147.551
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:03 ; elapsed = 00:00:05 . Memory (MB): peak = 404.086 ; gain = 147.199
 ---------------------------------------------------------------------------------
 INFO: [Device 21-403] Loading part xc7a35tcpg236-1
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
 Initializing timing engine
-Parsing XDC File [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/constrs_1/new/fdp_constraints.xdc]
-Finished Parsing XDC File [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/constrs_1/new/fdp_constraints.xdc]
-INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/constrs_1/new/fdp_constraints.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/Top_Student_propImpl.xdc].
+Parsing XDC File [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/constrs_1/new/fdp_constraints.xdc]
+Finished Parsing XDC File [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/constrs_1/new/fdp_constraints.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/constrs_1/new/fdp_constraints.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/Top_Student_propImpl.xdc].
 Resolution: To avoid this warning, move constraints listed in [.Xil/Top_Student_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Completed Processing XDC Constraints
 
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.003 . Memory (MB): peak = 736.609 ; gain = 0.000
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 737.438 ; gain = 0.000
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:08 ; elapsed = 00:00:11 . Memory (MB): peak = 736.609 ; gain = 479.953
+Finished Constraint Validation : Time (s): cpu = 00:00:10 ; elapsed = 00:00:15 . Memory (MB): peak = 737.438 ; gain = 480.551
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7a35tcpg236-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:08 ; elapsed = 00:00:11 . Memory (MB): peak = 736.609 ; gain = 479.953
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:10 ; elapsed = 00:00:15 . Memory (MB): peak = 737.438 ; gain = 480.551
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:08 ; elapsed = 00:00:11 . Memory (MB): peak = 736.609 ; gain = 479.953
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:10 ; elapsed = 00:00:15 . Memory (MB): peak = 737.438 ; gain = 480.551
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-5544] ROM "slow_clk" won't be mapped to Block RAM because address size (3) smaller than threshold (5)
 INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'Oled_Display'
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
 INFO: [Synth 8-5544] ROM "fsm_next_state0" won't be mapped to Block RAM because address size (1) smaller than threshold (5)
 INFO: [Synth 8-5546] ROM "fsm_next_state0" won't be mapped to RAM because it is too sparse
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:213]
-INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.srcs/sources_1/new/task_S.v:212]
-DSP Debug: swapped A/B pins for adder 00000236D665F490
-DSP Debug: swapped A/B pins for adder 00000236D665FF10
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:283]
+INFO: [Synth 8-5818] HDL ADVISOR - The operator resource <adder> is shared. To prevent sharing consider applying a KEEP on the output of the operator [C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.srcs/sources_1/new/Top_Student.v:282]
+DSP Debug: swapped A/B pins for adder 000002392B76C280
+DSP Debug: swapped A/B pins for adder 000002392B76D0C0
 INFO: [Synth 8-5546] ROM "move_now" won't be mapped to RAM because it is too sparse
 ---------------------------------------------------------------------------------------------------
                    State |                     New Encoding |                Previous Encoding 
@@ -267,7 +267,7 @@ INFO: [Synth 8-5546] ROM "move_now" won't be mapped to RAM because it is too spa
 ---------------------------------------------------------------------------------------------------
 INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'Oled_Display'
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:09 ; elapsed = 00:00:12 . Memory (MB): peak = 736.609 ; gain = 479.953
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:11 ; elapsed = 00:00:16 . Memory (MB): peak = 737.438 ; gain = 480.551
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -429,7 +429,7 @@ INFO: [Synth 8-3886] merging instance 'task_s_inst/pix_reg[12]' (FDCE) to 'task_
 INFO: [Synth 8-3886] merging instance 'task_s_inst/pix_reg[13]' (FDCE) to 'task_s_inst/pix_reg[15]'
 INFO: [Synth 8-3886] merging instance 'task_s_inst/pix_reg[14]' (FDCE) to 'task_s_inst/pix_reg[15]'
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:13 ; elapsed = 00:00:16 . Memory (MB): peak = 736.609 ; gain = 479.953
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:14 ; elapsed = 00:00:20 . Memory (MB): peak = 737.438 ; gain = 480.551
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -441,13 +441,13 @@ Report RTL Partitions:
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:19 ; elapsed = 00:00:24 . Memory (MB): peak = 745.598 ; gain = 488.941
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:20 ; elapsed = 00:00:27 . Memory (MB): peak = 738.895 ; gain = 482.008
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:21 ; elapsed = 00:00:26 . Memory (MB): peak = 799.090 ; gain = 542.434
+Finished Timing Optimization : Time (s): cpu = 00:00:22 ; elapsed = 00:00:29 . Memory (MB): peak = 797.875 ; gain = 540.988
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -459,7 +459,7 @@ Report RTL Partitions:
 Start Technology Mapping
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:22 ; elapsed = 00:00:27 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Technology Mapping : Time (s): cpu = 00:00:23 ; elapsed = 00:00:29 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -483,7 +483,7 @@ Start Final Netlist Cleanup
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished IO Insertion : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -496,7 +496,7 @@ Report Check Netlist:
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -508,25 +508,25 @@ Report RTL Partitions:
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -572,11 +572,11 @@ Report Instance Areas:
 |6     |    circle_test          |identify_circle          |   233|
 +------+-------------------------+-------------------------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 ---------------------------------------------------------------------------------
 Synthesis finished with 0 errors, 0 critical warnings and 17 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:15 ; elapsed = 00:00:21 . Memory (MB): peak = 827.859 ; gain = 238.801
-Synthesis Optimization Complete : Time (s): cpu = 00:00:22 ; elapsed = 00:00:28 . Memory (MB): peak = 827.859 ; gain = 571.203
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:15 ; elapsed = 00:00:22 . Memory (MB): peak = 826.457 ; gain = 236.219
+Synthesis Optimization Complete : Time (s): cpu = 00:00:23 ; elapsed = 00:00:30 . Memory (MB): peak = 826.457 ; gain = 569.570
 INFO: [Project 1-571] Translating synthesized netlist
 INFO: [Netlist 29-17] Analyzing 190 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
@@ -590,9 +590,9 @@ INFO: [Project 1-111] Unisim Transformation Summary:
 INFO: [Common 17-83] Releasing license: Synthesis
 55 Infos, 50 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:24 ; elapsed = 00:00:30 . Memory (MB): peak = 827.859 ; gain = 583.543
+synth_design: Time (s): cpu = 00:00:25 ; elapsed = 00:00:33 . Memory (MB): peak = 826.457 ; gain = 582.770
 WARNING: [Constraints 18-5210] No constraint will be written out.
-INFO: [Common 17-1381] The checkpoint 'C:/Users/Kenneth/Documents/VivadoProjects/FDP/FDP.runs/synth_1/Top_Student.dcp' has been generated.
+INFO: [Common 17-1381] The checkpoint 'C:/Users/Kenneth/Desktop/ee2026/EE2026/project/individual/taskS/taskS.runs/synth_1/Top_Student.dcp' has been generated.
 INFO: [runtcl-4] Executing : report_utilization -file Top_Student_utilization_synth.rpt -pb Top_Student_utilization_synth.pb
-report_utilization: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.052 . Memory (MB): peak = 827.859 ; gain = 0.000
-INFO: [Common 17-206] Exiting Vivado at Sun Oct  5 13:17:55 2025...
+report_utilization: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 826.457 ; gain = 0.000
+INFO: [Common 17-206] Exiting Vivado at Mon Oct  6 22:44:09 2025...

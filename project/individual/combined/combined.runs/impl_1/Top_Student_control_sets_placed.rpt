@@ -1,8 +1,13 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
+<<<<<<< HEAD
 | Date         : Tue Oct  7 03:12:48 2025
 | Host         : DESKTOP-2GF0LO4 running 64-bit major release  (build 9200)
+=======
+| Date         : Tue Oct  7 01:05:53 2025
+| Host         : Ekko running 64-bit major release  (build 9200)
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 | Command      : report_control_sets -verbose -file Top_Student_control_sets_placed.rpt
 | Design       : Top_Student
 | Device       : xc7a35t
@@ -23,8 +28,13 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
+<<<<<<< HEAD
 | Number of unique control sets                            |    37 |
 | Unused register locations in slices containing registers |   128 |
+=======
+| Number of unique control sets                            |    28 |
+| Unused register locations in slices containing registers |    82 |
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 +----------------------------------------------------------+-------+
 
 
@@ -34,10 +44,16 @@ Table of Contents
 +--------+--------------+
 | Fanout | Control Sets |
 +--------+--------------+
+<<<<<<< HEAD
 |      2 |            4 |
 |     10 |            1 |
 |     14 |            1 |
 |    16+ |           31 |
+=======
+|      2 |            3 |
+|     14 |            1 |
+|    16+ |           24 |
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 +--------+--------------+
 
 
@@ -47,18 +63,28 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
+<<<<<<< HEAD
 | No           | No                    | No                     |             100 |           21 |
 | No           | No                    | Yes                    |              62 |           17 |
 | No           | Yes                   | No                     |             514 |           98 |
 | Yes          | No                    | No                     |              24 |            3 |
 | Yes          | No                    | Yes                    |             142 |           22 |
 | Yes          | Yes                   | No                     |             758 |          107 |
+=======
+| No           | No                    | No                     |              54 |           10 |
+| No           | No                    | Yes                    |              62 |           14 |
+| No           | Yes                   | No                     |             380 |           77 |
+| Yes          | No                    | No                     |              24 |            3 |
+| Yes          | No                    | Yes                    |             142 |           22 |
+| Yes          | Yes                   | No                     |             504 |           69 |
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
 4. Detailed Control Set Information
 -----------------------------------
 
+<<<<<<< HEAD
 +-----------------------------------+-------------------------------------------------+-------------------------------------------------+------------------+----------------+
 |            Clock Signal           |                  Enable Signal                  |                 Set/Reset Signal                | Slice Load Count | Bel Load Count |
 +-----------------------------------+-------------------------------------------------+-------------------------------------------------+------------------+----------------+
@@ -100,5 +126,39 @@ Table of Contents
 | ~clk6p25m_0                       |                                                 | taskP/oled_inst/spi_word[39]_i_1__1_n_0         |               21 |             90 |
 |  clk_IBUF_BUFG                    |                                                 |                                                 |               17 |             92 |
 +-----------------------------------+-------------------------------------------------+-------------------------------------------------+------------------+----------------+
+=======
++-----------------------------------+-------------------------------------------------+----------------------------------------------+------------------+----------------+
+|            Clock Signal           |                  Enable Signal                  |               Set/Reset Signal               | Slice Load Count | Bel Load Count |
++-----------------------------------+-------------------------------------------------+----------------------------------------------+------------------+----------------+
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                                                 |                                              |                1 |              2 |
+| ~clk6p25m_0                       |                                                 |                                              |                1 |              2 |
+| ~clk6p25m                         |                                                 |                                              |                1 |              2 |
+|  clk_IBUF_BUFG                    | taskS/oled_display_inst/frame_begin             | taskS/oled_display_inst/AR[0]                |                2 |             14 |
+|  clk_IBUF_BUFG                    |                                                 | taskP/oled_inst/AR[0]                        |                3 |             18 |
+|  clk_IBUF_BUFG                    |                                                 | taskS/oled_display_inst/AR[0]                |                5 |             20 |
+|  clk_IBUF_BUFG                    | ss/seg[6]_i_1_n_0                               |                                              |                3 |             24 |
+|  clk_IBUF_BUFG                    | taskS/task_s_inst/check_collision_inst/E[0]     | taskS/oled_display_inst/AR[0]                |                6 |             28 |
+|  taskR/disp/oled_frame_begin      |                                                 | taskR/disp/AR[0]                             |                7 |             32 |
+|  clk_IBUF_BUFG                    | taskR/offset_seven                              | taskR/disp/AR[0]                             |                5 |             32 |
+|  clk_IBUF_BUFG                    | taskR/offset_zero                               | taskR/disp/AR[0]                             |                5 |             32 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                                                 | taskR/disp/AR[0]                             |                5 |             34 |
+| ~clk6p25m_0                       |                                                 | taskP/oled_inst/AR[0]                        |                4 |             34 |
+| ~clk6p25m                         |                                                 | taskS/oled_display_inst/AR[0]                |                7 |             34 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 | taskR/disp/delay[0]_i_1__0_n_0                  | taskR/disp/AR[0]                             |                5 |             40 |
+| ~clk6p25m_0                       | taskP/oled_inst/delay[0]_i_1__1_n_0             | taskP/oled_inst/AR[0]                        |                5 |             40 |
+| ~clk6p25m                         | taskS/oled_display_inst/delay[0]_i_1_n_0        | taskS/oled_display_inst/AR[0]                |                5 |             40 |
+|  clk_IBUF_BUFG                    |                                                 |                                              |                7 |             48 |
+|  clk_IBUF_BUFG                    | taskP/btnL_counter[0]_i_1_n_0                   | taskP/oled_inst/AR[0]                        |                7 |             50 |
+|  clk_IBUF_BUFG                    | taskP/btnR_counter[0]_i_1_n_0                   | taskP/oled_inst/AR[0]                        |                7 |             50 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 | taskR/disp/FSM_onehot_state[31]_i_2_n_0         | taskR/disp/AR[0]                             |               10 |             64 |
+| ~clk6p25m_0                       | taskP/oled_inst/FSM_onehot_state[31]_i_2__0_n_0 | taskP/oled_inst/AR[0]                        |                9 |             64 |
+| ~clk6p25m                         | taskS/oled_display_inst/state                   | taskS/oled_display_inst/AR[0]                |                9 |             64 |
+|  clk_IBUF_BUFG                    | sw_IBUF[1]                                      | taskR/movement_counter_seven[0]_i_1_n_0      |                8 |             64 |
+|  clk_IBUF_BUFG                    | sw_IBUF[3]                                      | taskR/movement_counter_zero[0]_i_1_n_0       |                8 |             64 |
+| ~FSM_onehot_state_reg[31]_i_3_n_0 |                                                 | taskR/disp/spi_word[39]_i_1__0_n_0           |               22 |             90 |
+| ~clk6p25m_0                       |                                                 | taskP/oled_inst/spi_word[39]_i_1__1_n_0      |               20 |             90 |
+| ~clk6p25m                         |                                                 | taskS/oled_display_inst/spi_word[39]_i_1_n_0 |               18 |             90 |
++-----------------------------------+-------------------------------------------------+----------------------------------------------+------------------+----------------+
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 
 

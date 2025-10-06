@@ -23,6 +23,7 @@ create_project -in_memory -part xc7a35tcpg236-1
 set_param project.singleFileAddWarning.threshold 0
 set_param project.compositeFile.enableAutoGeneration 0
 set_param synth.vivado.isSynthRun true
+<<<<<<< HEAD
 set_property webtalk.parent_dir C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.cache/wt [current_project]
 set_property parent.project_path C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.xpr [current_project]
 set_property default_lib xil_defaultlib [current_project]
@@ -37,6 +38,21 @@ read_verilog -library xil_defaultlib {
   C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Task_R.v
   C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/taskS.v
   C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v
+=======
+set_property webtalk.parent_dir C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.cache/wt [current_project]
+set_property parent.project_path C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.xpr [current_project]
+set_property default_lib xil_defaultlib [current_project]
+set_property target_language Verilog [current_project]
+set_property ip_output_repo c:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.cache/ip [current_project]
+set_property ip_cache_permissions {read write} [current_project]
+read_verilog -library xil_defaultlib {
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/sources_1/imports/Desktop/Oled_Display.v
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/sources_1/new/Seven_Seg.v
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/taskP/taskP.srcs/sources_1/new/Task_P.v
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/sources_1/new/Task_R.v
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/sources_1/new/taskS.v
+  C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/sources_1/new/Top_Student.v
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 }
 # Mark all dcp files as not used in implementation to prevent them from being
 # stitched into the results of this synthesis run. Any black boxes in the
@@ -46,8 +62,13 @@ read_verilog -library xil_defaultlib {
 foreach dcp [get_files -quiet -all -filter file_type=="Design\ Checkpoint"] {
   set_property used_in_implementation false $dcp
 }
+<<<<<<< HEAD
 read_xdc C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc
 set_property used_in_implementation false [get_files C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+=======
+read_xdc C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc
+set_property used_in_implementation false [get_files C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 
 set_param ips.enableIPCacheLiteLoad 0
 close [open __synthesis_is_running__ w]

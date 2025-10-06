@@ -1,8 +1,13 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
+<<<<<<< HEAD
 | Date         : Tue Oct  7 03:13:39 2025
 | Host         : DESKTOP-2GF0LO4 running 64-bit major release  (build 9200)
+=======
+| Date         : Tue Oct  7 01:06:17 2025
+| Host         : Ekko running 64-bit major release  (build 9200)
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 | Command      : report_drc -file Top_Student_drc_routed.rpt -pb Top_Student_drc_routed.pb -rpx Top_Student_drc_routed.rpx
 | Design       : Top_Student
 | Device       : xc7a35tcpg236-1

@@ -61,6 +61,7 @@ proc step_failed { step } {
 }
 
 
+<<<<<<< HEAD
 start_step init_design
 set ACTIVE_STEP init_design
 set rc [catch {
@@ -150,10 +151,15 @@ if {$rc} {
   unset ACTIVE_STEP 
 }
 
+=======
+>>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 start_step write_bitstream
 set ACTIVE_STEP write_bitstream
 set rc [catch {
   create_msg_db write_bitstream.pb
+  set_param xicom.use_bs_reader 1
+  open_checkpoint Top_Student_routed.dcp
+  set_property webtalk.parent_dir C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.cache/wt [current_project]
   catch { write_mem_info -force Top_Student.mmi }
   write_bitstream -force Top_Student.bit 
   catch {write_debug_probes -quiet -force Top_Student}

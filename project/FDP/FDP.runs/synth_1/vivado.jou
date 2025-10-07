@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Mon Oct  6 22:07:29 2025
+# Process ID: 1127638
+# Current directory: /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1
+# Command line: vivado -log Top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Top.tcl
+# Log file: /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/Top.vds
+# Journal file: /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/vivado.jou
+#-----------------------------------------------------------
+source Top.tcl -notrace

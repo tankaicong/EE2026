@@ -1,0 +1,6 @@
+INFO: [VRFC 10-2263] Analyzing Verilog file "/media/kc/Data/EE2026/FDP/FDP.sim/sim_1/impl/func/xsim/taskR_sim_func_impl.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module Oled_Display
+INFO: [VRFC 10-311] analyzing module Top_Student
+INFO: [VRFC 10-311] analyzing module glbl
+INFO: [VRFC 10-2263] Analyzing Verilog file "/media/kc/Data/EE2026/FDP/FDP.srcs/sim_1/new/taskR_sim.v" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module taskR_sim

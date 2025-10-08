@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Mon Oct  6 22:08:34 2025
+| Date         : Wed Oct  8 12:34:57 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_drc -file Top_drc_opted.rpt -pb Top_drc_opted.pb -rpx Top_drc_opted.rpx
 | Design       : Top
@@ -24,28 +24,30 @@ Table of Contents
       Design limits: <entire design considered>
            Ruledeck: default
              Max violations: <unlimited>
-             Violations found: 1
-+-------------+----------+-------------------------------------------------------------+------------+
-| Rule        | Severity | Description                                                 | Violations |
-+-------------+----------+-------------------------------------------------------------+------------+
-| PLHOLDVIO-2 | Warning  | Non-Optimal connections which could lead to hold violations | 1          |
-+-------------+----------+-------------------------------------------------------------+------------+
+             Violations found: 2
++---------+----------+---------------------------------+------------+
+| Rule    | Severity | Description                     | Violations |
++---------+----------+---------------------------------+------------+
+| PLCK-12 | Warning  | Clock Placer Checks             | 1          |
+| RPBF-3  | Warning  | IO port buffering is incomplete | 1          |
++---------+----------+---------------------------------+------------+
 
 2. REPORT DETAILS
 -----------------
-PLHOLDVIO-2#1 Warning
-Non-Optimal connections which could lead to hold violations  
-A LUT vga/h_count_next[9]_i_2 is driving clock pin of 20 cells. This could lead to large hold time violations. First few involved cells are:
-    vga/h_count_next_reg[0] {FDCE}
-    vga/h_count_next_reg[1] {FDCE}
-    vga/h_count_next_reg[2] {FDCE}
-    vga/h_count_next_reg[3] {FDCE}
-    vga/h_count_next_reg[4] {FDCE}
-    vga/h_count_next_reg[5] {FDCE}
-    vga/h_count_next_reg[6] {FDCE}
-    vga/h_count_next_reg[7] {FDCE}
-    vga/h_count_next_reg[8] {FDCE}
+PLCK-12#1 Warning
+Clock Placer Checks  
+Poor placement for routing between an IO pin and BUFG. 
+Resolution: Poor placement of an IO pin and a BUFG has resulted in the router using a non-dedicated path between the two.  There are several things that could trigger this DRC, each of which can cause unpredictable clock insertion delays that result in poor timing.  This DRC could be caused by any of the following: (a) a clock port was placed on a pin that is not a CCIO-pin (b)the BUFG has not been placed in the same half of the device or SLR as the CCIO-pin (c) a single ended clock has been placed on the N-Side of a differential pair CCIO-pin.
+ This is normally an ERROR but the CLOCK_DEDICATED_ROUTE constraint is set to FALSE allowing your design to continue. The use of this override is highly discouraged as it may lead to very poor timing results. It is recommended that this error condition be corrected in the design.
 
+	ov7670_pclk_raw_IBUF_inst (IBUF.O) is locked to M19
+	pclk_bufg (BUFG.I) cannot be placed
+
+Related violations: <none>
+
+RPBF-3#1 Warning
+IO port buffering is incomplete  
+Device port ov7670_siod expects both input and output buffering but the buffers are incomplete.
 Related violations: <none>
 
 

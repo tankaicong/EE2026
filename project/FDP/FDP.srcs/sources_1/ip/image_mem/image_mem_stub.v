@@ -1,7 +1,7 @@
 // Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-// Date        : Tue Oct  7 10:54:27 2025
+// Date        : Wed Oct  8 09:17:24 2025
 // Host        : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 // Command     : write_verilog -force -mode synth_stub
 //               /media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem_stub.v
@@ -14,15 +14,13 @@
 // The synthesis directives are for Synopsys Synplify support to prevent IO buffer insertion.
 // Please paste the declaration into a Verilog source file or add the file as an additional source.
 (* x_core_info = "blk_mem_gen_v8_4_1,Vivado 2018.2" *)
-module image_mem(clka, ena, wea, addra, dina, clkb, enb, addrb, doutb)
-/* synthesis syn_black_box black_box_pad_pin="clka,ena,wea[0:0],addra[16:0],dina[11:0],clkb,enb,addrb[16:0],doutb[11:0]" */;
+module image_mem(clka, wea, addra, dina, clkb, addrb, doutb)
+/* synthesis syn_black_box black_box_pad_pin="clka,wea[0:0],addra[16:0],dina[15:0],clkb,addrb[16:0],doutb[15:0]" */;
   input clka;
-  input ena;
   input [0:0]wea;
   input [16:0]addra;
-  input [11:0]dina;
+  input [15:0]dina;
   input clkb;
-  input enb;
   input [16:0]addrb;
-  output [11:0]doutb;
+  output [15:0]doutb;
 endmodule

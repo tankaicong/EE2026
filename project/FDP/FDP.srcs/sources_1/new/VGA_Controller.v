@@ -1,101 +1,115 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Converted from VHDL code here: https://lauri.xn--vsandi-pxa.com/hdl/zynq/zybo-ov7670-to-vga.html
+// Generate analog 640x480 VGA, from double scanned BRAM
+//////////////////////////////////////////////////////////////////////////////////
 
-// adapted from https://github.com/BlagojeBlagojevic/vga_verilog/blob/main/vga_controler.v
-
-module VGA_Controller (
-    input clk, btnU,
-    output video_on,    // ON while pixel counts for x and y and within display area
-    output hsync,       // horizontal sync
-    output vsync,       // vertical sync
-    output p_tick,      // the 25MHz pixel/second rate signal, pixel tick
-    output [9:0] x,     // pixel count/position of pixel x, max 0-799
-    output [9:0] y      // pixel count/position of pixel y, max 0-524
+module VGA_Controller(
+    input clk25,
+    output reg [3:0] vga_red,
+    output reg [3:0] vga_green,
+    output reg [3:0] vga_blue,
+    output reg vga_hsync,
+    output reg vga_vsync,
+    output [17:0] frame_addr,    // BRAM address for 320x240 frame (doubled to 640x480)
+    input [11:0] frame_pixel,
+    output active_area
 );
 
-// Based on VGA standards found at vesa.org for 640x480 resolution
-// Total horizontal width of screen = 800 pixels, partitioned  into sections
-localparam HD = 640;             // horizontal display area width in pixels
-localparam HF = 48;              // horizontal front porch width in pixels
-localparam HB = 16;              // horizontal back porch width in pixels
-localparam HR = 96;              // horizontal retrace width in pixels
-localparam HMAX = HD+HF+HB+HR-1; // max value of horizontal counter = 799
-// Total vertical length of screen = 525 pixels, partitioned into sections
-localparam VD = 480;             // vertical display area length in pixels 
-localparam VF = 10;              // vertical front porch length in pixels  
-localparam VB = 33;              // vertical back porch length in pixels   
-localparam VR = 2;               // vertical retrace length in pixels  
-localparam VMAX = VD+VF+VB+VR-1; // max value of vertical counter = 524   
+    // Timing constants (same values as VHDL)
+    localparam integer hRez = 640;
+    localparam integer hStartSync = 640 + 16;
+    localparam integer hEndSync = 640 + 16 + 96;
+    localparam integer hMaxCount = 640 + 16 + 96 + 48;
 
-//25 MHz clock enable signal
-reg [1:0] r_25MHz;
-wire w_25MHz;
+    localparam integer vRez = 480;
+    localparam integer vStartSync = 480 + 11;
+    localparam integer vEndSync = 480 + 11 + 2;
+    localparam integer vMaxCount = 480 + 11 + 2 + 31;
 
-always @(posedge clk or posedge btnU)
-    if(btnU)
-        r_25MHz <= 0;
-    else
-        r_25MHz <= r_25MHz + 1;
+    localparam hsync_active = 1'b0;
+    localparam vsync_active = 1'b0;
 
-assign w_25MHz = (r_25MHz == 0) ? 1 : 0; // assert tick 1/4 of the time
+    // counters and internal signals
+    reg [9:0] hCounter = 10'd0;
+    reg [9:0] vCounter = 10'd0;
+    reg blank = 1'b1;
 
- // Counter Registers, two each for buffering to avoid glitches
-reg [9:0] h_count_reg, h_count_next;
-reg [9:0] v_count_reg, v_count_next;
+    assign active_area = ~blank;
 
-// Output Buffers
-reg v_sync_reg, h_sync_reg;
-wire v_sync_next, h_sync_next;
+    // ------------------------------------------------------------------
+    // Frame buffer layout (written by capture module):
+    //   Stored resolution: 320 x 240 (row-major, addr = y*320 + x)
+    // VGA outputs 640 x 480 by doubling pixels in both axes.
+    // We derive the 320x240 source coordinate by shifting counters.
+    // ------------------------------------------------------------------
+    localparam SRC_WIDTH  = 320;
+    localparam SRC_HEIGHT = 240;
+    wire [8:0] src_y = vCounter[9:1]; // vCounter >> 1 (0..239)
+    wire [8:0] src_x = hCounter[9:1]; // hCounter >> 1 (0..319)
+    assign frame_addr = src_y * SRC_WIDTH + src_x; 
 
-// Register Control
-always @(posedge clk or posedge btnU)
-    if(btnU) begin
-        v_count_reg <= 0;
-        h_count_reg <= 0;
-        v_sync_reg  <= 1'b0;
-        h_sync_reg  <= 1'b0;
+    // Main synchronous process on clk25 (rising edge)
+    always @(posedge clk25) begin
+        // Count the horizontal and vertical positions
+        if (hCounter == hMaxCount - 1) begin
+            hCounter <= 10'd0;
+            if (vCounter == vMaxCount - 1) begin
+                vCounter <= 10'd0;
+            end else begin
+                vCounter <= vCounter + 10'd1;
+            end
+        end else begin
+            hCounter <= hCounter + 10'd1;
+        end
+
+        // Pixel outputs (when not blank) - READ FROM BRAM
+        if (blank == 1'b0) begin
+            // Read from BRAM (restored original functionality)
+            vga_red   <= frame_pixel[11:8];
+            vga_green <= frame_pixel[7:4];
+            vga_blue  <= frame_pixel[3:0];
+            
+            // Direct test pattern (commented out - was working)
+            // if (hCounter < 320 && vCounter < 240) begin
+            //     vga_red <= 4'hF; vga_green <= 4'h0; vga_blue <= 4'h0;  // Red
+            // end else if (hCounter >= 320 && vCounter < 240) begin
+            //     vga_red <= 4'h0; vga_green <= 4'hF; vga_blue <= 4'h0;  // Green
+            // end else if (hCounter < 320 && vCounter >= 240) begin
+            //     vga_red <= 4'h0; vga_green <= 4'h0; vga_blue <= 4'hF;  // Blue
+            // end else begin
+            //     vga_red <= 4'hF; vga_green <= 4'hF; vga_blue <= 4'hF;  // White
+            // end
+        end else begin
+            vga_red   <= 4'b0;
+            vga_green <= 4'b0;
+            vga_blue  <= 4'b0;
+        end
+
+        // Frame addressing & blanking logic
+        if (vCounter >= vRez) begin
+            blank   <= 1'b1;
+        end else begin
+            if (hCounter < hRez) begin
+                blank   <= 1'b0;
+            end else begin
+                blank <= 1'b1;
+            end
+        end
+
+        // Horizontal sync pulse (VHDL: if hCounter > hStartSync and hCounter <= hEndSync)
+        if ((hCounter > hStartSync) && (hCounter <= hEndSync)) begin
+            vga_hsync <= hsync_active;
+        end else begin
+            vga_hsync <= ~hsync_active;
+        end
+
+        // Vertical sync pulse (VHDL: if vCounter >= vStartSync and vCounter < vEndSync)
+        if ((vCounter >= vStartSync) && (vCounter < vEndSync)) begin
+            vga_vsync <= vsync_active;
+        end else begin
+            vga_vsync <= ~vsync_active;
+        end
     end
-    else begin
-        v_count_reg <= v_count_next;
-        h_count_reg <= h_count_next;
-        v_sync_reg  <= v_sync_next;
-        h_sync_reg  <= h_sync_next;
-    end
-        
-//Logic for horizontal counter
-always @(posedge w_25MHz or posedge btnU)      // pixel tick
-    if(btnU)
-        h_count_next = 0;
-    else
-        if(h_count_reg == HMAX)                 // end of horizontal scan
-            h_count_next = 0;
-        else
-            h_count_next = h_count_reg + 1;         
-
-// Logic for vertical counter
-always @(posedge w_25MHz or posedge btnU)
-    if(btnU)
-        v_count_next = 0;
-    else
-        if(h_count_reg == HMAX)                 // end of horizontal scan
-            if((v_count_reg == VMAX))           // end of vertical scan
-                v_count_next = 0;
-            else
-                v_count_next = v_count_reg + 1;
-    
-// h_sync_next asserted within the horizontal retrace area
-assign h_sync_next = (h_count_reg >= (HD+HB) && h_count_reg <= (HD+HB+HR-1));
-
-// v_sync_next asserted within the vertical retrace area
-assign v_sync_next = (v_count_reg >= (VD+VB) && v_count_reg <= (VD+VB+VR-1));
-
-// Video ON/OFF - only ON while pixel counts are within the display area
-assign video_on = (h_count_reg < HD) && (v_count_reg < VD); // 0-639 and 0-479 respectively
-        
-// Outputs
-assign hsync  = h_sync_reg;
-assign vsync  = v_sync_reg;
-assign x      = h_count_reg;
-assign y      = v_count_reg;
-assign p_tick = w_25MHz;
 
 endmodule

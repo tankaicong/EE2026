@@ -2,8 +2,8 @@
 # Vivado v2018.2 (64-bit)
 # SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
 # IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
-# Start of session at: Mon Oct  6 22:07:29 2025
-# Process ID: 1127638
+# Start of session at: Wed Oct  8 12:33:49 2025
+# Process ID: 528841
 # Current directory: /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1
 # Command line: vivado -log Top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Top.tcl
 # Log file: /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/Top.vds
@@ -15,26 +15,65 @@ Starting synth_design
 Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
 INFO: Launching helper process for spawning children vivado processes
-INFO: Helper process launched with PID 1127648 
+INFO: Helper process launched with PID 528855 
+WARNING: [Synth 8-992] we_internal is already implicitly declared earlier [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:102]
+WARNING: [Synth 8-976] we has already been declared [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:103]
+WARNING: [Synth 8-2654] second declaration of we ignored [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:103]
+INFO: [Synth 8-994] we is declared here [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:64]
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:00.75 ; elapsed = 00:00:01 . Memory (MB): peak = 1221.109 ; gain = 62.023 ; free physical = 1614 ; free virtual = 19965
+Starting RTL Elaboration : Time (s): cpu = 00:00:00.77 ; elapsed = 00:00:01 . Memory (MB): peak = 1255.207 ; gain = 92.281 ; free physical = 16938 ; free virtual = 26142
 ---------------------------------------------------------------------------------
 INFO: [Synth 8-6157] synthesizing module 'Top' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:3]
-INFO: [Synth 8-6157] synthesizing module 'VGA_Controller' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:5]
-	Parameter HD bound to: 640 - type: integer 
-	Parameter HF bound to: 48 - type: integer 
-	Parameter HB bound to: 16 - type: integer 
-	Parameter HR bound to: 96 - type: integer 
-	Parameter HMAX bound to: 799 - type: integer 
-	Parameter VD bound to: 480 - type: integer 
-	Parameter VF bound to: 10 - type: integer 
-	Parameter VB bound to: 33 - type: integer 
-	Parameter VR bound to: 2 - type: integer 
-	Parameter VMAX bound to: 524 - type: integer 
-INFO: [Synth 8-6155] done synthesizing module 'VGA_Controller' (1#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:5]
-INFO: [Synth 8-6155] done synthesizing module 'Top' (2#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:3]
+INFO: [Synth 8-6157] synthesizing module 'BUFG' [/opt/Xilinx/Vivado/2018.2/scripts/rt/data/unisim_comp.v:609]
+INFO: [Synth 8-6155] done synthesizing module 'BUFG' (1#1) [/opt/Xilinx/Vivado/2018.2/scripts/rt/data/unisim_comp.v:609]
+INFO: [Synth 8-6157] synthesizing module 'VGA_Controller' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:7]
+	Parameter hRez bound to: 640 - type: integer 
+	Parameter hStartSync bound to: 656 - type: integer 
+	Parameter hEndSync bound to: 752 - type: integer 
+	Parameter hMaxCount bound to: 800 - type: integer 
+	Parameter vRez bound to: 480 - type: integer 
+	Parameter vStartSync bound to: 491 - type: integer 
+	Parameter vEndSync bound to: 493 - type: integer 
+	Parameter vMaxCount bound to: 524 - type: integer 
+	Parameter hsync_active bound to: 1'b0 
+	Parameter vsync_active bound to: 1'b0 
+	Parameter SRC_WIDTH bound to: 320 - type: integer 
+	Parameter SRC_HEIGHT bound to: 240 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'VGA_Controller' (2#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:7]
+INFO: [Synth 8-6157] synthesizing module 'OV7670_Controller' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Controller.v:7]
+	Parameter CAMERA_ADDRESS bound to: 8'b01000010 
+INFO: [Synth 8-6157] synthesizing module 'I2C_Controller' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/I2C_Controller.v:9]
+INFO: [Synth 8-6155] done synthesizing module 'I2C_Controller' (3#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/I2C_Controller.v:9]
+INFO: [Synth 8-6157] synthesizing module 'OV7670_Registers' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Registers.v:7]
+INFO: [Synth 8-6155] done synthesizing module 'OV7670_Registers' (4#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Registers.v:7]
+INFO: [Synth 8-6155] done synthesizing module 'OV7670_Controller' (5#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Controller.v:7]
+INFO: [Synth 8-6157] synthesizing module 'OV7670_Capture' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:24]
+WARNING: [Synth 8-6014] Unused sequential element px_r5_reg was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:129]
+WARNING: [Synth 8-6014] Unused sequential element px_g6_reg was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:130]
+WARNING: [Synth 8-6014] Unused sequential element px_b5_reg was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:131]
+INFO: [Synth 8-6155] done synthesizing module 'OV7670_Capture' (6#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:24]
+INFO: [Synth 8-6157] synthesizing module 'image_mem' [/media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/.Xil/Vivado-528841-kc-ThinkPad-T14-Gen-5/realtime/image_mem_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'image_mem' (7#1) [/media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/.Xil/Vivado-528841-kc-ThinkPad-T14-Gen-5/realtime/image_mem_stub.v:6]
+WARNING: [Synth 8-689] width (18) of port connection 'addra' does not match port width (17) of module 'image_mem' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:108]
+WARNING: [Synth 8-689] width (18) of port connection 'addrb' does not match port width (17) of module 'image_mem' [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:111]
+INFO: [Synth 8-6155] done synthesizing module 'Top' (8#1) [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/Top.v:3]
+WARNING: [Synth 8-3331] design Top has unconnected port led[15]
+WARNING: [Synth 8-3331] design Top has unconnected port led[14]
+WARNING: [Synth 8-3331] design Top has unconnected port led[13]
+WARNING: [Synth 8-3331] design Top has unconnected port led[12]
+WARNING: [Synth 8-3331] design Top has unconnected port led[11]
+WARNING: [Synth 8-3331] design Top has unconnected port led[10]
+WARNING: [Synth 8-3331] design Top has unconnected port led[9]
+WARNING: [Synth 8-3331] design Top has unconnected port led[8]
+WARNING: [Synth 8-3331] design Top has unconnected port led[7]
+WARNING: [Synth 8-3331] design Top has unconnected port led[6]
+WARNING: [Synth 8-3331] design Top has unconnected port led[5]
+WARNING: [Synth 8-3331] design Top has unconnected port led[4]
+WARNING: [Synth 8-3331] design Top has unconnected port led[3]
+WARNING: [Synth 8-3331] design Top has unconnected port led[2]
+WARNING: [Synth 8-3331] design Top has unconnected port led[1]
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1265.734 ; gain = 106.648 ; free physical = 1600 ; free virtual = 19952
+Finished RTL Elaboration : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1285.332 ; gain = 122.406 ; free physical = 16912 ; free virtual = 26118
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -47,18 +86,22 @@ Report Check Netlist:
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1265.734 ; gain = 106.648 ; free physical = 1603 ; free virtual = 19956
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1285.332 ; gain = 122.406 ; free physical = 16912 ; free virtual = 26118
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1265.734 ; gain = 106.648 ; free physical = 1603 ; free virtual = 19956
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 1285.332 ; gain = 122.406 ; free physical = 16912 ; free virtual = 26118
 ---------------------------------------------------------------------------------
 INFO: [Device 21-403] Loading part xc7a35tcpg236-1
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
 Initializing timing engine
+Parsing XDC File [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem/image_mem_in_context.xdc] for cell 'frame_buffer'
+Finished Parsing XDC File [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem/image_mem_in_context.xdc] for cell 'frame_buffer'
 Parsing XDC File [/media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+WARNING: [Vivado 12-507] No nets matched 'ov7670_pclk_raw_IBUF'. [/media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc:101]
 Finished Parsing XDC File [/media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]
+WARNING: [Project 1-498] One or more constraints failed evaluation while reading constraint file [/media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc] and the design contains unresolved black boxes. These constraints will be read post-synthesis (as long as their source constraint file is marked as used_in_implementation) and should be applied correctly then. You should review the constraints listed in the file [.Xil/Top_propImpl.xdc] and check the run log file to verify that these constraints were correctly applied.
 INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [/media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/Top_propImpl.xdc].
 Resolution: To avoid this warning, move constraints listed in [.Xil/Top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Completed Processing XDC Constraints
@@ -66,27 +109,39 @@ Completed Processing XDC Constraints
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1614.086 ; gain = 0.000 ; free physical = 1516 ; free virtual = 19871
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1643.676 ; gain = 0.000 ; free physical = 16956 ; free virtual = 26162
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1520 ; free virtual = 19876
+Finished Constraint Validation : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16993 ; free virtual = 26200
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7a35tcpg236-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1520 ; free virtual = 19876
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16993 ; free virtual = 26200
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
 ---------------------------------------------------------------------------------
+Applied set_property DONT_TOUCH = true for frame_buffer. (constraint file  auto generated constraint, line ).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1520 ; free virtual = 19876
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16993 ; free virtual = 26200
 ---------------------------------------------------------------------------------
-INFO: [Synth 8-5544] ROM "w_25MHz" won't be mapped to Block RAM because address size (2) smaller than threshold (5)
-INFO: [Synth 8-5546] ROM "v_count_next" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "vCounter" won't be mapped to RAM because it is too sparse
+WARNING: [Synth 8-6014] Unused sequential element  was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:50]
+WARNING: [Synth 8-6014] Unused sequential element  was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/VGA_Controller.v:50]
+INFO: [Synth 8-5546] ROM "taken" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5544] ROM "sioc" won't be mapped to Block RAM because address size (2) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "sioc" won't be mapped to Block RAM because address size (2) smaller than threshold (5)
+INFO: [Synth 8-5546] ROM "data_sr" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "divider" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "finished" won't be mapped to RAM because it is too sparse
+WARNING: [Synth 8-6040] Register address_reg_rep driving address of a ROM cannot be packed in BRAM/URAM because of presence of initial value.
+WARNING: [Synth 8-6014] Unused sequential element sreg_reg was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Registers.v:18]
+WARNING: [Synth 8-6014] Unused sequential element  was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:118]
+WARNING: [Synth 8-6014] Unused sequential element  was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Capture.v:118]
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1519 ; free virtual = 19876
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16993 ; free virtual = 26202
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -99,17 +154,41 @@ Start RTL Component Statistics
 ---------------------------------------------------------------------------------
 Detailed RTL Component Info : 
 +---Adders : 
-	   2 Input     10 Bit       Adders := 2     
-	   2 Input      2 Bit       Adders := 1     
+	   2 Input     10 Bit       Adders := 3     
+	   2 Input      9 Bit       Adders := 2     
+	   2 Input      8 Bit       Adders := 5     
+	   3 Input      8 Bit       Adders := 1     
+	   2 Input      7 Bit       Adders := 2     
+	   3 Input      7 Bit       Adders := 1     
+	   4 Input      7 Bit       Adders := 1     
+	   2 Input      4 Bit       Adders := 3     
+	   2 Input      1 Bit       Adders := 2     
 +---Registers : 
-	               12 Bit    Registers := 1     
-	               10 Bit    Registers := 4     
+	               32 Bit    Registers := 2     
+	               16 Bit    Registers := 4     
+	               10 Bit    Registers := 3     
+	                9 Bit    Registers := 2     
+	                8 Bit    Registers := 4     
+	                7 Bit    Registers := 1     
+	                5 Bit    Registers := 1     
+	                4 Bit    Registers := 3     
+	                3 Bit    Registers := 1     
 	                2 Bit    Registers := 1     
-	                1 Bit    Registers := 2     
+	                1 Bit    Registers := 13    
++---RAMs : 
+	               2K Bit         RAMs := 3     
++---ROMs : 
+	                              ROMs := 1     
 +---Muxes : 
-	   2 Input     12 Bit        Muxes := 1     
-	   2 Input      2 Bit        Muxes := 1     
-	   2 Input      1 Bit        Muxes := 1     
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input     16 Bit        Muxes := 1     
+	   2 Input      8 Bit        Muxes := 2     
+	   5 Input      8 Bit        Muxes := 1     
+	   2 Input      4 Bit        Muxes := 6     
+	   7 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 12    
+	   3 Input      1 Bit        Muxes := 2     
+	   4 Input      1 Bit        Muxes := 1     
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -119,22 +198,83 @@ Start RTL Hierarchical Component Statistics
 Hierarchical RTL Component report 
 Module Top 
 Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      4 Bit       Adders := 3     
+	   2 Input      1 Bit       Adders := 1     
 +---Registers : 
-	               12 Bit    Registers := 1     
+	                3 Bit    Registers := 1     
+	                1 Bit    Registers := 4     
 +---Muxes : 
-	   2 Input     12 Bit        Muxes := 1     
+	   2 Input      4 Bit        Muxes := 3     
 Module VGA_Controller 
 Detailed RTL Component Info : 
 +---Adders : 
 	   2 Input     10 Bit       Adders := 2     
-	   2 Input      2 Bit       Adders := 1     
 +---Registers : 
-	               10 Bit    Registers := 4     
-	                2 Bit    Registers := 1     
+	               10 Bit    Registers := 2     
+	                9 Bit    Registers := 1     
+	                4 Bit    Registers := 3     
+	                1 Bit    Registers := 3     
++---Muxes : 
+	   2 Input      4 Bit        Muxes := 3     
+	   2 Input      1 Bit        Muxes := 1     
+Module I2C_Controller 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 2     
++---Registers : 
+	               32 Bit    Registers := 2     
+	                8 Bit    Registers := 1     
 	                1 Bit    Registers := 2     
 +---Muxes : 
-	   2 Input      2 Bit        Muxes := 1     
+	   2 Input     32 Bit        Muxes := 2     
+	   2 Input      8 Bit        Muxes := 2     
+	   7 Input      2 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 4     
+	   3 Input      1 Bit        Muxes := 2     
+	   4 Input      1 Bit        Muxes := 1     
+Module OV7670_Registers 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 2     
++---Registers : 
+	               16 Bit    Registers := 2     
+	                8 Bit    Registers := 2     
++---ROMs : 
+	                              ROMs := 1     
++---Muxes : 
 	   2 Input      1 Bit        Muxes := 1     
+Module OV7670_Controller 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      1 Bit       Adders := 1     
++---Registers : 
+	                1 Bit    Registers := 2     
+Module OV7670_Capture 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input     10 Bit       Adders := 1     
+	   2 Input      9 Bit       Adders := 2     
+	   2 Input      8 Bit       Adders := 1     
+	   3 Input      8 Bit       Adders := 1     
+	   2 Input      7 Bit       Adders := 2     
+	   3 Input      7 Bit       Adders := 1     
+	   4 Input      7 Bit       Adders := 1     
++---Registers : 
+	               16 Bit    Registers := 2     
+	               10 Bit    Registers := 1     
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 1     
+	                7 Bit    Registers := 1     
+	                5 Bit    Registers := 1     
+	                2 Bit    Registers := 1     
+	                1 Bit    Registers := 2     
++---RAMs : 
+	               2K Bit         RAMs := 3     
++---Muxes : 
+	   2 Input     16 Bit        Muxes := 1     
+	   5 Input      8 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 6     
 ---------------------------------------------------------------------------------
 Finished RTL Hierarchical Component Statistics
 ---------------------------------------------------------------------------------
@@ -151,10 +291,67 @@ Finished Part Resource Summary
 Start Cross Boundary and Area Optimization
 ---------------------------------------------------------------------------------
 Warning: Parallel synthesis criteria is not met 
-INFO: [Synth 8-5546] ROM "vga/v_count_next" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "vga/vCounter" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "ov7670/i2c/divider" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "ov7670/i2c/taken" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "ov7670/camera_regs/finished" won't be mapped to RAM because it is too sparse
+WARNING: [Synth 8-6040] Register ov7670/camera_regs/address_reg_rep driving address of a ROM cannot be packed in BRAM/URAM because of presence of initial value.
+WARNING: [Synth 8-6014] Unused sequential element ov7670/camera_regs/sreg_reg was removed.  [/media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/new/OV7670_Registers.v:18]
+WARNING: [Synth 8-3917] design Top has port ov7670_pwdn driven by constant 0
+WARNING: [Synth 8-3917] design Top has port ov7670_reset driven by constant 1
+WARNING: [Synth 8-3331] design Top has unconnected port led[15]
+WARNING: [Synth 8-3331] design Top has unconnected port led[14]
+WARNING: [Synth 8-3331] design Top has unconnected port led[13]
+WARNING: [Synth 8-3331] design Top has unconnected port led[12]
+WARNING: [Synth 8-3331] design Top has unconnected port led[11]
+WARNING: [Synth 8-3331] design Top has unconnected port led[10]
+WARNING: [Synth 8-3331] design Top has unconnected port led[9]
+WARNING: [Synth 8-3331] design Top has unconnected port led[8]
+WARNING: [Synth 8-3331] design Top has unconnected port led[7]
+WARNING: [Synth 8-3331] design Top has unconnected port led[6]
+WARNING: [Synth 8-3331] design Top has unconnected port led[5]
+WARNING: [Synth 8-3331] design Top has unconnected port led[4]
+WARNING: [Synth 8-3331] design Top has unconnected port led[3]
+WARNING: [Synth 8-3331] design Top has unconnected port led[2]
+WARNING: [Synth 8-3331] design Top has unconnected port led[1]
+INFO: [Synth 8-3333] propagating constant 1 across sequential element (\ov7670/i2c/data_sr_reg[0] )
+INFO: [Synth 8-3886] merging instance 'ov7670_capture/h_r_reg[5]' (FDRE_1) to 'ov7670_capture/h_g_reg[6]'
+INFO: [Synth 8-3886] merging instance 'ov7670_capture/h_r_reg[6]' (FDRE_1) to 'ov7670_capture/h_g_reg[6]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ov7670_capture/h_g_reg[6] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\ov7670_capture/h_g_reg[7] )
+WARNING: [Synth 8-3332] Sequential element (ov7670/i2c/data_sr_reg[0]) is unused and will be removed from module Top.
+WARNING: [Synth 8-3332] Sequential element (ov7670_capture/h_g_reg[7]) is unused and will be removed from module Top.
+WARNING: [Synth 8-3332] Sequential element (ov7670_capture/h_g_reg[6]) is unused and will be removed from module Top.
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1488 ; free virtual = 19848
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:05 ; elapsed = 00:00:17 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16986 ; free virtual = 26198
 ---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+ROM:
++-----------------+-----------------------------+---------------+----------------+
+|Module Name      | RTL Object                  | Depth x Width | Implemented As | 
++-----------------+-----------------------------+---------------+----------------+
+|OV7670_Registers | sreg_reg                    | 256x16        | Block RAM      | 
+|Top              | ov7670/camera_regs/sreg_reg | 256x16        | Block RAM      | 
++-----------------+-----------------------------+---------------+----------------+
+
+
+Distributed RAM: Preliminary Mapping  Report (see note below)
++------------+---------------------------+-----------+----------------------+-------------------------------+
+|Module Name | RTL Object                | Inference | Size (Depth x Width) | Primitives                    | 
++------------+---------------------------+-----------+----------------------+-------------------------------+
+|Top         | ov7670_capture/line_r_reg | Implied   | 512 x 7              | RAM64X1S x 7  RAM256X1S x 7   | 
+|Top         | ov7670_capture/line_g_reg | Implied   | 512 x 8              | RAM64X1S x 8  RAM256X1S x 8   | 
+|Top         | ov7670_capture/line_b_reg | Implied   | 512 x 6              | RAM64X1S x 7  RAM256X1S x 7   | 
++------------+---------------------------+-----------+----------------------+-------------------------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+INFO: [Synth 8-4480] The timing for the instance i_15/ov7670/camera_regs/sreg_reg (implemented as a block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
 
 Report RTL Partitions: 
 +-+--------------+------------+----------+
@@ -165,13 +362,29 @@ Report RTL Partitions:
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:08 ; elapsed = 00:00:22 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1428 ; free virtual = 19788
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16910 ; free virtual = 26122
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:08 ; elapsed = 00:00:22 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Timing Optimization : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16894 ; free virtual = 26106
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Distributed RAM: Final Mapping  Report
++------------+---------------------------+-----------+----------------------+-------------------------------+
+|Module Name | RTL Object                | Inference | Size (Depth x Width) | Primitives                    | 
++------------+---------------------------+-----------+----------------------+-------------------------------+
+|Top         | ov7670_capture/line_r_reg | Implied   | 512 x 7              | RAM64X1S x 7  RAM256X1S x 7   | 
+|Top         | ov7670_capture/line_g_reg | Implied   | 512 x 8              | RAM64X1S x 8  RAM256X1S x 8   | 
+|Top         | ov7670_capture/line_b_reg | Implied   | 512 x 6              | RAM64X1S x 7  RAM256X1S x 7   | 
++------------+---------------------------+-----------+----------------------+-------------------------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -182,8 +395,9 @@ Report RTL Partitions:
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
+INFO: [Synth 8-4480] The timing for the instance ov7670/camera_regs/sreg_reg (implemented as a block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:08 ; elapsed = 00:00:22 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Technology Mapping : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -207,7 +421,7 @@ Start Final Netlist Cleanup
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished IO Insertion : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 
 Report Check Netlist: 
@@ -220,7 +434,7 @@ Report Check Netlist:
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 
 Report RTL Partitions: 
@@ -232,79 +446,108 @@ Report RTL Partitions:
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++------------+-------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name | RTL Name          | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++------------+-------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Top         | reset_sync_reg[2] | 3      | 1     | NO           | NO                 | YES               | 1      | 0       | 
++------------+-------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
 ---------------------------------------------------------------------------------
 
 Report BlackBoxes: 
-+-+--------------+----------+
-| |BlackBox name |Instances |
-+-+--------------+----------+
-+-+--------------+----------+
++------+--------------+----------+
+|      |BlackBox name |Instances |
++------+--------------+----------+
+|1     |image_mem     |         1|
++------+--------------+----------+
 
 Report Cell Usage: 
-+------+-----+------+
-|      |Cell |Count |
-+------+-----+------+
-|1     |BUFG |     1|
-|2     |LUT1 |     2|
-|3     |LUT2 |     4|
-|4     |LUT3 |     3|
-|5     |LUT4 |     4|
-|6     |LUT5 |    10|
-|7     |LUT6 |    21|
-|8     |FDCE |    56|
-|9     |IBUF |    14|
-|10    |OBUF |    14|
-+------+-----+------+
++------+----------+------+
+|      |Cell      |Count |
++------+----------+------+
+|1     |image_mem |     1|
+|2     |BUFG      |     3|
+|3     |CARRY4    |    22|
+|4     |LUT1      |    11|
+|5     |LUT2      |    84|
+|6     |LUT3      |    53|
+|7     |LUT4      |    35|
+|8     |LUT5      |    55|
+|9     |LUT6      |    48|
+|10    |RAM256X1S |    20|
+|11    |RAM64X1S  |    20|
+|12    |RAMB18E1  |     1|
+|13    |SRL16E    |     1|
+|14    |FDRE      |   238|
+|15    |FDSE      |    32|
+|16    |IBUF      |    14|
+|17    |OBUF      |    19|
+|18    |OBUFT     |    16|
++------+----------+------+
 
 Report Instance Areas: 
-+------+---------+---------------+------+
-|      |Instance |Module         |Cells |
-+------+---------+---------------+------+
-|1     |top      |               |   129|
-|2     |  vga    |VGA_Controller |    88|
-+------+---------+---------------+------+
++------+-----------------+------------------+------+
+|      |Instance         |Module            |Cells |
++------+-----------------+------------------+------+
+|1     |top              |                  |   688|
+|2     |  ov7670         |OV7670_Controller |   198|
+|3     |    camera_regs  |OV7670_Registers  |    50|
+|4     |    i2c          |I2C_Controller    |   144|
+|5     |  ov7670_capture |OV7670_Capture    |   280|
+|6     |  vga            |VGA_Controller    |    96|
++------+-----------------+------------------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1405 ; free virtual = 19765
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16883 ; free virtual = 26095
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:05 ; elapsed = 00:00:09 . Memory (MB): peak = 1614.086 ; gain = 106.648 ; free physical = 1416 ; free virtual = 19777
-Synthesis Optimization Complete : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1416 ; free virtual = 19777
+Synthesis finished with 0 errors, 0 critical warnings and 28 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:06 ; elapsed = 00:00:10 . Memory (MB): peak = 1643.676 ; gain = 122.406 ; free physical = 16883 ; free virtual = 26095
+Synthesis Optimization Complete : Time (s): cpu = 00:00:08 ; elapsed = 00:00:23 . Memory (MB): peak = 1643.676 ; gain = 480.750 ; free physical = 16893 ; free virtual = 26105
 INFO: [Project 1-571] Translating synthesized netlist
-INFO: [Netlist 29-17] Analyzing 14 Unisim elements for replacement
+INFO: [Netlist 29-17] Analyzing 77 Unisim elements for replacement
 INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
-INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+INFO: [Opt 31-138] Pushed 1 inverter(s) to 40 load pin(s).
 INFO: [Project 1-111] Unisim Transformation Summary:
-No Unisim elements were transformed.
+  A total of 40 instances were transformed.
+  RAM256X1S => RAM256X1S (inverted pins: WCLK) (MUXF7, MUXF7, MUXF8, RAMS64E, RAMS64E, RAMS64E, RAMS64E): 20 instances
+  RAM64X1S => RAM64X1S (inverted pins: WCLK) (RAMS64E): 20 instances
 
 INFO: [Common 17-83] Releasing license: Synthesis
-19 Infos, 0 Warnings, 0 Critical Warnings and 0 Errors encountered.
+47 Infos, 53 Warnings, 0 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:09 ; elapsed = 00:00:23 . Memory (MB): peak = 1614.086 ; gain = 455.000 ; free physical = 1447 ; free virtual = 19808
+synth_design: Time (s): cpu = 00:00:09 ; elapsed = 00:00:24 . Memory (MB): peak = 1643.676 ; gain = 484.594 ; free physical = 16954 ; free virtual = 26166
 WARNING: [Constraints 18-5210] No constraint will be written out.
 INFO: [Common 17-1381] The checkpoint '/media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/Top.dcp' has been generated.
 INFO: [runtcl-4] Executing : report_utilization -file Top_utilization_synth.rpt -pb Top_utilization_synth.pb
-report_utilization: Time (s): cpu = 00:00:00.03 ; elapsed = 00:00:00.06 . Memory (MB): peak = 1638.098 ; gain = 0.000 ; free physical = 1442 ; free virtual = 19803
-INFO: [Common 17-206] Exiting Vivado at Mon Oct  6 22:07:56 2025...
+report_utilization: Time (s): cpu = 00:00:00.05 ; elapsed = 00:00:00.07 . Memory (MB): peak = 1667.688 ; gain = 0.000 ; free physical = 16953 ; free virtual = 26165
+INFO: [Common 17-206] Exiting Vivado at Wed Oct  8 12:34:17 2025...

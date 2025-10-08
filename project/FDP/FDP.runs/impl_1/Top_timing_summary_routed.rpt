@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Mon Oct  6 22:08:46 2025
+| Date         : Wed Oct  8 12:35:12 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_timing_summary -max_paths 10 -file Top_timing_summary_routed.rpt -pb Top_timing_summary_routed.pb -rpx Top_timing_summary_routed.rpx -warn_on_violation
 | Design       : Top
@@ -52,9 +52,9 @@ Table of Contents
 
 1. checking no_clock
 --------------------
- There are 20 register/latch pins with no clock driven by root clock pin: vga/r_25MHz_reg[0]/Q (HIGH)
+ There are 245 register/latch pins with no clock driven by root clock pin: ov7670_pclk_raw (HIGH)
 
- There are 20 register/latch pins with no clock driven by root clock pin: vga/r_25MHz_reg[1]/Q (HIGH)
+ There are 99 register/latch pins with no clock driven by root clock pin: clk25_reg/Q (HIGH)
 
 
 2. checking constant_clock
@@ -69,21 +69,21 @@ Table of Contents
 
 4. checking unconstrained_internal_endpoints
 --------------------------------------------
- There are 50 pins that are not constrained for maximum delay. (HIGH)
+ There are 2583 pins that are not constrained for maximum delay. (HIGH)
 
  There are 0 pins that are not constrained for maximum delay due to constant clock.
 
 
 5. checking no_input_delay
 --------------------------
- There are 13 input ports with no input delay specified. (HIGH)
+ There are 12 input ports with no input delay specified. (HIGH)
 
  There are 0 input ports with no input delay but user has a false path constraint.
 
 
 6. checking no_output_delay
 ---------------------------
- There are 14 ports with no output delay specified. (HIGH)
+ There are 18 ports with no output delay specified. (HIGH)
 
  There are 0 ports with no output delay but user has a false path constraint
 
@@ -128,7 +128,7 @@ Table of Contents
 
     WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
     -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-      7.855        0.000                      0                    4        0.216        0.000                      0                    4        4.500        0.000                       0                    37  
+      3.490        0.000                      0                  249        0.133        0.000                      0                  249        4.500        0.000                       0                   113  
 
 
 All user specified timing constraints are met.
@@ -151,7 +151,7 @@ sys_clk_pin  {0.000 5.000}      10.000          100.000
 
 Clock             WNS(ns)      TNS(ns)  TNS Failing Endpoints  TNS Total Endpoints      WHS(ns)      THS(ns)  THS Failing Endpoints  THS Total Endpoints     WPWS(ns)     TPWS(ns)  TPWS Failing Endpoints  TPWS Total Endpoints  
 -----             -------      -------  ---------------------  -------------------      -------      -------  ---------------------  -------------------     --------     --------  ----------------------  --------------------  
-sys_clk_pin         7.855        0.000                      0                    4        0.216        0.000                      0                    4        4.500        0.000                       0                    37  
+sys_clk_pin         3.490        0.000                      0                  249        0.133        0.000                      0                  249        4.500        0.000                       0                   113  
 
 
 ------------------------------------------------------------------------------------------------
@@ -182,27 +182,523 @@ Path Group    From Clock    To Clock          WNS(ns)      TNS(ns)  TNS Failing 
 From Clock:  sys_clk_pin
   To Clock:  sys_clk_pin
 
-Setup :            0  Failing Endpoints,  Worst Slack        7.855ns,  Total Violation        0.000ns
-Hold  :            0  Failing Endpoints,  Worst Slack        0.216ns,  Total Violation        0.000ns
+Setup :            0  Failing Endpoints,  Worst Slack        3.490ns,  Total Violation        0.000ns
+Hold  :            0  Failing Endpoints,  Worst Slack        0.133ns,  Total Violation        0.000ns
 PW    :            0  Failing Endpoints,  Worst Slack        4.500ns,  Total Violation        0.000ns
 ---------------------------------------------------------------------------------------------------
 
 
 Max Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             7.855ns  (required time - arrival time)
-  Source:                 vga/v_count_reg_reg[9]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/v_sync_reg_reg/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             3.490ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[23]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        2.159ns  (logic 0.704ns (32.603%)  route 1.455ns (67.397%))
-  Logic Levels:           2  (LUT5=1 LUT6=1)
-  Clock Path Skew:        -0.027ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    4.853ns = ( 14.853 - 10.000 ) 
-    Source Clock Delay      (SCD):    5.154ns
+  Data Path Delay:        6.191ns  (logic 2.826ns (45.647%)  route 3.365ns (54.353%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.949    11.319    ov7670/i2c/busy_sr0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_CE)      -0.205    14.809    ov7670/i2c/data_sr_reg[23]
+  -------------------------------------------------------------------
+                         required time                         14.809    
+                         arrival time                         -11.319    
+  -------------------------------------------------------------------
+                         slack                                  3.490    
+
+Slack (MET) :             3.490ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[24]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        6.191ns  (logic 2.826ns (45.647%)  route 3.365ns (54.353%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.949    11.319    ov7670/i2c/busy_sr0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[24]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[24]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_CE)      -0.205    14.809    ov7670/i2c/data_sr_reg[24]
+  -------------------------------------------------------------------
+                         required time                         14.809    
+                         arrival time                         -11.319    
+  -------------------------------------------------------------------
+                         slack                                  3.490    
+
+Slack (MET) :             3.490ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[25]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        6.191ns  (logic 2.826ns (45.647%)  route 3.365ns (54.353%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.949    11.319    ov7670/i2c/busy_sr0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[25]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[25]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_CE)      -0.205    14.809    ov7670/i2c/data_sr_reg[25]
+  -------------------------------------------------------------------
+                         required time                         14.809    
+                         arrival time                         -11.319    
+  -------------------------------------------------------------------
+                         slack                                  3.490    
+
+Slack (MET) :             3.490ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[26]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        6.191ns  (logic 2.826ns (45.647%)  route 3.365ns (54.353%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.949    11.319    ov7670/i2c/busy_sr0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[26]/CE
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[26]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_CE)      -0.205    14.809    ov7670/i2c/data_sr_reg[26]
+  -------------------------------------------------------------------
+                         required time                         14.809    
+                         arrival time                         -11.319    
+  -------------------------------------------------------------------
+                         slack                                  3.490    
+
+Slack (MET) :             3.510ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[23]/R
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        5.947ns  (logic 2.826ns (47.517%)  route 3.121ns (52.483%))
+  Logic Levels:           3  (LUT3=1 LUT4=1 LUT5=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.713    10.390    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X8Y12          LUT3 (Prop_lut3_I0_O)        0.124    10.514 r  ov7670/i2c/data_sr[30]_i_1/O
+                         net (fo=11, routed)          0.561    11.075    ov7670/i2c/data_sr[30]_i_1_n_0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_R)       -0.429    14.585    ov7670/i2c/data_sr_reg[23]
+  -------------------------------------------------------------------
+                         required time                         14.585    
+                         arrival time                         -11.075    
+  -------------------------------------------------------------------
+                         slack                                  3.510    
+
+Slack (MET) :             3.510ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[24]/R
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        5.947ns  (logic 2.826ns (47.517%)  route 3.121ns (52.483%))
+  Logic Levels:           3  (LUT3=1 LUT4=1 LUT5=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.713    10.390    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X8Y12          LUT3 (Prop_lut3_I0_O)        0.124    10.514 r  ov7670/i2c/data_sr[30]_i_1/O
+                         net (fo=11, routed)          0.561    11.075    ov7670/i2c/data_sr[30]_i_1_n_0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[24]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[24]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_R)       -0.429    14.585    ov7670/i2c/data_sr_reg[24]
+  -------------------------------------------------------------------
+                         required time                         14.585    
+                         arrival time                         -11.075    
+  -------------------------------------------------------------------
+                         slack                                  3.510    
+
+Slack (MET) :             3.510ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[25]/R
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        5.947ns  (logic 2.826ns (47.517%)  route 3.121ns (52.483%))
+  Logic Levels:           3  (LUT3=1 LUT4=1 LUT5=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.713    10.390    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X8Y12          LUT3 (Prop_lut3_I0_O)        0.124    10.514 r  ov7670/i2c/data_sr[30]_i_1/O
+                         net (fo=11, routed)          0.561    11.075    ov7670/i2c/data_sr[30]_i_1_n_0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[25]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[25]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_R)       -0.429    14.585    ov7670/i2c/data_sr_reg[25]
+  -------------------------------------------------------------------
+                         required time                         14.585    
+                         arrival time                         -11.075    
+  -------------------------------------------------------------------
+                         slack                                  3.510    
+
+Slack (MET) :             3.510ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[26]/R
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        5.947ns  (logic 2.826ns (47.517%)  route 3.121ns (52.483%))
+  Logic Levels:           3  (LUT3=1 LUT4=1 LUT5=1)
+  Clock Path Skew:        -0.078ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
+    Clock Pessimism Removal (CPR):    0.260ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.967     3.425    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+  -------------------------------------------------------------------    -------------------
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.713    10.390    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X8Y12          LUT3 (Prop_lut3_I0_O)        0.124    10.514 r  ov7670/i2c/data_sr[30]_i_1/O
+                         net (fo=11, routed)          0.561    11.075    ov7670/i2c/data_sr[30]_i_1_n_0
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[26]/R
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                     10.000    10.000 r  
+    W5                                                0.000    10.000 r  clk (IN)
+                         net (fo=0)                   0.000    10.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           1.862    13.250    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[26]/C
+                         clock pessimism              0.260    15.049    
+                         clock uncertainty           -0.035    15.014    
+    SLICE_X11Y11         FDRE (Setup_fdre_C_R)       -0.429    14.585    ov7670/i2c/data_sr_reg[26]
+  -------------------------------------------------------------------
+                         required time                         14.585    
+                         arrival time                         -11.075    
+  -------------------------------------------------------------------
+                         slack                                  3.510    
+
+Slack (MET) :             3.522ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[12]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        6.173ns  (logic 2.826ns (45.777%)  route 3.347ns (54.223%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.064ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
     Clock Pessimism Removal (CPR):    0.274ns
   Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -218,17 +714,20 @@ Slack (MET) :             7.855ns  (required time - arrival time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
                          net (fo=1, routed)           1.967     3.425    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.633     5.154    vga/CLK
-    SLICE_X1Y36          FDCE                                         r  vga/v_count_reg_reg[9]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
   -------------------------------------------------------------------    -------------------
-    SLICE_X1Y36          FDCE (Prop_fdce_C_Q)         0.456     5.610 r  vga/v_count_reg_reg[9]/Q
-                         net (fo=15, routed)          1.015     6.625    vga/v_count_reg_reg_n_0_[9]
-    SLICE_X2Y34          LUT6 (Prop_lut6_I5_O)        0.124     6.749 f  vga/v_count_next[3]_i_2/O
-                         net (fo=4, routed)           0.440     7.190    vga/v_count_next[3]_i_2_n_0
-    SLICE_X2Y33          LUT5 (Prop_lut5_I4_O)        0.124     7.314 r  vga/v_sync_reg_i_1/O
-                         net (fo=1, routed)           0.000     7.314    vga/v_sync_next
-    SLICE_X2Y33          FDCE                                         r  vga/v_sync_reg_reg/D
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.931    11.301    ov7670/i2c/busy_sr0
+    SLICE_X9Y10          FDRE                                         r  ov7670/i2c/data_sr_reg[12]/CE
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -237,31 +736,31 @@ Slack (MET) :             7.855ns  (required time - arrival time)
                          net (fo=0)                   0.000    10.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
                          net (fo=1, routed)           1.862    13.250    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.512    14.853    vga/CLK
-    SLICE_X2Y33          FDCE                                         r  vga/v_sync_reg_reg/C
-                         clock pessimism              0.274    15.127    
-                         clock uncertainty           -0.035    15.092    
-    SLICE_X2Y33          FDCE (Setup_fdce_C_D)        0.077    15.169    vga/v_sync_reg_reg
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X9Y10          FDRE                                         r  ov7670/i2c/data_sr_reg[12]/C
+                         clock pessimism              0.274    15.063    
+                         clock uncertainty           -0.035    15.028    
+    SLICE_X9Y10          FDRE (Setup_fdre_C_CE)      -0.205    14.823    ov7670/i2c/data_sr_reg[12]
   -------------------------------------------------------------------
-                         required time                         15.169    
-                         arrival time                          -7.314    
+                         required time                         14.823    
+                         arrival time                         -11.301    
   -------------------------------------------------------------------
-                         slack                                  7.855    
+                         slack                                  3.522    
 
-Slack (MET) :             8.195ns  (required time - arrival time)
-  Source:                 vga/h_count_reg_reg[7]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/h_sync_reg_reg/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             3.522ns  (required time - arrival time)
+  Source:                 ov7670/camera_regs/sreg_reg/CLKARDCLK
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[13]/CE
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Setup (Max at Slow Process Corner)
   Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        1.774ns  (logic 0.580ns (32.698%)  route 1.194ns (67.302%))
-  Logic Levels:           1  (LUT6=1)
-  Clock Path Skew:        -0.025ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    4.853ns = ( 14.853 - 10.000 ) 
-    Source Clock Delay      (SCD):    5.152ns
+  Data Path Delay:        6.173ns  (logic 2.826ns (45.777%)  route 3.347ns (54.223%))
+  Logic Levels:           3  (LUT4=1 LUT5=1 LUT6=1)
+  Clock Path Skew:        -0.064ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    4.789ns = ( 14.789 - 10.000 ) 
+    Source Clock Delay      (SCD):    5.128ns
     Clock Pessimism Removal (CPR):    0.274ns
   Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
     Total System Jitter     (TSJ):    0.071ns
@@ -277,72 +776,20 @@ Slack (MET) :             8.195ns  (required time - arrival time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
                          net (fo=1, routed)           1.967     3.425    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.631     5.152    vga/CLK
-    SLICE_X1Y34          FDCE                                         r  vga/h_count_reg_reg[7]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.607     5.128    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
   -------------------------------------------------------------------    -------------------
-    SLICE_X1Y34          FDCE (Prop_fdce_C_Q)         0.456     5.608 r  vga/h_count_reg_reg[7]/Q
-                         net (fo=18, routed)          1.194     6.802    vga/h_count_reg_reg_n_0_[7]
-    SLICE_X0Y33          LUT6 (Prop_lut6_I2_O)        0.124     6.926 r  vga/h_sync_reg_i_1/O
-                         net (fo=1, routed)           0.000     6.926    vga/h_sync_next
-    SLICE_X0Y33          FDCE                                         r  vga/h_sync_reg_reg/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock sys_clk_pin rise edge)
-                                                     10.000    10.000 r  
-    W5                                                0.000    10.000 r  clk (IN)
-                         net (fo=0)                   0.000    10.000    clk
-    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
-                         net (fo=1, routed)           1.862    13.250    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.512    14.853    vga/CLK
-    SLICE_X0Y33          FDCE                                         r  vga/h_sync_reg_reg/C
-                         clock pessimism              0.274    15.127    
-                         clock uncertainty           -0.035    15.092    
-    SLICE_X0Y33          FDCE (Setup_fdce_C_D)        0.029    15.121    vga/h_sync_reg_reg
-  -------------------------------------------------------------------
-                         required time                         15.121    
-                         arrival time                          -6.926    
-  -------------------------------------------------------------------
-                         slack                                  8.195    
-
-Slack (MET) :             8.434ns  (required time - arrival time)
-  Source:                 vga/r_25MHz_reg[1]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/r_25MHz_reg[1]/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             sys_clk_pin
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        1.606ns  (logic 0.746ns (46.448%)  route 0.860ns (53.552%))
-  Logic Levels:           1  (LUT2=1)
-  Clock Path Skew:        0.000ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    4.855ns = ( 14.855 - 10.000 ) 
-    Source Clock Delay      (SCD):    5.154ns
-    Clock Pessimism Removal (CPR):    0.299ns
-  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.000ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock sys_clk_pin rise edge)
-                                                      0.000     0.000 r  
-    W5                                                0.000     0.000 r  clk (IN)
-                         net (fo=0)                   0.000     0.000    clk
-    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
-                         net (fo=1, routed)           1.967     3.425    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.633     5.154    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[1]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X3Y35          FDCE (Prop_fdce_C_Q)         0.419     5.573 r  vga/r_25MHz_reg[1]/Q
-                         net (fo=2, routed)           0.860     6.433    vga/r_25MHz[1]
-    SLICE_X3Y35          LUT2 (Prop_lut2_I1_O)        0.327     6.760 r  vga/r_25MHz[1]_i_1/O
-                         net (fo=1, routed)           0.000     6.760    vga/p_0_in[1]
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[1]/D
+    RAMB18_X0Y4          RAMB18E1 (Prop_ramb18e1_CLKARDCLK_DOADO[1])
+                                                      2.454     7.582 f  ov7670/camera_regs/sreg_reg/DOADO[1]
+                         net (fo=2, routed)           1.174     8.756    ov7670/camera_regs/sreg_reg__0[1]
+    SLICE_X8Y10          LUT4 (Prop_lut4_I0_O)        0.124     8.880 r  ov7670/camera_regs/led_OBUF[0]_inst_i_3/O
+                         net (fo=3, routed)           0.673     9.552    ov7670/camera_regs/led_OBUF[0]_inst_i_3_n_0
+    SLICE_X8Y12          LUT5 (Prop_lut5_I2_O)        0.124     9.676 r  ov7670/camera_regs/busy_sr[0]_i_2/O
+                         net (fo=5, routed)           0.570    10.246    ov7670/i2c/busy_sr_reg[31]_1
+    SLICE_X7Y14          LUT6 (Prop_lut6_I5_O)        0.124    10.370 r  ov7670/i2c/busy_sr[0]_i_1/O
+                         net (fo=63, routed)          0.931    11.301    ov7670/i2c/busy_sr0
+    SLICE_X9Y10          FDRE                                         r  ov7670/i2c/data_sr_reg[13]/CE
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -351,74 +798,17 @@ Slack (MET) :             8.434ns  (required time - arrival time)
                          net (fo=0)                   0.000    10.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
                          net (fo=1, routed)           1.862    13.250    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.514    14.855    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[1]/C
-                         clock pessimism              0.299    15.154    
-                         clock uncertainty           -0.035    15.119    
-    SLICE_X3Y35          FDCE (Setup_fdce_C_D)        0.075    15.194    vga/r_25MHz_reg[1]
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         1.448    14.789    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X9Y10          FDRE                                         r  ov7670/i2c/data_sr_reg[13]/C
+                         clock pessimism              0.274    15.063    
+                         clock uncertainty           -0.035    15.028    
+    SLICE_X9Y10          FDRE (Setup_fdre_C_CE)      -0.205    14.823    ov7670/i2c/data_sr_reg[13]
   -------------------------------------------------------------------
-                         required time                         15.194    
-                         arrival time                          -6.760    
+                         required time                         14.823    
+                         arrival time                         -11.301    
   -------------------------------------------------------------------
-                         slack                                  8.434    
-
-Slack (MET) :             8.457ns  (required time - arrival time)
-  Source:                 vga/r_25MHz_reg[0]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/r_25MHz_reg[0]/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Path Group:             sys_clk_pin
-  Path Type:              Setup (Max at Slow Process Corner)
-  Requirement:            10.000ns  (sys_clk_pin rise@10.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        1.536ns  (logic 0.580ns (37.750%)  route 0.956ns (62.250%))
-  Logic Levels:           1  (LUT1=1)
-  Clock Path Skew:        0.000ns (DCD - SCD + CPR)
-    Destination Clock Delay (DCD):    4.855ns = ( 14.855 - 10.000 ) 
-    Source Clock Delay      (SCD):    5.154ns
-    Clock Pessimism Removal (CPR):    0.299ns
-  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
-    Total System Jitter     (TSJ):    0.071ns
-    Total Input Jitter      (TIJ):    0.000ns
-    Discrete Jitter          (DJ):    0.000ns
-    Phase Error              (PE):    0.000ns
-
-    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
-  -------------------------------------------------------------------    -------------------
-                         (clock sys_clk_pin rise edge)
-                                                      0.000     0.000 r  
-    W5                                                0.000     0.000 r  clk (IN)
-                         net (fo=0)                   0.000     0.000    clk
-    W5                   IBUF (Prop_ibuf_I_O)         1.458     1.458 r  clk_IBUF_inst/O
-                         net (fo=1, routed)           1.967     3.425    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096     3.521 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.633     5.154    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/C
-  -------------------------------------------------------------------    -------------------
-    SLICE_X3Y35          FDCE (Prop_fdce_C_Q)         0.456     5.610 f  vga/r_25MHz_reg[0]/Q
-                         net (fo=3, routed)           0.956     6.567    vga/r_25MHz[0]
-    SLICE_X3Y35          LUT1 (Prop_lut1_I0_O)        0.124     6.691 r  vga/r_25MHz[0]_i_1/O
-                         net (fo=1, routed)           0.000     6.691    vga/p_0_in[0]
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/D
-  -------------------------------------------------------------------    -------------------
-
-                         (clock sys_clk_pin rise edge)
-                                                     10.000    10.000 r  
-    W5                                                0.000    10.000 r  clk (IN)
-                         net (fo=0)                   0.000    10.000    clk
-    W5                   IBUF (Prop_ibuf_I_O)         1.388    11.388 r  clk_IBUF_inst/O
-                         net (fo=1, routed)           1.862    13.250    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    13.341 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          1.514    14.855    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/C
-                         clock pessimism              0.299    15.154    
-                         clock uncertainty           -0.035    15.119    
-    SLICE_X3Y35          FDCE (Setup_fdce_C_D)        0.029    15.148    vga/r_25MHz_reg[0]
-  -------------------------------------------------------------------
-                         required time                         15.148    
-                         arrival time                          -6.691    
-  -------------------------------------------------------------------
-                         slack                                  8.457    
+                         slack                                  3.522    
 
 
 
@@ -426,20 +816,20 @@ Slack (MET) :             8.457ns  (required time - arrival time)
 
 Min Delay Paths
 --------------------------------------------------------------------------------------
-Slack (MET) :             0.216ns  (arrival time - required time)
-  Source:                 vga/v_count_reg_reg[0]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/v_sync_reg_reg/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.133ns  (arrival time - required time)
+  Source:                 ov7670/camera_regs/address_reg_rep[3]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/camera_regs/sreg_reg/ADDRARDADDR[7]
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        0.336ns  (logic 0.246ns (73.124%)  route 0.090ns (26.876%))
-  Logic Levels:           1  (LUT5=1)
-  Clock Path Skew:        0.000ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.986ns
-    Source Clock Delay      (SCD):    1.473ns
-    Clock Pessimism Removal (CPR):    0.513ns
+  Data Path Delay:        0.370ns  (logic 0.164ns (44.283%)  route 0.206ns (55.717%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.054ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.001ns
+    Source Clock Delay      (SCD):    1.448ns
+    Clock Pessimism Removal (CPR):    0.498ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -449,15 +839,13 @@ Slack (MET) :             0.216ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.631     0.858    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.590     1.473    vga/CLK
-    SLICE_X2Y33          FDCE                                         r  vga/v_count_reg_reg[0]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.565     1.448    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X8Y9           FDRE                                         r  ov7670/camera_regs/address_reg_rep[3]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X2Y33          FDCE (Prop_fdce_C_Q)         0.148     1.621 r  vga/v_count_reg_reg[0]/Q
-                         net (fo=9, routed)           0.090     1.712    vga/v_count_reg_reg_n_0_[0]
-    SLICE_X2Y33          LUT5 (Prop_lut5_I0_O)        0.098     1.810 r  vga/v_sync_reg_i_1/O
-                         net (fo=1, routed)           0.000     1.810    vga/v_sync_next
-    SLICE_X2Y33          FDCE                                         r  vga/v_sync_reg_reg/D
+    SLICE_X8Y9           FDRE (Prop_fdre_C_Q)         0.164     1.612 r  ov7670/camera_regs/address_reg_rep[3]/Q
+                         net (fo=1, routed)           0.206     1.818    ov7670/camera_regs/address[3]
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/ADDRARDADDR[7]
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -466,30 +854,182 @@ Slack (MET) :             0.216ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.685     1.099    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.859     1.986    vga/CLK
-    SLICE_X2Y33          FDCE                                         r  vga/v_sync_reg_reg/C
-                         clock pessimism             -0.513     1.473    
-    SLICE_X2Y33          FDCE (Hold_fdce_C_D)         0.120     1.593    vga/v_sync_reg_reg
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.873     2.001    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+                         clock pessimism             -0.498     1.503    
+    RAMB18_X0Y4          RAMB18E1 (Hold_ramb18e1_CLKARDCLK_ADDRARDADDR[7])
+                                                      0.183     1.686    ov7670/camera_regs/sreg_reg
   -------------------------------------------------------------------
-                         required time                         -1.593    
-                         arrival time                           1.810    
+                         required time                         -1.686    
+                         arrival time                           1.818    
   -------------------------------------------------------------------
-                         slack                                  0.216    
+                         slack                                  0.133    
 
-Slack (MET) :             0.332ns  (arrival time - required time)
-  Source:                 vga/h_count_reg_reg[9]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/h_sync_reg_reg/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.152ns  (arrival time - required time)
+  Source:                 ov7670/i2c/busy_sr_reg[1]/C
+                            (rising edge-triggered cell FDSE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/busy_sr_reg[2]/D
+                            (rising edge-triggered cell FDSE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        0.436ns  (logic 0.227ns (52.121%)  route 0.209ns (47.879%))
-  Logic Levels:           1  (LUT6=1)
+  Data Path Delay:        0.285ns  (logic 0.186ns (65.209%)  route 0.099ns (34.791%))
+  Logic Levels:           1  (LUT2=1)
   Clock Path Skew:        0.013ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.986ns
-    Source Clock Delay      (SCD):    1.474ns
+    Destination Clock Delay (DCD):    1.984ns
+    Source Clock Delay      (SCD):    1.471ns
+    Clock Pessimism Removal (CPR):    0.500ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.588     1.471    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X7Y16          FDSE                                         r  ov7670/i2c/busy_sr_reg[1]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X7Y16          FDSE (Prop_fdse_C_Q)         0.141     1.612 r  ov7670/i2c/busy_sr_reg[1]/Q
+                         net (fo=3, routed)           0.099     1.711    ov7670/i2c/busy_sr_reg_n_0_[1]
+    SLICE_X6Y16          LUT2 (Prop_lut2_I0_O)        0.045     1.756 r  ov7670/i2c/busy_sr[2]_i_1/O
+                         net (fo=1, routed)           0.000     1.756    ov7670/i2c/busy_sr[2]_i_1_n_0
+    SLICE_X6Y16          FDSE                                         r  ov7670/i2c/busy_sr_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.857     1.984    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X6Y16          FDSE                                         r  ov7670/i2c/busy_sr_reg[2]/C
+                         clock pessimism             -0.500     1.484    
+    SLICE_X6Y16          FDSE (Hold_fdse_C_D)         0.120     1.604    ov7670/i2c/busy_sr_reg[2]
+  -------------------------------------------------------------------
+                         required time                         -1.604    
+                         arrival time                           1.756    
+  -------------------------------------------------------------------
+                         slack                                  0.152    
+
+Slack (MET) :             0.163ns  (arrival time - required time)
+  Source:                 ov7670/camera_regs/address_reg[0]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/camera_regs/address_reg_rep[1]/D
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.296ns  (logic 0.186ns (62.765%)  route 0.110ns (37.235%))
+  Logic Levels:           1  (LUT2=1)
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.962ns
+    Source Clock Delay      (SCD):    1.448ns
+    Clock Pessimism Removal (CPR):    0.501ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.565     1.448    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X9Y9           FDRE                                         r  ov7670/camera_regs/address_reg[0]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X9Y9           FDRE (Prop_fdre_C_Q)         0.141     1.589 r  ov7670/camera_regs/address_reg[0]/Q
+                         net (fo=7, routed)           0.110     1.699    ov7670/camera_regs/address_reg__0[0]
+    SLICE_X8Y9           LUT2 (Prop_lut2_I0_O)        0.045     1.744 r  ov7670/camera_regs/address_rep[1]_i_1/O
+                         net (fo=2, routed)           0.000     1.744    ov7670/camera_regs/address_rep[1]_i_1_n_0
+    SLICE_X8Y9           FDRE                                         r  ov7670/camera_regs/address_reg_rep[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.835     1.962    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X8Y9           FDRE                                         r  ov7670/camera_regs/address_reg_rep[1]/C
+                         clock pessimism             -0.501     1.461    
+    SLICE_X8Y9           FDRE (Hold_fdre_C_D)         0.120     1.581    ov7670/camera_regs/address_reg_rep[1]
+  -------------------------------------------------------------------
+                         required time                         -1.581    
+                         arrival time                           1.744    
+  -------------------------------------------------------------------
+                         slack                                  0.163    
+
+Slack (MET) :             0.173ns  (arrival time - required time)
+  Source:                 ov7670/i2c/data_sr_reg[27]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[28]/D
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.281ns  (logic 0.164ns (58.465%)  route 0.117ns (41.535%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.961ns
+    Source Clock Delay      (SCD):    1.447ns
+    Clock Pessimism Removal (CPR):    0.478ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.564     1.447    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X10Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[27]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X10Y11         FDRE (Prop_fdre_C_Q)         0.164     1.611 r  ov7670/i2c/data_sr_reg[27]/Q
+                         net (fo=1, routed)           0.117     1.728    ov7670/i2c/data_sr_reg_n_0_[27]
+    SLICE_X9Y11          FDRE                                         r  ov7670/i2c/data_sr_reg[28]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.834     1.961    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X9Y11          FDRE                                         r  ov7670/i2c/data_sr_reg[28]/C
+                         clock pessimism             -0.478     1.483    
+    SLICE_X9Y11          FDRE (Hold_fdre_C_D)         0.072     1.555    ov7670/i2c/data_sr_reg[28]
+  -------------------------------------------------------------------
+                         required time                         -1.555    
+                         arrival time                           1.728    
+  -------------------------------------------------------------------
+                         slack                                  0.173    
+
+Slack (MET) :             0.179ns  (arrival time - required time)
+  Source:                 ov7670/i2c/divider_reg[6]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/sioc_reg/D
+                            (rising edge-triggered cell FDSE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.314ns  (logic 0.186ns (59.266%)  route 0.128ns (40.734%))
+  Logic Levels:           1  (LUT6=1)
+  Clock Path Skew:        0.014ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.985ns
+    Source Clock Delay      (SCD):    1.472ns
     Clock Pessimism Removal (CPR):    0.499ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
@@ -500,15 +1040,15 @@ Slack (MET) :             0.332ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.631     0.858    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.591     1.474    vga/CLK
-    SLICE_X1Y34          FDCE                                         r  vga/h_count_reg_reg[9]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.589     1.472    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X7Y14          FDRE                                         r  ov7670/i2c/divider_reg[6]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X1Y34          FDCE (Prop_fdce_C_Q)         0.128     1.602 r  vga/h_count_reg_reg[9]/Q
-                         net (fo=17, routed)          0.209     1.811    vga/h_count_reg_reg_n_0_[9]
-    SLICE_X0Y33          LUT6 (Prop_lut6_I4_O)        0.099     1.910 r  vga/h_sync_reg_i_1/O
-                         net (fo=1, routed)           0.000     1.910    vga/h_sync_next
-    SLICE_X0Y33          FDCE                                         r  vga/h_sync_reg_reg/D
+    SLICE_X7Y14          FDRE (Prop_fdre_C_Q)         0.141     1.613 r  ov7670/i2c/divider_reg[6]/Q
+                         net (fo=7, routed)           0.128     1.741    ov7670/i2c/divider_reg__0[6]
+    SLICE_X6Y15          LUT6 (Prop_lut6_I3_O)        0.045     1.786 r  ov7670/i2c/sioc_i_2/O
+                         net (fo=1, routed)           0.000     1.786    ov7670/i2c/sioc
+    SLICE_X6Y15          FDSE                                         r  ov7670/i2c/sioc_reg/D
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -517,31 +1057,31 @@ Slack (MET) :             0.332ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.685     1.099    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.859     1.986    vga/CLK
-    SLICE_X0Y33          FDCE                                         r  vga/h_sync_reg_reg/C
-                         clock pessimism             -0.499     1.487    
-    SLICE_X0Y33          FDCE (Hold_fdce_C_D)         0.091     1.578    vga/h_sync_reg_reg
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.858     1.985    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X6Y15          FDSE                                         r  ov7670/i2c/sioc_reg/C
+                         clock pessimism             -0.499     1.486    
+    SLICE_X6Y15          FDSE (Hold_fdse_C_D)         0.121     1.607    ov7670/i2c/sioc_reg
   -------------------------------------------------------------------
-                         required time                         -1.578    
-                         arrival time                           1.910    
+                         required time                         -1.607    
+                         arrival time                           1.786    
   -------------------------------------------------------------------
-                         slack                                  0.332    
+                         slack                                  0.179    
 
-Slack (MET) :             0.398ns  (arrival time - required time)
-  Source:                 vga/r_25MHz_reg[0]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/r_25MHz_reg[1]/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.191ns  (arrival time - required time)
+  Source:                 ov7670/camera_regs/address_reg_rep[4]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/camera_regs/sreg_reg/ADDRARDADDR[8]
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        0.505ns  (logic 0.185ns (36.604%)  route 0.320ns (63.396%))
-  Logic Levels:           1  (LUT2=1)
-  Clock Path Skew:        0.000ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.988ns
-    Source Clock Delay      (SCD):    1.474ns
-    Clock Pessimism Removal (CPR):    0.514ns
+  Data Path Delay:        0.428ns  (logic 0.164ns (38.275%)  route 0.264ns (61.725%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.054ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.001ns
+    Source Clock Delay      (SCD):    1.448ns
+    Clock Pessimism Removal (CPR):    0.498ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -551,15 +1091,13 @@ Slack (MET) :             0.398ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.631     0.858    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.591     1.474    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.565     1.448    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X8Y9           FDRE                                         r  ov7670/camera_regs/address_reg_rep[4]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X3Y35          FDCE (Prop_fdce_C_Q)         0.141     1.615 r  vga/r_25MHz_reg[0]/Q
-                         net (fo=3, routed)           0.320     1.936    vga/r_25MHz[0]
-    SLICE_X3Y35          LUT2 (Prop_lut2_I0_O)        0.044     1.980 r  vga/r_25MHz[1]_i_1/O
-                         net (fo=1, routed)           0.000     1.980    vga/p_0_in[1]
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[1]/D
+    SLICE_X8Y9           FDRE (Prop_fdre_C_Q)         0.164     1.612 r  ov7670/camera_regs/address_reg_rep[4]/Q
+                         net (fo=1, routed)           0.264     1.877    ov7670/camera_regs/address[4]
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/ADDRARDADDR[8]
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -568,31 +1106,32 @@ Slack (MET) :             0.398ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.685     1.099    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.861     1.988    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[1]/C
-                         clock pessimism             -0.514     1.474    
-    SLICE_X3Y35          FDCE (Hold_fdce_C_D)         0.107     1.581    vga/r_25MHz_reg[1]
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.873     2.001    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+                         clock pessimism             -0.498     1.503    
+    RAMB18_X0Y4          RAMB18E1 (Hold_ramb18e1_CLKARDCLK_ADDRARDADDR[8])
+                                                      0.183     1.686    ov7670/camera_regs/sreg_reg
   -------------------------------------------------------------------
-                         required time                         -1.581    
-                         arrival time                           1.980    
+                         required time                         -1.686    
+                         arrival time                           1.877    
   -------------------------------------------------------------------
-                         slack                                  0.398    
+                         slack                                  0.191    
 
-Slack (MET) :             0.415ns  (arrival time - required time)
-  Source:                 vga/r_25MHz_reg[0]/C
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
-  Destination:            vga/r_25MHz_reg[0]/D
-                            (rising edge-triggered cell FDCE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+Slack (MET) :             0.191ns  (arrival time - required time)
+  Source:                 ov7670/camera_regs/address_reg_rep[1]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/camera_regs/sreg_reg/ADDRARDADDR[5]
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
   Path Group:             sys_clk_pin
   Path Type:              Hold (Min at Fast Process Corner)
   Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
-  Data Path Delay:        0.506ns  (logic 0.186ns (36.729%)  route 0.320ns (63.271%))
-  Logic Levels:           1  (LUT1=1)
-  Clock Path Skew:        0.000ns (DCD - SCD - CPR)
-    Destination Clock Delay (DCD):    1.988ns
-    Source Clock Delay      (SCD):    1.474ns
-    Clock Pessimism Removal (CPR):    0.514ns
+  Data Path Delay:        0.428ns  (logic 0.164ns (38.274%)  route 0.264ns (61.726%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.054ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.001ns
+    Source Clock Delay      (SCD):    1.448ns
+    Clock Pessimism Removal (CPR):    0.498ns
 
     Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
   -------------------------------------------------------------------    -------------------
@@ -602,15 +1141,13 @@ Slack (MET) :             0.415ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.631     0.858    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.591     1.474    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/C
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.565     1.448    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X8Y9           FDRE                                         r  ov7670/camera_regs/address_reg_rep[1]/C
   -------------------------------------------------------------------    -------------------
-    SLICE_X3Y35          FDCE (Prop_fdce_C_Q)         0.141     1.615 f  vga/r_25MHz_reg[0]/Q
-                         net (fo=3, routed)           0.320     1.936    vga/r_25MHz[0]
-    SLICE_X3Y35          LUT1 (Prop_lut1_I0_O)        0.045     1.981 r  vga/r_25MHz[0]_i_1/O
-                         net (fo=1, routed)           0.000     1.981    vga/p_0_in[0]
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/D
+    SLICE_X8Y9           FDRE (Prop_fdre_C_Q)         0.164     1.612 r  ov7670/camera_regs/address_reg_rep[1]/Q
+                         net (fo=1, routed)           0.264     1.877    ov7670/camera_regs/address[1]
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/ADDRARDADDR[5]
   -------------------------------------------------------------------    -------------------
 
                          (clock sys_clk_pin rise edge)
@@ -619,16 +1156,165 @@ Slack (MET) :             0.415ns  (arrival time - required time)
                          net (fo=0)                   0.000     0.000    clk
     W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
                          net (fo=1, routed)           0.685     1.099    clk_IBUF
-    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
-                         net (fo=36, routed)          0.861     1.988    vga/CLK
-    SLICE_X3Y35          FDCE                                         r  vga/r_25MHz_reg[0]/C
-                         clock pessimism             -0.514     1.474    
-    SLICE_X3Y35          FDCE (Hold_fdce_C_D)         0.091     1.565    vga/r_25MHz_reg[0]
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.873     2.001    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+                         clock pessimism             -0.498     1.503    
+    RAMB18_X0Y4          RAMB18E1 (Hold_ramb18e1_CLKARDCLK_ADDRARDADDR[5])
+                                                      0.183     1.686    ov7670/camera_regs/sreg_reg
   -------------------------------------------------------------------
-                         required time                         -1.565    
-                         arrival time                           1.981    
+                         required time                         -1.686    
+                         arrival time                           1.877    
   -------------------------------------------------------------------
-                         slack                                  0.415    
+                         slack                                  0.191    
+
+Slack (MET) :             0.191ns  (arrival time - required time)
+  Source:                 ov7670/camera_regs/address_reg_rep[6]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/camera_regs/sreg_reg/ADDRARDADDR[10]
+                            (rising edge-triggered cell RAMB18E1 clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.429ns  (logic 0.164ns (38.257%)  route 0.265ns (61.742%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.054ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    2.001ns
+    Source Clock Delay      (SCD):    1.448ns
+    Clock Pessimism Removal (CPR):    0.498ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.565     1.448    ov7670/camera_regs/clk_IBUF_BUFG
+    SLICE_X8Y8           FDRE                                         r  ov7670/camera_regs/address_reg_rep[6]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X8Y8           FDRE (Prop_fdre_C_Q)         0.164     1.612 r  ov7670/camera_regs/address_reg_rep[6]/Q
+                         net (fo=1, routed)           0.265     1.877    ov7670/camera_regs/address[6]
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/ADDRARDADDR[10]
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.873     2.001    ov7670/camera_regs/clk_IBUF_BUFG
+    RAMB18_X0Y4          RAMB18E1                                     r  ov7670/camera_regs/sreg_reg/CLKARDCLK
+                         clock pessimism             -0.498     1.503    
+    RAMB18_X0Y4          RAMB18E1 (Hold_ramb18e1_CLKARDCLK_ADDRARDADDR[10])
+                                                      0.183     1.686    ov7670/camera_regs/sreg_reg
+  -------------------------------------------------------------------
+                         required time                         -1.686    
+                         arrival time                           1.877    
+  -------------------------------------------------------------------
+                         slack                                  0.191    
+
+Slack (MET) :             0.192ns  (arrival time - required time)
+  Source:                 ov7670/i2c/data_sr_reg[19]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[20]/D
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.275ns  (logic 0.164ns (59.703%)  route 0.111ns (40.297%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.036ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.961ns
+    Source Clock Delay      (SCD):    1.447ns
+    Clock Pessimism Removal (CPR):    0.478ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.564     1.447    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X10Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[19]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X10Y11         FDRE (Prop_fdre_C_Q)         0.164     1.611 r  ov7670/i2c/data_sr_reg[19]/Q
+                         net (fo=1, routed)           0.111     1.722    ov7670/i2c/data_sr_reg_n_0_[19]
+    SLICE_X9Y11          FDRE                                         r  ov7670/i2c/data_sr_reg[20]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.834     1.961    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X9Y11          FDRE                                         r  ov7670/i2c/data_sr_reg[20]/C
+                         clock pessimism             -0.478     1.483    
+    SLICE_X9Y11          FDRE (Hold_fdre_C_D)         0.047     1.530    ov7670/i2c/data_sr_reg[20]
+  -------------------------------------------------------------------
+                         required time                         -1.530    
+                         arrival time                           1.722    
+  -------------------------------------------------------------------
+                         slack                                  0.192    
+
+Slack (MET) :             0.194ns  (arrival time - required time)
+  Source:                 ov7670/i2c/data_sr_reg[22]/C
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Destination:            ov7670/i2c/data_sr_reg[23]/D
+                            (rising edge-triggered cell FDRE clocked by sys_clk_pin  {rise@0.000ns fall@5.000ns period=10.000ns})
+  Path Group:             sys_clk_pin
+  Path Type:              Hold (Min at Fast Process Corner)
+  Requirement:            0.000ns  (sys_clk_pin rise@0.000ns - sys_clk_pin rise@0.000ns)
+  Data Path Delay:        0.277ns  (logic 0.164ns (59.205%)  route 0.113ns (40.795%))
+  Logic Levels:           0  
+  Clock Path Skew:        0.013ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    1.961ns
+    Source Clock Delay      (SCD):    1.447ns
+    Clock Pessimism Removal (CPR):    0.501ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.226     0.226 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.631     0.858    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.026     0.884 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.564     1.447    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X10Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[22]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X10Y11         FDRE (Prop_fdre_C_Q)         0.164     1.611 r  ov7670/i2c/data_sr_reg[22]/Q
+                         net (fo=1, routed)           0.113     1.724    ov7670/i2c/data_sr_reg_n_0_[22]
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock sys_clk_pin rise edge)
+                                                      0.000     0.000 r  
+    W5                                                0.000     0.000 r  clk (IN)
+                         net (fo=0)                   0.000     0.000    clk
+    W5                   IBUF (Prop_ibuf_I_O)         0.414     0.414 r  clk_IBUF_inst/O
+                         net (fo=1, routed)           0.685     1.099    clk_IBUF
+    BUFGCTRL_X0Y1        BUFG (Prop_bufg_I_O)         0.029     1.128 r  clk_IBUF_BUFG_inst/O
+                         net (fo=112, routed)         0.834     1.961    ov7670/i2c/clk_IBUF_BUFG
+    SLICE_X11Y11         FDRE                                         r  ov7670/i2c/data_sr_reg[23]/C
+                         clock pessimism             -0.501     1.460    
+    SLICE_X11Y11         FDRE (Hold_fdre_C_D)         0.070     1.530    ov7670/i2c/data_sr_reg[23]
+  -------------------------------------------------------------------
+                         required time                         -1.530    
+                         arrival time                           1.724    
+  -------------------------------------------------------------------
+                         slack                                  0.194    
 
 
 
@@ -641,37 +1327,37 @@ Waveform(ns):       { 0.000 5.000 }
 Period(ns):         10.000
 Sources:            { clk }
 
-Check Type        Corner  Lib Pin  Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location       Pin
-Min Period        n/a     BUFG/I   n/a            2.155         10.000      7.845      BUFGCTRL_X0Y0  clk_IBUF_BUFG_inst/I
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X1Y32    rgb_reg_reg[0]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y36    rgb_reg_reg[10]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y36    rgb_reg_reg[11]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X1Y32    rgb_reg_reg[1]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y32    rgb_reg_reg[2]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y32    rgb_reg_reg[3]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y32    rgb_reg_reg[4]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y32    rgb_reg_reg[5]/C
-Min Period        n/a     FDCE/C   n/a            1.000         10.000      9.000      SLICE_X0Y33    rgb_reg_reg[6]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y36    rgb_reg_reg[10]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y36    rgb_reg_reg[11]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y33    rgb_reg_reg[6]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y36    rgb_reg_reg[7]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X3Y35    rgb_reg_reg[8]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X1Y36    rgb_reg_reg[9]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X3Y35    vga/h_count_reg_reg[0]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X3Y35    vga/h_count_reg_reg[1]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X3Y35    vga/h_count_reg_reg[2]/C
-Low Pulse Width   Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X3Y35    vga/h_count_reg_reg[3]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X1Y32    rgb_reg_reg[0]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X1Y32    rgb_reg_reg[1]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y32    rgb_reg_reg[2]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y32    rgb_reg_reg[3]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y32    rgb_reg_reg[4]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y32    rgb_reg_reg[5]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y33    rgb_reg_reg[6]/C
-High Pulse Width  Fast    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X0Y33    rgb_reg_reg[6]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X1Y34    vga/h_count_reg_reg[5]/C
-High Pulse Width  Slow    FDCE/C   n/a            0.500         5.000       4.500      SLICE_X1Y34    vga/h_count_reg_reg[6]/C
+Check Type        Corner  Lib Pin             Reference Pin  Required(ns)  Actual(ns)  Slack(ns)  Location       Pin
+Min Period        n/a     RAMB18E1/CLKARDCLK  n/a            2.576         10.000      7.424      RAMB18_X0Y4    ov7670/camera_regs/sreg_reg/CLKARDCLK
+Min Period        n/a     BUFG/I              n/a            2.155         10.000      7.845      BUFGCTRL_X0Y1  clk_IBUF_BUFG_inst/I
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X36Y46   clk25_reg/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X36Y46   clk_div_reg/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y9     ov7670/camera_regs/address_reg[0]/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y9     ov7670/camera_regs/address_reg[1]/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y9     ov7670/camera_regs/address_reg[2]/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y8     ov7670/camera_regs/address_reg[3]/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y8     ov7670/camera_regs/address_reg[4]/C
+Min Period        n/a     FDRE/C              n/a            1.000         10.000      9.000      SLICE_X9Y8     ov7670/camera_regs/address_reg[5]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X36Y46   clk25_reg/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X36Y46   clk_div_reg/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[12]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[13]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[14]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[15]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y12    ov7670/camera_regs/command_reg[2]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[4]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[5]/C
+Low Pulse Width   Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y11    ov7670/camera_regs/command_reg[6]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X9Y8     ov7670/camera_regs/address_reg[3]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X9Y8     ov7670/camera_regs/address_reg[4]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X9Y8     ov7670/camera_regs/address_reg[5]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y8     ov7670/camera_regs/address_reg[6]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y8     ov7670/camera_regs/address_reg[7]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y8     ov7670/camera_regs/address_reg_rep[6]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X8Y8     ov7670/camera_regs/address_reg_rep[7]/C
+High Pulse Width  Slow    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X0Y27    ov7670/clk_div_reg/C
+High Pulse Width  Fast    FDRE/C              n/a            0.500         5.000       4.500      SLICE_X7Y15    ov7670/i2c/busy_sr_reg[0]/C
+High Pulse Width  Fast    FDSE/C              n/a            0.500         5.000       4.500      SLICE_X5Y15    ov7670/i2c/busy_sr_reg[10]/C
 
 
 

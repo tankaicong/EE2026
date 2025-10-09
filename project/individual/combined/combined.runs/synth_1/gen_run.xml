@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD
-<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1759777827">
-=======
-<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1759770207">
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
+<GenRun Id="synth_1" LaunchPart="xc7a35tcpg236-1" LaunchTime="1760033191">
   <File Type="PA-TCL" Name="Top_Student.tcl"/>
   <File Type="RDS-PROPCONSTRS" Name="Top_Student_drc_synth.rpt"/>
   <File Type="REPORTS-TCL" Name="Top_Student_reports.tcl"/>
@@ -31,7 +27,6 @@
         <Attr Name="UsedIn" Val="simulation"/>
       </FileInfo>
     </File>
-<<<<<<< HEAD
     <File Path="$PSRCDIR/sources_1/new/Task_P.v">
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
@@ -40,9 +35,6 @@
       </FileInfo>
     </File>
     <File Path="$PSRCDIR/sources_1/new/Task_Q.v">
-=======
-    <File Path="$PPRDIR/../taskP/taskP.srcs/sources_1/new/Task_P.v">
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
       <FileInfo>
         <Attr Name="UsedIn" Val="synthesis"/>
         <Attr Name="UsedIn" Val="implementation"/>

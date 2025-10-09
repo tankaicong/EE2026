@@ -2,20 +2,11 @@
 # Vivado v2018.2 (64-bit)
 # SW Build 2258646 on Thu Jun 14 20:03:12 MDT 2018
 # IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
-<<<<<<< HEAD
-# Start of session at: Tue Oct  7 03:10:30 2025
-# Process ID: 26292
+# Start of session at: Fri Oct 10 02:06:33 2025
+# Process ID: 50976
 # Current directory: C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.runs/synth_1
 # Command line: vivado.exe -log Top_Student.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Top_Student.tcl
 # Log file: C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.runs/synth_1/Top_Student.vds
 # Journal file: C:/Users/joelk/Documents/ee_files/EE2026/project/individual/combined/combined.runs/synth_1\vivado.jou
-=======
-# Start of session at: Tue Oct  7 01:03:29 2025
-# Process ID: 26816
-# Current directory: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.runs/synth_1
-# Command line: vivado.exe -log Top_Student.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source Top_Student.tcl
-# Log file: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.runs/synth_1/Top_Student.vds
-# Journal file: C:/Users/Joshy/EE2026_Basic_TaskP/EE2026_Project/project/individual/combined/combined.runs/synth_1\vivado.jou
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 #-----------------------------------------------------------
 source Top_Student.tcl -notrace

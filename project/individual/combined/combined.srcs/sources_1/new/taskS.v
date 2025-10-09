@@ -1,15 +1,8 @@
 `timescale 1ns / 1ps
 
-//////////////////////////////////////////////////////////////////////////////////
-//
-//  FILL IN THE FOLLOWING INFORMATION:
-//  STUDENT A NAME: 
-//  STUDENT B NAME:
-//  STUDENT C NAME: 
-//  STUDENT D NAME:  
-//
-//////////////////////////////////////////////////////////////////////////////////
-
+// Human: Kenneth Wong Cun Wi
+// Number: A0303203A
+// 2nd rightmost number: 0
 
 module Task_S (
   input clk,

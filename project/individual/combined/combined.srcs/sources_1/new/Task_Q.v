@@ -1,21 +1,25 @@
 `timescale 1ns / 1ps
 
-//////////////////////////////////////////////////////////////////////////////////
-//
-//  FILL IN THE FOLLOWING INFORMATION:
-//  STUDENT A NAME: 
-//  STUDENT B NAME:
-//  STUDENT C NAME: 
-//  STUDENT D NAME:  
-//
-//////////////////////////////////////////////////////////////////////////////////
+// Human: Joel Ku
+// Number: A0308792U
+// 4th rightmost number: 8
+// 3rd rightmost number: 7
+// 2nd rightmost number: 9
+// 1st rightmost number: 2
 
-module screen_625mhz (input CLOCK, output reg screen);
+
+module screen_625mhz (input CLOCK, input reset, output reg screen);
     // 100MHz / 6.25MHz = 16
-    reg [4:0] COUNT = 5'b0;
+    reg [3:0] COUNT = 4'b0;
     always @ (posedge CLOCK) begin
-        COUNT <= (COUNT == 5'd16) ? 0 : COUNT + 1;
-        screen <= (COUNT == 0) ? ~screen : screen;
+        if (reset) begin
+            COUNT <= 0;
+            screen <= 0;
+        end
+        else begin
+            COUNT <= (COUNT == 4'd8) ? 0 : COUNT + 1;
+            screen <= (COUNT == 0) ? ~screen : screen;
+        end
     end
 endmodule
 
@@ -34,28 +38,35 @@ module next_color(input [2:0] state, output reg [15:0] color_out);
 endmodule
 
 
-module btn_debounce(input btn, input CLOCK, output reg db_btn);     // Debounce for 200ms
+module btn_debounce(input btn, input CLOCK, input reset, output reg db_btn);     // Debounce for 200ms
     reg [24:0] count = 25'b0;
     reg locked = 0, hold = 0;
     always @ (posedge CLOCK) begin
-        db_btn <= 0;
-        if (locked == 1) begin
-            if (count < 25'd20000000) begin
-                count <= count + 1;
-            end
-            else begin
-                count <= 0;
-                locked <= 0;
-            end
-        end
-        else if (btn == 1 && locked == 0 && hold == 0) begin
-            db_btn <= 1;
-            count <= count + 1;
-            locked <= 1;
-            hold <= 1;
-        end
-        else if (btn == 0 && hold == 1) begin
+        if (reset) begin
+            count <= 0;
+            locked <= 0;
             hold <= 0;
+        end
+        else begin
+            db_btn <= 0;
+            if (locked == 1) begin
+                if (count < 25'd20000000) begin
+                    count <= count + 1;
+                end
+                else begin
+                    count <= 0;
+                    locked <= 0;
+                end
+            end
+            else if (btn == 1 && locked == 0 && hold == 0) begin
+                db_btn <= 1;
+                count <= count + 1;
+                locked <= 1;
+                hold <= 1;
+            end
+            else if (btn == 0 && hold == 1) begin
+                hold <= 0;
+            end
         end
     end
 endmodule
@@ -68,11 +79,11 @@ module Task_Q (
     output [7:0] JB
 );
     wire scr_clk;
-    screen_625mhz scr(CLOCK, scr_clk);
+    screen_625mhz scr(CLOCK, sw_rst, scr_clk);
     
     wire [12:0] pixel_index;
     wire frame_begin, sending_pixels, sample_pixel;
-    reg [15:0] pixel_data;
+    reg [15:0] pixel_data = 16'h0000;
 
     Oled_Display oled(.clk(scr_clk), .reset(sw_rst),
     .frame_begin(frame_begin), .sending_pixels(sending_pixels),
@@ -80,7 +91,9 @@ module Task_Q (
     .cs(JB[0]), .sdin(JB[1]), .sclk(JB[3]),
     .d_cn(JB[4]), .resn(JB[5]), .vccen(JB[6]), .pmoden(JB[7]));
     
-    reg [2:0] left_state, ctr_state, right_state;
+    reg [2:0] left_state = 3'd0;
+    reg [2:0] ctr_state = 3'd3;
+    reg [2:0] right_state = 3'd1;
     
     wire [15:0] left_color, center_color, right_color;
 
@@ -91,40 +104,22 @@ module Task_Q (
     assign led_test = frame_begin;
 
     wire btnL, btnC, btnR;
-    btn_debounce bC(btn[0], CLOCK, btnC);
-    btn_debounce bL(btn[1], CLOCK, btnL);
-    btn_debounce bR(btn[2], CLOCK, btnR);
+    btn_debounce bC(btn[0], CLOCK, sw_rst, btnC);
+    btn_debounce bL(btn[1], CLOCK, sw_rst, btnL);
+    btn_debounce bR(btn[2], CLOCK, sw_rst, btnR);
 
     next_color leftnc(left_state, left_color);
     next_color centernc(ctr_state, center_color);
     next_color rightnc(right_state, right_color);
 
-    initial begin
-        left_state = 3'd0;
-        ctr_state = 3'd3;
-        right_state = 3'd1;
-        pixel_data = 16'b0;
-        if (x >= 9 && x <= 28 && y >= 35 && y <= 54) begin
-            pixel_data <= center_color;
-        end
-        if (x >= 38 && x <= 57 && y >= 35 && y <= 54) begin
-            pixel_data <= left_color;
-        end
-        if (x >= 67 && x <= 86 && y >= 35 && y <= 54) begin
-            pixel_data <= right_color;
-        end
-        else begin
-            pixel_data <= 16'h0000;
-        end
-    end
-
-    always @ (posedge CLOCK) begin
-        if (sw_rst == 1) begin
+    always @ (posedge CLOCK or posedge sw_rst) begin
+        if (sw_rst) begin
             left_state <= 3'd0;
             ctr_state <= 3'd3;
             right_state <= 3'd1;
+            pixel_data <= 16'h0000;
         end
-        else begin                      // Button press
+        else begin                    // Button press
             if (btnC == 1) begin      // Center button
                 ctr_state <= ctr_state + 1;
             end
@@ -145,32 +140,25 @@ module Task_Q (
             if (right_state > 3'd4) begin
                 right_state <= 3'd0;
             end
-        end
-    end
-    
-    always @ (posedge CLOCK) begin
-    // always @ (posedge frame_begin) begin
-        if (left_state == 3'd2 && ctr_state == 3'd4 && right_state == 3'd2) begin
-            if (x >= 87 && x <= 93 && y >= 2 && y <= 15) begin
-                pixel_data <= 16'hF81F;
+            // Update OLED
+            pixel_data <= 16'h0000;
+            if (left_state == 3'd2 && ctr_state == 3'd4 && right_state == 3'd2) begin               // Display "8" if yellow white yellow
+                if (x >= 87 && x <= 93 && y >= 2 && y <= 15) begin
+                    pixel_data <= 16'hF81F;
+                end
+                if (x >= 89 && x <= 91 && ((y >= 4 && y <= 7) || (y >= 10 && y <= 13))) begin
+                    pixel_data <= 16'h0000;
+                end
             end
-            if (x >= 89 && x <= 91 && ((y >= 4 && y <= 7) || (y >= 10 && y <= 13))) begin
-                pixel_data <= 16'h0000;
-            end
-        end
 
-        if (x >= 9 && x <= 28 && y >= 35 && y <= 54) begin
-            pixel_data <= left_color;
-        end
-        else if (x >= 38 && x <= 57 && y >= 35 && y <= 54) begin
-            pixel_data <= center_color;
-        end
-        else if (x >= 67 && x <= 86 && y >= 35 && y <= 54) begin
-            pixel_data <= right_color;
-        end
-        else begin
-            if (!(left_state == 3'd2 && ctr_state == 3'd4 && right_state == 3'd2 && x >= 87 && x <= 93 && y >= 2 && y <= 15)) begin
-                pixel_data <= 16'h0000;
+            if ((x >= 9 && x <= 28) && (y >= 35 && y <= 54)) begin
+                pixel_data <= left_color;
+            end
+            else if ((x >= 38 && x <= 57) && (y >= 35 && y <= 54)) begin
+                pixel_data <= center_color;
+            end
+            else if ((x >= 67 && x <= 86) && (y >= 35 && y <= 54)) begin
+                pixel_data <= right_color;
             end
         end
     end

@@ -1,13 +1,8 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version     : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
-<<<<<<< HEAD
-| Date             : Tue Oct  7 03:13:43 2025
+| Date             : Fri Oct 10 02:09:45 2025
 | Host             : DESKTOP-2GF0LO4 running 64-bit major release  (build 9200)
-=======
-| Date             : Tue Oct  7 01:06:19 2025
-| Host             : Ekko running 64-bit major release  (build 9200)
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
 | Command          : report_power -file Top_Student_power_routed.rpt -pb Top_Student_power_summary_routed.pb -rpx Top_Student_power_routed.rpx
 | Design           : Top_Student
 | Device           : xc7a35tcpg236-1
@@ -35,17 +30,10 @@ Table of Contents
 ----------
 
 +--------------------------+--------------+
-<<<<<<< HEAD
-| Total On-Chip Power (W)  | 0.108        |
+| Total On-Chip Power (W)  | 0.093        |
 | Design Power Budget (W)  | Unspecified* |
 | Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.036        |
-=======
-| Total On-Chip Power (W)  | 0.104        |
-| Design Power Budget (W)  | Unspecified* |
-| Power Budget Margin (W)  | NA           |
-| Dynamic (W)              | 0.032        |
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
+| Dynamic (W)              | 0.022        |
 | Device Static (W)        | 0.072        |
 | Effective TJA (C/W)      | 5.0          |
 | Max Ambient (C)          | 84.5         |
@@ -64,35 +52,19 @@ Table of Contents
 +----------------+-----------+----------+-----------+-----------------+
 | On-Chip        | Power (W) | Used     | Available | Utilization (%) |
 +----------------+-----------+----------+-----------+-----------------+
-<<<<<<< HEAD
 | Clocks         |     0.003 |        3 |       --- |             --- |
-| Slice Logic    |     0.013 |     3724 |       --- |             --- |
-|   LUT as Logic |     0.012 |     2084 |     20800 |           10.02 |
-|   CARRY4       |     0.001 |      339 |      8150 |            4.16 |
-|   Register     |    <0.001 |      800 |     41600 |            1.92 |
+| Slice Logic    |     0.009 |     3732 |       --- |             --- |
+|   LUT as Logic |     0.008 |     2097 |     20800 |           10.08 |
+|   CARRY4       |    <0.001 |      339 |      8150 |            4.16 |
+|   Register     |    <0.001 |      799 |     41600 |            1.92 |
 |   BUFG         |    <0.001 |        4 |        32 |           12.50 |
-|   F7/F8 Muxes  |    <0.001 |        2 |     32600 |           <0.01 |
-|   Others       |     0.000 |       35 |       --- |             --- |
-| Signals        |     0.012 |     2967 |       --- |             --- |
-| DSPs           |     0.005 |        6 |        90 |            6.67 |
+|   F7/F8 Muxes  |    <0.001 |        3 |     32600 |           <0.01 |
+|   Others       |     0.000 |       34 |       --- |             --- |
+| Signals        |     0.008 |     2974 |       --- |             --- |
+| DSPs           |     0.000 |        6 |        90 |            6.67 |
 | I/O            |     0.002 |       32 |       106 |           30.19 |
 | Static Power   |     0.072 |          |           |                 |
-| Total          |     0.108 |          |           |                 |
-=======
-| Clocks         |     0.002 |        3 |       --- |             --- |
-| Slice Logic    |     0.012 |     3062 |       --- |             --- |
-|   LUT as Logic |     0.011 |     1767 |     20800 |            8.50 |
-|   CARRY4       |     0.001 |      293 |      8150 |            3.60 |
-|   Register     |    <0.001 |      583 |     41600 |            1.40 |
-|   BUFG         |    <0.001 |        3 |        32 |            9.38 |
-|   F7/F8 Muxes  |    <0.001 |        3 |     32600 |           <0.01 |
-|   Others       |     0.000 |       23 |       --- |             --- |
-| Signals        |     0.011 |     2476 |       --- |             --- |
-| DSPs           |     0.005 |        6 |        90 |            6.67 |
-| I/O            |     0.002 |       31 |       106 |           29.25 |
-| Static Power   |     0.072 |          |           |                 |
-| Total          |     0.104 |          |           |                 |
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
+| Total          |     0.093 |          |           |                 |
 +----------------+-----------+----------+-----------+-----------------+
 
 
@@ -102,11 +74,7 @@ Table of Contents
 +-----------+-------------+-----------+-------------+------------+
 | Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) |
 +-----------+-------------+-----------+-------------+------------+
-<<<<<<< HEAD
-| Vccint    |       1.000 |     0.044 |       0.034 |      0.010 |
-=======
-| Vccint    |       1.000 |     0.041 |       0.031 |      0.010 |
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
+| Vccint    |       1.000 |     0.030 |       0.020 |      0.010 |
 | Vccaux    |       1.800 |     0.013 |       0.000 |      0.013 |
 | Vcco33    |       3.300 |     0.001 |       0.000 |      0.001 |
 | Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |
@@ -175,25 +143,18 @@ Table of Contents
 +----------------------------+-----------+
 | Name                       | Power (W) |
 +----------------------------+-----------+
-<<<<<<< HEAD
-| Top_Student                |     0.036 |
+| Top_Student                |     0.022 |
 |   ss                       |    <0.001 |
-|   taskP                    |     0.012 |
-|     oled_inst              |     0.003 |
-|   taskQ                    |     0.003 |
+|   taskP                    |     0.002 |
+|     oled_inst              |     0.001 |
+|   taskQ                    |     0.002 |
 |     bC                     |    <0.001 |
 |     bL                     |    <0.001 |
 |     bR                     |    <0.001 |
-|     oled                   |     0.002 |
+|     oled                   |     0.001 |
 |     scr                    |    <0.001 |
-=======
-| Top_Student                |     0.032 |
-|   ss                       |    <0.001 |
-|   taskP                    |     0.012 |
-|     oled_inst              |     0.003 |
->>>>>>> fd621fe8c9ff5d80ae2144b110a39005ee77b47a
-|   taskR                    |     0.005 |
-|     disp                   |     0.003 |
+|   taskR                    |     0.002 |
+|     disp                   |    <0.001 |
 |   taskS                    |     0.013 |
 |     clk6p25m_inst          |    <0.001 |
 |     oled_display_inst      |     0.002 |

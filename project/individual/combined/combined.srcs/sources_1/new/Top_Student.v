@@ -25,10 +25,10 @@ wire [7:0] JB_Q;
 wire [7:0] JB_P;
 
 Seven_Seg ss(clk, 16'h5102, 4'b0100, seg, an);
-Task_R taskR(clk, ~sw[14], sw[1], sw[3], JB_R);
-Task_S taskS(clk, ~sw[15], btnU, btnD, btnL, btnR, JB_S);
-Task_P taskP(clk, ~sw[12], btnL, btnR, JB_P);
-Task_Q taskQ(clk, ~sw[13], {btnR, btnL, btnC}, JB_Q);
+Task_P taskP(clk, (sw[15] | sw[14] | sw[13] | (~sw[12])), btnL, btnR, JB_P);
+Task_Q taskQ(clk, (sw[15] | sw[14] | (~sw[13])), {btnR, btnL, btnC}, JB_Q);
+Task_R taskR(clk, (sw[15] | (~sw[14])), sw[1], sw[3], JB_R);
+Task_S taskS(clk, ~(sw[15]), btnU, btnD, btnL, btnR, JB_S);
 
 assign JB = (sw[15]) ? JB_S :
             (sw[14]) ? JB_R :

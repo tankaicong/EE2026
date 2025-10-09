@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 
+// Human: Joshua Yeo Wee Tze
 // Number: A0309329Y
 // 2nd rightmost number: 2
 // 1st rightmost number: 9
@@ -132,7 +133,7 @@ module Task_P(
     reg btnL_prev = 0;
     reg btnR_prev = 0;
 
-    always @(posedge CLOCK or negedge reset) begin
+    always @(posedge CLOCK or posedge reset) begin
         if (reset) begin
             left_toggle <= 1;
             right_toggle <= 1;

@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<Runs Version="1" Minor="0">
+	<Run Id="display_clocks_synth_1" LaunchDir="/media/kc/Data/EE2026/project/FDP/FDP.runs/display_clocks_synth_1" FlowId="Vivado_Synthesis" FromStepId="vivado" ToStepId="vivado"/>
+</Runs>
+

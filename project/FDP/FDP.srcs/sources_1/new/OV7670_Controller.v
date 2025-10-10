@@ -38,17 +38,17 @@ module OV7670_Controller(
     // Normal operation: reset high, power-up enabled
     assign reset = 1'b1;
     assign pwdn  = 1'b0;
-    assign xclk  = sys_clk;
+    assign xclk  = clk; // input clock directly set to 25 MHz
 
     // Instantiate register generator
     OV7670_Registers camera_regs(clk, resend, taken, command, finished);
 
     // Simple clock divider (xclk toggles every clk cycle)
-    always @(posedge clk) begin
-        clk_div <= clk_div + 1;
-        if (clk_div == 1'b1) begin
-            sys_clk <= ~sys_clk;    // Toggle every 2 cycles = 25MHz
-        end
-    end
+    // always @(posedge clk) begin
+    //     clk_div <= clk_div + 1;
+    //     if (clk_div == 1'b1) begin
+    //         sys_clk <= ~sys_clk;    // Toggle every 2 cycles = 25MHz
+    //     end
+    // end
 
 endmodule

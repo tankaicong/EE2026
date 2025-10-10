@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 ------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (lin64) Build 2258646 Thu Jun 14 20:02:38 MDT 2018
-| Date         : Wed Oct  8 12:35:01 2025
+| Date         : Fri Oct 10 00:42:24 2025
 | Host         : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 | Command      : report_control_sets -verbose -file Top_control_sets_placed.rpt
 | Design       : Top
@@ -23,7 +23,7 @@ Table of Contents
 +----------------------------------------------------------+-------+
 |                          Status                          | Count |
 +----------------------------------------------------------+-------+
-| Number of unique control sets                            |    23 |
+| Number of unique control sets                            |    22 |
 | Unused register locations in slices containing registers |    60 |
 +----------------------------------------------------------+-------+
 
@@ -37,7 +37,7 @@ Table of Contents
 |      2 |            4 |
 |      6 |            1 |
 |      8 |            1 |
-|    16+ |           17 |
+|    16+ |           16 |
 +--------+--------------+
 
 
@@ -47,44 +47,43 @@ Table of Contents
 +--------------+-----------------------+------------------------+-----------------+--------------+
 | Clock Enable | Synchronous Set/Reset | Asynchronous Set/Reset | Total Registers | Total Slices |
 +--------------+-----------------------+------------------------+-----------------+--------------+
-| No           | No                    | No                     |             118 |           17 |
+| No           | No                    | No                     |             110 |           19 |
 | No           | No                    | Yes                    |               0 |            0 |
 | No           | Yes                   | No                     |              30 |            6 |
 | Yes          | No                    | No                     |             130 |           20 |
 | Yes          | No                    | Yes                    |               0 |            0 |
-| Yes          | Yes                   | No                     |             286 |           48 |
+| Yes          | Yes                   | No                     |             286 |           45 |
 +--------------+-----------------------+------------------------+-----------------+--------------+
 
 
 4. Detailed Control Set Information
 -----------------------------------
 
-+----------------+---------------------------------------------+----------------------------------+------------------+----------------+
-|  Clock Signal  |                Enable Signal                |         Set/Reset Signal         | Slice Load Count | Bel Load Count |
-+----------------+---------------------------------------------+----------------------------------+------------------+----------------+
-|  clk25_BUFG    |                                             | vga/vga_hsync0                   |                1 |              2 |
-|  clk25_BUFG    |                                             | vga/vga_vsync0                   |                1 |              2 |
-| ~ov7670_pclk   | ov7670_capture/href_d_i_1_n_0               |                                  |                1 |              2 |
-|  clk_IBUF_BUFG |                                             | ov7670/i2c/sioc_i_1_n_0          |                1 |              2 |
-| ~ov7670_pclk   |                                             |                                  |                1 |              6 |
-|  ov7670_pclk   |                                             |                                  |                3 |              8 |
-|  clk_IBUF_BUFG | ov7670/camera_regs/E[0]                     |                                  |                3 |             16 |
-|  clk_IBUF_BUFG | ov7670/i2c/busy_sr0                         | ov7670/i2c/data_sr[30]_i_1_n_0   |                2 |             22 |
-|  clk25_BUFG    |                                             | vga/blank                        |                3 |             24 |
-|  clk_IBUF_BUFG | ov7670/i2c/address_reg_rep[7][0]            | btnU_IBUF                        |                4 |             32 |
-| ~ov7670_pclk   | ov7670_capture/dout[15]_i_1_n_0             |                                  |                5 |             32 |
-| ~ov7670_pclk   | ov7670_capture/h_r_0                        | ov7670_capture/addr[16]_i_1_n_0  |                7 |             32 |
-| ~ov7670_pclk   | ov7670_href_IBUF                            | ov7670_capture/addr[16]_i_1_n_0  |                9 |             32 |
-| ~ov7670_pclk   | ov7670_capture/cam_y_reg[8]_1[0]            | ov7670_capture/cam_y_reg[8]_0[0] |                4 |             34 |
-| ~ov7670_pclk   | ov7670_capture/addr[16]_i_2_n_0             | ov7670_capture/addr[16]_i_1_n_0  |                7 |             34 |
-|  clk25_BUFG    | vga/E[0]                                    |                                  |                6 |             38 |
-| ~ov7670_pclk   | ov7670_capture/E[0]                         | ov7670_capture/SR[0]             |                8 |             38 |
-| ~ov7670_pclk   | ov7670_capture/line_r_reg_0_63_0_0_i_1_n_0  |                                  |                5 |             40 |
-|  clk_IBUF_BUFG | ov7670/i2c/busy_sr0                         |                                  |                5 |             42 |
-|  clk_IBUF_BUFG |                                             |                                  |                6 |             46 |
-|  clk25_BUFG    |                                             |                                  |                8 |             60 |
-|  clk_IBUF_BUFG | ov7670/i2c/busy_sr0                         | ov7670/i2c/busy_sr[31]_i_1_n_0   |                7 |             62 |
-| ~ov7670_pclk   | ov7670_capture/line_r_reg_0_255_0_0_i_3_n_0 |                                  |               20 |            160 |
-+----------------+---------------------------------------------+----------------------------------+------------------+----------------+
++----------------------------+---------------------------------------------+----------------------------------+------------------+----------------+
+|        Clock Signal        |                Enable Signal                |         Set/Reset Signal         | Slice Load Count | Bel Load Count |
++----------------------------+---------------------------------------------+----------------------------------+------------------+----------------+
+| ~ov7670_pclk               | ov7670_capture/href_d_i_1_n_0               |                                  |                1 |              2 |
+|  disp_clocks/inst/clk_out1 |                                             | ov7670/i2c/sioc_i_1_n_0          |                1 |              2 |
+|  disp_clocks/inst/clk_out1 |                                             | vga/vga_hsync0                   |                1 |              2 |
+|  disp_clocks/inst/clk_out1 |                                             | vga/vga_vsync0                   |                1 |              2 |
+| ~ov7670_pclk               |                                             |                                  |                2 |              6 |
+|  ov7670_pclk               |                                             |                                  |                3 |              8 |
+|  disp_clocks/inst/clk_out1 | ov7670/camera_regs/E[0]                     |                                  |                4 |             16 |
+|  disp_clocks/inst/clk_out1 | ov7670/i2c/busy_sr0                         | ov7670/i2c/data_sr[30]_i_1_n_0   |                2 |             22 |
+|  disp_clocks/inst/clk_out1 |                                             | vga/blank                        |                3 |             24 |
+| ~ov7670_pclk               | ov7670_capture/dout[15]_i_1_n_0             |                                  |                4 |             32 |
+| ~ov7670_pclk               | ov7670_capture/h_r_0                        | ov7670_capture/addr[16]_i_1_n_0  |                7 |             32 |
+|  disp_clocks/inst/clk_out1 | ov7670/i2c/address_reg_rep[7][0]            | btnU_IBUF                        |                4 |             32 |
+| ~ov7670_pclk               | ov7670_href_IBUF                            | ov7670_capture/addr[16]_i_1_n_0  |               10 |             32 |
+| ~ov7670_pclk               | ov7670_capture/cam_y_reg[8]_1[0]            | ov7670_capture/cam_y_reg[8]_0[0] |                5 |             34 |
+| ~ov7670_pclk               | ov7670_capture/addr[16]_i_2_n_0             | ov7670_capture/addr[16]_i_1_n_0  |                6 |             34 |
+|  disp_clocks/inst/clk_out1 | vga/E[0]                                    |                                  |                6 |             38 |
+| ~ov7670_pclk               | ov7670_capture/E[0]                         | ov7670_capture/SR[0]             |                5 |             38 |
+| ~ov7670_pclk               | ov7670_capture/line_r_reg_0_63_0_0_i_1_n_0  |                                  |                5 |             40 |
+|  disp_clocks/inst/clk_out1 | ov7670/i2c/busy_sr0                         |                                  |                5 |             42 |
+|  disp_clocks/inst/clk_out1 | ov7670/i2c/busy_sr0                         | ov7670/i2c/busy_sr[31]_i_1_n_0   |                6 |             62 |
+|  disp_clocks/inst/clk_out1 |                                             |                                  |               15 |             98 |
+| ~ov7670_pclk               | ov7670_capture/line_r_reg_0_255_0_0_i_3_n_0 |                                  |               20 |            160 |
++----------------------------+---------------------------------------------+----------------------------------+------------------+----------------+
 
 

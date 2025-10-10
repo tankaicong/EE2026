@@ -1,0 +1,12 @@
+#-----------------------------------------------------------
+# Vivado v2018.2 (64-bit)
+# SW Build 2258646 on Thu Jun 14 20:02:38 MDT 2018
+# IP Build 2256618 on Thu Jun 14 22:10:49 MDT 2018
+# Start of session at: Fri Oct 10 00:39:22 2025
+# Process ID: 3500625
+# Current directory: /media/kc/Data/EE2026/project/FDP/FDP.runs/display_clocks_synth_1
+# Command line: vivado -log display_clocks.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source display_clocks.tcl
+# Log file: /media/kc/Data/EE2026/project/FDP/FDP.runs/display_clocks_synth_1/display_clocks.vds
+# Journal file: /media/kc/Data/EE2026/project/FDP/FDP.runs/display_clocks_synth_1/vivado.jou
+#-----------------------------------------------------------
+source display_clocks.tcl -notrace

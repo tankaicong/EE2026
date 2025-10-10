@@ -73,9 +73,10 @@ set rc [catch {
   set_property parent.project_path /media/kc/Data/EE2026/project/FDP/FDP.xpr [current_project]
   set_property ip_output_repo /media/kc/Data/EE2026/project/FDP/FDP.cache/ip [current_project]
   set_property ip_cache_permissions {read write} [current_project]
-  set_property XPM_LIBRARIES XPM_MEMORY [current_project]
+  set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
   add_files -quiet /media/kc/Data/EE2026/project/FDP/FDP.runs/synth_1/Top.dcp
   read_ip -quiet /media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem.xci
+  read_ip -quiet /media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/display_clocks/display_clocks.xci
   read_xdc /media/kc/Data/EE2026/project/FDP/FDP.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc
   link_design -top Top -part xc7a35tcpg236-1
   close_msg_db -file init_design.pb
@@ -156,7 +157,7 @@ start_step write_bitstream
 set ACTIVE_STEP write_bitstream
 set rc [catch {
   create_msg_db write_bitstream.pb
-  set_property XPM_LIBRARIES XPM_MEMORY [current_project]
+  set_property XPM_LIBRARIES {XPM_CDC XPM_MEMORY} [current_project]
   catch { write_mem_info -force Top.mmi }
   write_bitstream -force Top.bit 
   catch {write_debug_probes -quiet -force Top}

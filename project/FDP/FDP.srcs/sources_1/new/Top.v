@@ -17,15 +17,23 @@ module Top(
     );
 
     // Generate 25MHz clock for VGA from 100MHz system clock
-    reg clk_div = 0;
-    reg clk25 = 0;
-    always @(posedge clk) begin
-        clk_div <= clk_div + 1;
-        if (clk_div == 1'b1) begin
-            clk25 <= ~clk25;  // Toggle every 2 cycles = 25MHz
-        end
-    end
-    
+    // reg clk_div = 0;
+    // reg clk25 = 0;
+    // always @(posedge clk) begin
+    //     clk_div <= clk_div + 1;
+    //     if (clk_div == 1'b1) begin
+    //         clk25 <= ~clk25;  // Toggle every 2 cycles = 25MHz
+    //     end
+    // end
+
+    wire clk_status;
+    display_clocks disp_clocks(
+        .clk_in1(clk),
+        .clk_out1(clk25),
+        .reset(btnU),
+        .locked(clk_status)
+    );
+
     // Wire for BRAM address from VGA controller
     wire [17:0] frame_addr;
     wire [15:0] frame_pixel_raw; // 16-bit RGB565 from BRAM
@@ -51,7 +59,7 @@ module Top(
         .active_area(active_area)
     );
     OV7670_Controller ov7670(
-        .clk(clk),
+        .clk(clk25),
         .resend(btnU),
         .config_finished(led[0]),
         .sioc(ov7670_sioc),

@@ -1,7 +1,7 @@
 Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2018.2 (win64) Build 2258646 Thu Jun 14 20:03:12 MDT 2018
-| Date         : Fri Oct 10 02:09:44 2025
+| Date         : Fri Oct 10 09:28:46 2025
 | Host         : DESKTOP-2GF0LO4 running 64-bit major release  (build 9200)
 | Command      : report_methodology -file Top_Student_methodology_drc_routed.rpt -pb Top_Student_methodology_drc_routed.pb -rpx Top_Student_methodology_drc_routed.rpx
 | Design       : Top_Student
@@ -83,87 +83,87 @@ Related violations: <none>
 
 TIMING-16#1 Warning
 Large setup violation  
-There is a large setup violation of -4.224 ns between taskS/task_s_inst/circle_centre_y_reg[2]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[10]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -4.562 ns between taskS/task_s_inst/circle_centre_x_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[10]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#2 Warning
 Large setup violation  
-There is a large setup violation of -4.229 ns between taskS/task_s_inst/circle_centre_y_reg[2]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[4]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -4.562 ns between taskS/task_s_inst/circle_centre_x_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[15]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#3 Warning
 Large setup violation  
-There is a large setup violation of -4.340 ns between taskS/task_s_inst/circle_centre_y_reg[2]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[15]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -4.567 ns between taskS/task_s_inst/circle_centre_x_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/pix_reg[4]/D (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#4 Warning
 Large setup violation  
-There is a large setup violation of -9.201 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[0]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.290 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[0]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#5 Warning
 Large setup violation  
-There is a large setup violation of -9.336 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[1]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.431 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[0]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#6 Warning
 Large setup violation  
-There is a large setup violation of -9.336 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[2]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[1]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#7 Warning
 Large setup violation  
-There is a large setup violation of -9.336 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[3]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[2]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#8 Warning
 Large setup violation  
-There is a large setup violation of -9.365 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[0]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[3]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#9 Warning
 Large setup violation  
-There is a large setup violation of -9.388 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[4]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[1]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#10 Warning
 Large setup violation  
-There is a large setup violation of -9.388 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[5]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[2]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#11 Warning
 Large setup violation  
-There is a large setup violation of -9.388 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[6]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.454 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[3]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#12 Warning
 Large setup violation  
-There is a large setup violation of -9.478 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[1]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.594 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[4]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#13 Warning
 Large setup violation  
-There is a large setup violation of -9.478 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[2]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.594 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[5]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#14 Warning
 Large setup violation  
-There is a large setup violation of -9.478 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[3]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.594 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_y_reg[6]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#15 Warning
 Large setup violation  
-There is a large setup violation of -9.488 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[4]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.802 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[4]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#16 Warning
 Large setup violation  
-There is a large setup violation of -9.488 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[5]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.802 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[5]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-16#17 Warning
 Large setup violation  
-There is a large setup violation of -9.488 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[6]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
+There is a large setup violation of -9.802 ns between taskS/task_s_inst/dir_reg[0]/C (clocked by sys_clk_pin) and taskS/task_s_inst/circle_centre_x_reg[6]/CE (clocked by sys_clk_pin). Large setup violations at the end of those stages might be difficult to fix during the post-placement implementation flow and could be the result of non-optimal XDC constraints or non-optimal design architecture
 Related violations: <none>
 
 TIMING-17#1 Warning

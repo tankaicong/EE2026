@@ -1,0 +1,7 @@
+verilog xil_defaultlib --include "../../../ipstatic" \
+"../../../ip/display_clocks/display_clocks_clk_wiz.v" \
+"../../../ip/display_clocks/display_clocks.v" \
+
+verilog xil_defaultlib "glbl.v"
+
+nosort

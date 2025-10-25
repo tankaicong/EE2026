@@ -617,22 +617,84 @@ module Top(
     reg [8:0] top2_l, bottom2_l, cy2_l;
     reg [8:0] top3_l, bottom3_l, cy3_l;
 
-    // Randomised canvas module instance (mosaic + shapes). Used with sw[4] ON.
-    wire [11:0] canvas_pixel;
-    Randomised_Canvas canvas_inst (
-        .clk(clk25),
-        .reset(vga_reset),
-        .btnC(btnC),
-        .frame_x(frame_x),
-        .frame_y(frame_y),
-        .in_roi(in_roi),
-        .active_area(active_area),
-        .pixel_out(canvas_pixel)
+
+    // --- Detect mouse click inside box ---
+    wire inside_play_box = (mouse_x >= BOX_X0 && mouse_x < BOX_X0 + WIDTH0 &&
+                       mouse_y >= BOX_Y0 && mouse_y < BOX_Y0 + HEIGHT0);
+
+    wire inside_exit_box = (mouse_x >= BOX_X1 && mouse_x < BOX_X1 + WIDTH1 &&
+                       mouse_y >= BOX_Y1 && mouse_y < BOX_Y1 + HEIGHT1);
+
+
+    reg MENU_MODE = 1;
+    localparam BOX_X0 = 30;
+    localparam BOX_Y0 = 120;
+    localparam WIDTH0 = 60;
+    localparam HEIGHT0 = 60;
+
+    localparam BOX_X1 = 180;
+    localparam BOX_Y1 = 120;
+    localparam WIDTH1 = 60;
+    localparam HEIGHT1 = 60;
+
+
+    wire left_click, right_click;
+    wire [13:0] mouse_x, mouse_y;
+    localparam mouse_maxCount_X = 8191;
+    localparam mouse_maxCount_Y = 8191;
+
+    MouseCtl mouse_inst (
+        .clk(clk),
+        .rst(btnU),
+        .ps2_clk(mouse_clk),
+        .ps2_data(mouse_data),
+        .left(left_click),
+        .right(right_click),
+        .xpos(mouse_x),
+        .ypos(mouse_y)
     );
 
+
+    // wire [9:0] mouse_x_trimmed = (mouse_x * 306) / 8191;
+    // wire [9:0] mouse_y_trimmed = (mouse_y * 240) / 8191;
+
+    // Create a 9 x 9 cursor
+    wire within_cursor; 
+    wire [15:0] cursor_color;
+
+    assign within_cursor = ((frame_x[9:1]-14 == mouse_x) || ((frame_x[9:1]-14 - mouse_x) == 1) || ((mouse_x - frame_x[9:1]-14) == 1)) && ((frame_y[9:1] == mouse_y) || ((frame_y[9:1] - mouse_y) == 1) || ((mouse_y - frame_y[9:1]) == 1));
+
+    assign cursor_color = within_cursor ? 12'hFFF : 0;
+
+
     always @(posedge clk25) begin
-        // Output random canvas of colours by separate FPGA using sw[4]
-        if (sw[4]) begin
+        
+        if (MENU_MODE) begin
+            if(within_cursor) begin
+                frame_pixel <= cursor_color;
+            end else 
+            if (frame_x[9:1]-14 >= BOX_X0 && frame_x[9:1]-14 <= BOX_X0 + WIDTH0 &&
+                frame_y[9:1] >= BOX_Y0 && frame_y[9:1] <= BOX_Y0 + HEIGHT1 || 
+                frame_x[9:1]-14 >= BOX_X1 && frame_x[9:1]-14 <= BOX_X1 + WIDTH1 &&
+                frame_y[9:1] >= BOX_Y1 && frame_y[9:1] <= BOX_Y1 + HEIGHT1) begin
+                    frame_pixel <= GREEN;
+                end else begin
+                    frame_pixel <= RED;
+                end
+
+            // if (inside_play_box && left_click)
+            //     MENU_MODE <= 0;
+            // end 
+            // else begin
+            //     if (frame_x[9:1]-14 >= BOX_X1 && frame_x[9:1]-14 < BOX_X1 + WIDTH1 &&
+            //         frame_y[9:1] >= BOX_Y1 && frame_y[9:1] < BOX_Y1 + HEIGHT1) begin
+            //         frame_pixel <= RED;
+            //     end 
+
+            //     if (inside_exit_box && left_click)
+            //         MENU_MODE <= 1;
+            // end
+        end else if (sw[4]) begin
             frame_pixel <= canvas_pixel;
         end else begin
             if (frame_addr == 73439) begin
@@ -731,7 +793,24 @@ module Top(
                 end
             end
         end
-    end
+    end 
+
+
+    // Randomised canvas module instance (mosaic + shapes). Used with sw[4] ON.
+    wire [11:0] canvas_pixel;
+    Randomised_Canvas canvas_inst (
+        .clk(clk25),
+        .reset(vga_reset),
+        .btnC(btnC),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .in_roi(in_roi),
+        .active_area(active_area),
+        .pixel_out(canvas_pixel)
+    );
+
+
+
 
     // Sets timer
     // Time_Countdown timer_inst (

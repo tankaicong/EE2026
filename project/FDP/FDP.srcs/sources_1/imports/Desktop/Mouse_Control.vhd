@@ -190,14 +190,14 @@ generic
 port(
    clk         : in std_logic;
    rst         : in std_logic;
-   xpos        : out std_logic_vector(13 downto 0);
-   ypos        : out std_logic_vector(13 downto 0);
+   xpos        : out std_logic_vector(11 downto 0);
+   ypos        : out std_logic_vector(11 downto 0);
    zpos        : out std_logic_vector(3 downto 0);
    left        : out std_logic;
    middle      : out std_logic;
    right       : out std_logic;
    new_event   : out std_logic;
-   value       : in std_logic_vector(13 downto 0);
+   value       : in std_logic_vector(11 downto 0);
    setx        : in std_logic;
    sety        : in std_logic;
    setmax_x    : in std_logic;
@@ -257,12 +257,11 @@ constant SAMPLE_RATE      : std_logic_vector(7 downto 0) := x"28";
                                                   -- (40 samples/s)
 
 -- default maximum value for the horizontal mouse position
--- default maximum value for the horizontal mouse position (14-bit)
-constant DEFAULT_MAX_X : std_logic_vector(13 downto 0) := "01111111111111"; -- 8191
-                                                      -- 8191 (14 bits)
--- default maximum value for the vertical mouse position (14-bit)
-constant DEFAULT_MAX_Y : std_logic_vector(13 downto 0) := "01111111111111"; -- 8191
-                                                      -- 8191 (14 bits)
+constant DEFAULT_MAX_X : std_logic_vector(11 downto 0) := x"3C0";
+                                                      -- 1279
+-- default maximum value for the vertical mouse position
+constant DEFAULT_MAX_Y : std_logic_vector(11 downto 0) := x"280";
+                                                      -- 1023
 
 -- Mouse check tick constants
 constant CHECK_PERIOD_CLOCKS   : integer := ((CHECK_PERIOD_MS*1000000)/(1000000000/SYSCLK_FREQUENCY_HZ));
@@ -284,7 +283,7 @@ signal haswheel: std_logic := '0';
 -- The y-axis is inverted, by making negative the y movement received
 -- from the mouse (if it was positive it becomes negative
 -- and vice versa)
-signal x_pos,y_pos: std_logic_vector(13 downto 0) := (others => '0');
+signal x_pos,y_pos: std_logic_vector(11 downto 0) := (others => '0');
 
 -- active when an overflow occurred on the x and y axis
 -- bits 6 and 7 from the first byte received from the mouse
@@ -303,8 +302,8 @@ signal x_inc,y_inc: std_logic_vector(7 downto 0) := (others => '0');
 signal x_new,y_new: std_logic := '0';
 
 -- maximum value for x and y position registers(x_pos,y_pos)
-signal x_max: std_logic_vector(13 downto 0) := DEFAULT_MAX_X;
-signal y_max: std_logic_vector(13 downto 0) := DEFAULT_MAX_Y;
+signal x_max: std_logic_vector(11 downto 0) := DEFAULT_MAX_X;
+signal y_max: std_logic_vector(11 downto 0) := DEFAULT_MAX_Y;
 
 -- active when left,middle,right mouse button is down
 signal left_down,middle_down,right_down: std_logic := '0';
@@ -429,18 +428,18 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
 
    -- xpos output is the horizontal position of the mouse
    -- it has the range: 0-x_max
-   xpos <= x_pos(13 downto 0) when rising_edge(clk);
+   xpos <= x_pos(11 downto 0) when rising_edge(clk);
    -- ypos output is the vertical position of the mouse
    -- it has the range: 0-y_max
-   ypos <= y_pos(13 downto 0) when rising_edge(clk);
+   ypos <= y_pos(11 downto 0) when rising_edge(clk);
 
    -- sets the value of x_pos from another module when setx is active
    -- else, computes the new x_pos from the old position when new x
    -- movement detected by adding the delta movement in x_inc, or by
    -- adding 256 or -256 when overflow occurs.
    set_x: process(clk)
-   variable x_inter: std_logic_vector(13 downto 0);
-   variable inc: std_logic_vector(13 downto 0);
+   variable x_inter: std_logic_vector(11 downto 0);
+   variable inc: std_logic_vector(11 downto 0);
    begin
       if(rising_edge(clk)) then
          -- if setx active, set new x_pos value
@@ -452,11 +451,11 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
             if(x_sign = '1') then
                -- if overflow occurred
                if(x_overflow = '1') then
-                  -- inc is -256 (14-bit two's complement)
-                  inc := "11111100000000";
+                  -- inc is -256
+                  inc := "111000000000";
                else
-                  -- inc is sign-extended x_inc to 14 bits (6 repeats + 8 bits)
-                  inc := x_inc(7) & x_inc(7) & x_inc(7) & x_inc(7) & x_inc(7) & x_inc(7) & x_inc;
+                  -- inc is sign extended x_inc
+                  inc := "1111" & x_inc;
                end if;
                -- intermediary horizontal position
                x_inter := x_pos + inc;
@@ -467,7 +466,7 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
                -- and because xpos has only 10, when
                -- first bit becomes 1, this is considered
                -- a negative number when moving left
-               if(x_inter(13) = '1') then
+               if(x_inter(11) = '1') then
                   x_pos <= (others => '0');
                else
                   x_pos <= x_inter;
@@ -476,18 +475,18 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
             else
                -- if overflow occurred
                if(x_overflow = '1') then
-                  -- inc is 256 (14-bit)
-                  inc := "00000100000000";
+                  -- inc is 256
+                  inc := "000100000000";
                else
-                  -- inc is zero-extended x_inc to 14 bits
-                  inc := "000000" & x_inc;
+                  -- inc is sign extended x_inc
+                  inc := "0000" & x_inc;
                end if;
                -- intermediary horizontal position
                x_inter := x_pos + inc;
                -- if x_inter is greater than x_max
                -- then positive overflow occurred and
                -- new x position is x_max.
-            if(x_inter > x_max) then
+               if(x_inter > ('0' & x_max)) then
                   x_pos <= x_max;
                else
                   x_pos <= x_inter;
@@ -502,8 +501,8 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
    -- movement detected by adding the delta movement in y_inc, or by
    -- adding 256 or -256 when overflow occurs.
    set_y: process(clk)
-   variable y_inter: std_logic_vector(13 downto 0);
-   variable inc: std_logic_vector(13 downto 0);
+   variable y_inter: std_logic_vector(11 downto 0);
+   variable inc: std_logic_vector(11 downto 0);
    begin
       if(rising_edge(clk)) then
          -- if sety active, set new y_pos value
@@ -516,11 +515,11 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
             if(y_sign = '1') then
                -- if overflow occurred
                if(y_overflow = '1') then
-                  -- inc is -256 (14-bit two's complement)
-                  inc := "11111100000000";
+                  -- inc is -256
+                  inc := "111100000000";
                else
-                  -- inc is sign-extended y_inc to 14 bits
-                  inc := y_inc(7) & y_inc(7) & y_inc(7) & y_inc(7) & y_inc(7) & y_inc(7) & y_inc;
+                  -- inc is sign extended y_inc
+                  inc := "1111" & y_inc;
                end if;
                -- intermediary vertical position
                y_inter := y_pos + inc;
@@ -531,7 +530,7 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
                -- and because ypos has only 10, when
                -- first bit becomes 1, this is considered
                -- a negative number when moving upward
-               if(y_inter(13) = '1') then
+               if(y_inter(11) = '1') then
                   y_pos <= (others => '0');
                else
                   y_pos <= y_inter;
@@ -540,18 +539,18 @@ timeout  <= '1' when timeout_cnt = (TIMEOUT_PERIOD_CLOCKS - 1) else '0';
             else
                -- if overflow occurred
                if(y_overflow = '1') then
-                  -- inc is 256 (14-bit)
-                  inc := "00000100000000";
+                  -- inc is 256
+                  inc := "000100000000";
                else
-                  -- inc is zero-extended y_inc to 14 bits
-                  inc := "000000" & y_inc;
+                  -- inc is sign extended y_inc
+                  inc := "0000" & y_inc;
                end if;
                -- intermediary vertical position
                y_inter := y_pos + inc;
                -- if y_inter is greater than y_max
                -- then positive overflow occurred and
                -- new y position is y_max.
-               if(y_inter > y_max) then
+               if(y_inter > (y_max)) then
                   y_pos <= y_max;
                else
                   y_pos <= y_inter;

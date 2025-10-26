@@ -570,7 +570,6 @@ module Top(
     localparam RED = 12'h00F;
     localparam COOLDOWN = 200_000_000;
 
-
     localparam CROSSHAIR_HEIGHT = 11;
     wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) / 255;
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
@@ -617,27 +616,20 @@ module Top(
     reg [8:0] top2_l, bottom2_l, cy2_l;
     reg [8:0] top3_l, bottom3_l, cy3_l;
 
+    // Randomised canvas module instance (mosaic + shapes). Used with sw[4] ON.
+    wire [11:0] canvas_pixel;
+    Randomised_Canvas canvas_inst (
+        .clk(clk25),
+        .reset(vga_reset),
+        .btnC(btnC),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .in_roi(in_roi),
+        .active_area(active_area),
+        .pixel_out(canvas_pixel)
+    );
 
-    // --- Detect mouse click inside box ---
-    wire inside_play_box = (mouse_x >= BOX_X0 && mouse_x < BOX_X0 + WIDTH0 &&
-                       mouse_y >= BOX_Y0 && mouse_y < BOX_Y0 + HEIGHT0);
-
-    wire inside_exit_box = (mouse_x >= BOX_X1 && mouse_x < BOX_X1 + WIDTH1 &&
-                       mouse_y >= BOX_Y1 && mouse_y < BOX_Y1 + HEIGHT1);
-
-
-    reg MENU_MODE = 1;
-    localparam BOX_X0 = 30;
-    localparam BOX_Y0 = 120;
-    localparam WIDTH0 = 60;
-    localparam HEIGHT0 = 60;
-
-    localparam BOX_X1 = 180;
-    localparam BOX_Y1 = 120;
-    localparam WIDTH1 = 60;
-    localparam HEIGHT1 = 60;
-
-
+    // Detect mouse click inside box
     wire left_click, right_click;
     wire [13:0] mouse_x, mouse_y;
     localparam mouse_maxCount_X = 8191;
@@ -654,163 +646,246 @@ module Top(
         .ypos(mouse_y)
     );
 
+    // Map raw mouse counts (0..8191) to source grid pixels (x: 0..305, y: 0..239)
+    wire [9:0] mouse_x_px = (mouse_x * 306) / 8191;
+    wire [8:0] mouse_y_px = (mouse_y * 240) / 8191;
 
-    // wire [9:0] mouse_x_trimmed = (mouse_x * 306) / 8191;
-    // wire [9:0] mouse_y_trimmed = (mouse_y * 240) / 8191;
-
-    // Create a 9 x 9 cursor
+    // Create a 9 x 9 square cursor
     wire within_cursor; 
-    wire [15:0] cursor_color;
+    wire [15:0] cursor_colour;
+    assign within_cursor = ((frame_x[9:1]-14 == mouse_x_px) || ((frame_x[9:1]-14 - mouse_x_px) == 1) || ((mouse_x_px - frame_x[9:1]-14) == 1)) && ((frame_y[9:1] == mouse_y_px) || ((frame_y[9:1] - mouse_y_px) == 1) || ((mouse_y_px - frame_y[9:1]) == 1));
+    assign cursor_colour = within_cursor ? 12'hFFF : 0;
 
-    assign within_cursor = ((frame_x[9:1]-14 == mouse_x) || ((frame_x[9:1]-14 - mouse_x) == 1) || ((mouse_x - frame_x[9:1]-14) == 1)) && ((frame_y[9:1] == mouse_y) || ((frame_y[9:1] - mouse_y) == 1) || ((mouse_y - frame_y[9:1]) == 1));
+    // Source-grid coords for current pixel
+    wire [8:0] px_src = frame_x[9:1] - 14; // 0..305
+    wire [7:0] py_src = frame_y[9:1];      // 0..239
 
-    assign cursor_color = within_cursor ? 12'hFFF : 0;
+    // Parameters for overlay boxes
+    localparam BOX_X0 = 30;
+    localparam BOX_Y0 = 120;
+    localparam WIDTH0 = 60;
+    localparam HEIGHT0 = 60;
 
+    localparam BOX_X1 = 180;
+    localparam BOX_Y1 = 120;
+    localparam WIDTH1 = 60;
+    localparam HEIGHT1 = 60;
 
-    always @(posedge clk25) begin
-        
-        if (MENU_MODE) begin
-            if(within_cursor) begin
-                frame_pixel <= cursor_color;
-            end else 
-            if (frame_x[9:1]-14 >= BOX_X0 && frame_x[9:1]-14 <= BOX_X0 + WIDTH0 &&
-                frame_y[9:1] >= BOX_Y0 && frame_y[9:1] <= BOX_Y0 + HEIGHT1 || 
-                frame_x[9:1]-14 >= BOX_X1 && frame_x[9:1]-14 <= BOX_X1 + WIDTH1 &&
-                frame_y[9:1] >= BOX_Y1 && frame_y[9:1] <= BOX_Y1 + HEIGHT1) begin
-                    frame_pixel <= GREEN;
-                end else begin
-                    frame_pixel <= RED;
-                end
-
-            // if (inside_play_box && left_click)
-            //     MENU_MODE <= 0;
-            // end 
-            // else begin
-            //     if (frame_x[9:1]-14 >= BOX_X1 && frame_x[9:1]-14 < BOX_X1 + WIDTH1 &&
-            //         frame_y[9:1] >= BOX_Y1 && frame_y[9:1] < BOX_Y1 + HEIGHT1) begin
-            //         frame_pixel <= RED;
-            //     end 
-
-            //     if (inside_exit_box && left_click)
-            //         MENU_MODE <= 1;
-            // end
-        end else if (sw[4]) begin
-            frame_pixel <= canvas_pixel;
-        end else begin
-            if (frame_addr == 73439) begin
-                // snapshot UFDS results once per VGA frame
-                left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
-                left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
-                left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
-                left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
-            end else begin
-                // --- Crosshair drawing with cooldown-based bottom fill ---
-                // === Bottom vertical arm ===
-                if (frame_x[9:1]-14 == 153 &&
-                    frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
-
-                    // Green portion rises upward from bottom
-                    if (frame_y[9:1] >= green_top_y)
-                        frame_pixel <= GREEN;
-                    else
-                        frame_pixel <= RED;
-                end
-
-                // === Top vertical arm ===
-                else if (frame_x[9:1]-14 == 153 &&
-                        frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
-
-                    // Mirror the same cooldown progress upward
-                    if (frame_y[9:1] <= (120 - CROSSHAIR_HEIGHT + fill_height))
-                        frame_pixel <= GREEN;
-                    else
-                        frame_pixel <= RED;
-                end
-
-                // === Left horizontal arm ===
-                else if (frame_y[9:1] == 120 &&
-                        frame_x[9:1]-14 >= 153-11 && frame_x[9:1]-14 <= 153-2) begin
-
-                    // Turn green once cooldown crosses midpoint
-                    if (fill_height >= CROSSHAIR_HEIGHT / 2)
-                        frame_pixel <= GREEN;
-                    else
-                        frame_pixel <= RED;
-                end
-
-                // === Right horizontal arm ===
-                else if (frame_y[9:1] == 120 &&
-                        frame_x[9:1]-14 >= 153+2 && frame_x[9:1]-14 <= 153+11) begin
-
-                    if (fill_height >= CROSSHAIR_HEIGHT / 2)
-                        frame_pixel <= GREEN;
-                    else
-                        frame_pixel <= RED;
-                end
-                else if (in_roi && (
-                    // Comp 0
-                    (
-                        (frame_x[9:1]-14 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                        (frame_x[9:1]-14 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                        (frame_y[9:1] == top0_l      && frame_x[9:1]-14 >= left0_l  && frame_x[9:1]-14 <= right0_l) ||
-                        (frame_y[9:1] == bottom0_l   && frame_x[9:1]-14 >= left0_l  && frame_x[9:1]-14 <= right0_l) ||
-                        (frame_x[9:1]-14 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
-                        (frame_y[9:1] == cy0_l       && frame_x[9:1]-14 >= cx0_l-2 && frame_x[9:1]-14 <= cx0_l+2)
-                    ) ||
-                    // Comp 1
-                    (
-                        (frame_x[9:1]-14 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                        (frame_x[9:1]-14 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                        (frame_y[9:1] == top1_l      && frame_x[9:1]-14 >= left1_l  && frame_x[9:1]-14 <= right1_l) ||
-                        (frame_y[9:1] == bottom1_l   && frame_x[9:1]-14 >= left1_l  && frame_x[9:1]-14 <= right1_l) ||
-                        (frame_x[9:1]-14 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
-                        (frame_y[9:1] == cy1_l       && frame_x[9:1]-14 >= cx1_l-2 && frame_x[9:1]-14 <= cx1_l+2)
-                    ) ||
-                    // Comp 2
-                    (
-                        (frame_x[9:1]-14 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                        (frame_x[9:1]-14 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                        (frame_y[9:1] == top2_l      && frame_x[9:1]-14 >= left2_l  && frame_x[9:1]-14 <= right2_l) ||
-                        (frame_y[9:1] == bottom2_l   && frame_x[9:1]-14 >= left2_l  && frame_x[9:1]-14 <= right2_l) ||
-                        (frame_x[9:1]-14 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
-                        (frame_y[9:1] == cy2_l       && frame_x[9:1]-14 >= cx2_l-2 && frame_x[9:1]-14 <= cx2_l+2)
-                    ) ||
-                    // Comp 3
-                    (
-                        (frame_x[9:1]-14 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                        (frame_x[9:1]-14 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                        (frame_y[9:1] == top3_l      && frame_x[9:1]-14 >= left3_l  && frame_x[9:1]-14 <= right3_l) ||
-                        (frame_y[9:1] == bottom3_l   && frame_x[9:1]-14 >= left3_l  && frame_x[9:1]-14 <= right3_l) ||
-                        (frame_x[9:1]-14 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
-                        (frame_y[9:1] == cy3_l       && frame_x[9:1]-14 >= cx3_l-2 && frame_x[9:1]-14 <= cx3_l+2)
-                    )
-                )) begin
-                    frame_pixel <= 12'h00F;
-                end
-                else begin
-                    if (sw[0]) frame_pixel <= (bitmap_pixel ? 12'hFFF : 12'h000);
-                    else frame_pixel <= image_pixel;
-                end
-            end
-        end
-    end 
-
-
-    // Randomised canvas module instance (mosaic + shapes). Used with sw[4] ON.
-    wire [11:0] canvas_pixel;
-    Randomised_Canvas canvas_inst (
-        .clk(clk25),
-        .reset(vga_reset),
-        .btnC(btnC),
-        .frame_x(frame_x),
-        .frame_y(frame_y),
-        .in_roi(in_roi),
-        .active_area(active_area),
-        .pixel_out(canvas_pixel)
+    // Instances of layered boxes for display, currently have: menu's manual box and menu's auto box
+    // each box has 3 layers of border, can change colour if you want: (black) outer - bo, (white) mid - wm, (black) inner - bi`   
+    // in-fill is the boolean for whether a pixel is fully inside the box's border
+    wire m_bo, m_wm, m_bi, m_fill, m_any;
+    layered_box #(
+        .TOP_LEFT_X(BOX_X0), .TOP_LEFT_Y(BOX_Y0), .WIDTH(WIDTH0), .HEIGHT(HEIGHT0),
+        .OUTER_THICK(3), .MID_THICK(3), .INNER_THICK(3)
+    ) menu_box_manual (
+        .x(px_src), .y(py_src),
+        .in_black_outer(m_bo), .in_white_mid(m_wm), .in_black_inner(m_bi),
+        .in_fill(m_fill), .in_any_border(m_any)
     );
 
+    wire a_bo, a_wm, a_bi, a_fill, a_any;
+    layered_box #(
+        .TOP_LEFT_X(BOX_X1), .TOP_LEFT_Y(BOX_Y1), .WIDTH(WIDTH1), .HEIGHT(HEIGHT1),
+        .OUTER_THICK(3), .MID_THICK(3), .INNER_THICK(3)
+    ) menu_box_auto (
+        .x(px_src), .y(py_src),
+        .in_black_outer(a_bo), .in_white_mid(a_wm), .in_black_inner(a_bi),
+        .in_fill(a_fill), .in_any_border(a_any)
+    );
+
+    // Cursor over boxes (click detection uses mouse_x/y in source grid)
+    wire cursor_on_manual_box = (mouse_x_px >= BOX_X0 && mouse_x_px < BOX_X0 + WIDTH0 && mouse_y_px >= BOX_Y0 && mouse_y_px < BOX_Y0 + HEIGHT0);
+    wire cursor_on_auto_box   = (mouse_x_px >= BOX_X1 && mouse_x_px < BOX_X1 + WIDTH1 && mouse_y_px >= BOX_Y1 && mouse_y_px < BOX_Y1 + HEIGHT1);
 
 
+    // Overlays pixel with other graphics based on program state (background = image_pixel when sw[4] is off)
+    // current flow should be: S_MENU -> S_USER_SETTINGS -> S_MENU -> S_GAME_(MANUAL/AUTO)_MODE
+    reg[2:0] state = 0;
+    reg[2:0] prev_state = 0; // remember previous state
+    localparam S_MENU = 0;
+    localparam S_USER_SETTINGS = 1; // should be accessible anytime (right click to enter and right click again to exit)
+    localparam S_GAME_MANUAL_MODE = 2;
+    localparam S_GAME_AUTO_MODE = 3;
+
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            state <= S_MENU;
+            prev_state <= S_MENU;
+        end else if (sw[4]) begin
+            // Output random canvas of colours by separate FPGA using sw[4]
+            frame_pixel <= canvas_pixel;
+        end else begin 
+            // every pixel that is not overwritten should be the camera's output
+            if (sw[0]) begin
+                frame_pixel <= (bitmap_pixel ? 12'hFFF : 12'h000);
+            end else begin
+                frame_pixel <= image_pixel;
+            end
+            
+            if (right_click) begin
+                prev_state <= state;
+                state <= S_USER_SETTINGS;
+            end
+            // TODO: have a small corner that perm displays "right-click to enter settings"
+
+            // State machine for different overlays
+            case (state)
+                S_MENU: begin
+                    if (left_click && cursor_on_manual_box) begin
+                        state <= S_GAME_MANUAL_MODE;
+                    end else if (left_click && cursor_on_auto_box) begin
+                        state <= S_GAME_AUTO_MODE;
+                    end 
+                    
+                    if (within_cursor) begin
+                        frame_pixel <= cursor_colour;
+                    end else begin
+                        // TODO: Display title and authors (our names)
+                        // TODO: 1/2 liner welcome sentences
+
+                        // Display box for start game manual
+                        if (m_fill) begin
+                            frame_pixel <= GREEN; // green fill
+                        end else if (m_bi) begin
+                            frame_pixel <= 12'h000; // black inner border
+                        end else if (m_wm) begin
+                            frame_pixel <= 12'hFFF; // white mid border
+                        end else if (m_bo) begin
+                            frame_pixel <= 12'h000; // black outer border
+                        end
+
+                        // TODO: Display box for start game auto
+                        if (a_fill) begin
+                            frame_pixel <= RED; // red fill
+                        end else if (a_bi) begin
+                            frame_pixel <= 12'h000; // black inner border
+                        end else if (a_wm) begin
+                            frame_pixel <= 12'hFFF; // white mid border
+                        end else if (a_bo) begin
+                            frame_pixel <= 12'h000; // black outer border
+                        end
+                    end
+                end
+                
+                S_USER_SETTINGS: begin
+                    // right-click again to return to prev_state
+                    if (right_click) begin
+                        state <= prev_state;
+                    end
+
+                    if (within_cursor) begin
+                        frame_pixel <= cursor_colour;
+                    end else begin
+                        // TODO: Display settings options (e.g. mouse sensitivity, crosshair colour, etc)
+                    end
+                end
+
+                S_GAME_MANUAL_MODE: begin
+                    if (frame_addr == 73439) begin
+                        // snapshot UFDS results once per VGA frame
+                        left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
+                        left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
+                        left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
+                        left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
+                    end else begin
+                        // --- Crosshair drawing with cooldown-based bottom fill ---
+                        // === Bottom vertical arm ===
+                        if (frame_x[9:1]-14 == 153 &&
+                            frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
+
+                            // Green portion rises upward from bottom
+                            if (frame_y[9:1] >= green_top_y)
+                                frame_pixel <= GREEN;
+                            else
+                                frame_pixel <= RED;
+                        end
+
+                        // === Top vertical arm ===
+                        else if (frame_x[9:1]-14 == 153 &&
+                                frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
+
+                            // Mirror the same cooldown progress upward
+                            if (frame_y[9:1] <= (120 - CROSSHAIR_HEIGHT + fill_height))
+                                frame_pixel <= GREEN;
+                            else
+                                frame_pixel <= RED;
+                        end
+
+                        // === Left horizontal arm ===
+                        else if (frame_y[9:1] == 120 &&
+                                frame_x[9:1]-14 >= 153-11 && frame_x[9:1]-14 <= 153-2) begin
+
+                            // Turn green once cooldown crosses midpoint
+                            if (fill_height >= CROSSHAIR_HEIGHT / 2)
+                                frame_pixel <= GREEN;
+                            else
+                                frame_pixel <= RED;
+                        end
+
+                        // === Right horizontal arm ===
+                        else if (frame_y[9:1] == 120 &&
+                                frame_x[9:1]-14 >= 153+2 && frame_x[9:1]-14 <= 153+11) begin
+
+                            if (fill_height >= CROSSHAIR_HEIGHT / 2)
+                                frame_pixel <= GREEN;
+                            else
+                                frame_pixel <= RED;
+                        end
+                        else if (in_roi && (
+                            // Comp 0
+                            (
+                                (frame_x[9:1]-14 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_x[9:1]-14 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_y[9:1] == top0_l      && frame_x[9:1]-14 >= left0_l  && frame_x[9:1]-14 <= right0_l) ||
+                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-14 >= left0_l  && frame_x[9:1]-14 <= right0_l) ||
+                                (frame_x[9:1]-14 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-14 >= cx0_l-2 && frame_x[9:1]-14 <= cx0_l+2)
+                            ) ||
+                            // Comp 1
+                            (
+                                (frame_x[9:1]-14 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_x[9:1]-14 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_y[9:1] == top1_l      && frame_x[9:1]-14 >= left1_l  && frame_x[9:1]-14 <= right1_l) ||
+                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-14 >= left1_l  && frame_x[9:1]-14 <= right1_l) ||
+                                (frame_x[9:1]-14 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
+                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-14 >= cx1_l-2 && frame_x[9:1]-14 <= cx1_l+2)
+                            ) ||
+                            // Comp 2
+                            (
+                                (frame_x[9:1]-14 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_x[9:1]-14 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_y[9:1] == top2_l      && frame_x[9:1]-14 >= left2_l  && frame_x[9:1]-14 <= right2_l) ||
+                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-14 >= left2_l  && frame_x[9:1]-14 <= right2_l) ||
+                                (frame_x[9:1]-14 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
+                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-14 >= cx2_l-2 && frame_x[9:1]-14 <= cx2_l+2)
+                            ) ||
+                            // Comp 3
+                            (
+                                (frame_x[9:1]-14 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_x[9:1]-14 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_y[9:1] == top3_l      && frame_x[9:1]-14 >= left3_l  && frame_x[9:1]-14 <= right3_l) ||
+                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-14 >= left3_l  && frame_x[9:1]-14 <= right3_l) ||
+                                (frame_x[9:1]-14 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
+                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-14 >= cx3_l-2 && frame_x[9:1]-14 <= cx3_l+2)
+                            )
+                        )) begin
+                            frame_pixel <= 12'h00F;
+                        end
+                    end
+                end
+
+                S_GAME_AUTO_MODE: begin
+                    // TODO: Algo for auto-mode
+                end
+
+                default: begin
+                    state <= state;
+                end
+            endcase
+            
+        end
+    end
 
     // Sets timer
     // Time_Countdown timer_inst (

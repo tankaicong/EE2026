@@ -629,11 +629,11 @@ module Top(
         .pixel_out(canvas_pixel)
     );
 
+
+
     // Detect mouse click inside box
     wire left_click, right_click;
-    wire [13:0] mouse_x, mouse_y;
-    localparam mouse_maxCount_X = 8191;
-    localparam mouse_maxCount_Y = 8191;
+    wire [11:0] mouse_x_raw, mouse_y_raw;
 
     MouseCtl mouse_inst (
         .clk(clk),
@@ -642,23 +642,29 @@ module Top(
         .ps2_data(mouse_data),
         .left(left_click),
         .right(right_click),
-        .xpos(mouse_x),
-        .ypos(mouse_y)
+        .xpos(mouse_x_raw),
+        .ypos(mouse_y_raw)
     );
 
-    // Map raw mouse counts (0..8191) to source grid pixels (x: 0..305, y: 0..239)
-    wire [9:0] mouse_x_px = (mouse_x * 306) / 8191;
-    wire [8:0] mouse_y_px = (mouse_y * 240) / 8191;
-
-    // Create a 9 x 9 square cursor
-    wire within_cursor; 
-    wire [15:0] cursor_colour;
-    assign within_cursor = ((frame_x[9:1]-14 == mouse_x_px) || ((frame_x[9:1]-14 - mouse_x_px) == 1) || ((mouse_x_px - frame_x[9:1]-14) == 1)) && ((frame_y[9:1] == mouse_y_px) || ((frame_y[9:1] - mouse_y_px) == 1) || ((mouse_y_px - frame_y[9:1]) == 1));
-    assign cursor_colour = within_cursor ? 12'hFFF : 0;
+    wire [8:0] mouse_x_px = mouse_x_raw[8:0];   // 0-305
+    wire [7:0] mouse_y_px = mouse_y_raw[7:0];   // 0-239
 
     // Source-grid coords for current pixel
     wire [8:0] px_src = frame_x[9:1] - 14; // 0..305
     wire [7:0] py_src = frame_y[9:1];      // 0..239
+
+
+    // Create a 9 x 9 square cursor
+    wire within_cursor; 
+    wire [11:0] cursor_colour;
+
+   /* ---------- 3 × 3 window ---------- */
+    wire within_cursor =
+        (px_src >= mouse_x_px - 1) && (px_src <= mouse_x_px + 1) &&
+        (py_src >= mouse_y_px - 1) && (py_src <= mouse_y_px + 1);
+
+    assign cursor_colour = within_cursor ? 12'hFFF : 0;
+
 
     // Parameters for overlay boxes
     localparam BOX_X0 = 30;

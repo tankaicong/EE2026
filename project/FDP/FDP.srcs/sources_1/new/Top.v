@@ -469,6 +469,7 @@ module Top(
 
     // Cooldown progress from mouse controller
     wire [7:0] cooldown_progress;
+    localparam COOLDOWN = 200_000_000;
 
     // mouse controller module
     mouse_movement mouse_ctrl (
@@ -568,8 +569,14 @@ module Top(
     // ----------- DISPLAY OUTPUTS ----------- //
     localparam GREEN = 12'h0F0;
     localparam RED = 12'h00F;
-    localparam COOLDOWN = 200_000_000;
+    localparam BLUE = 12'hF00;
+    localparam WHITE = 12'hFFF;
+    localparam BLACK = 12'h000;
+    localparam YELLOW = 12'hFF0;
+    localparam CYAN = 12'h0FF;
+    localparam MAGENTA = 12'hF0F;
 
+    // cooldown 
     localparam CROSSHAIR_HEIGHT = 11;
     wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) / 255;
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
@@ -667,15 +674,193 @@ module Top(
 
 
     // Parameters for overlay boxes
+    // begin shooting game box
     localparam BOX_X0 = 30;
     localparam BOX_Y0 = 120;
     localparam WIDTH0 = 60;
     localparam HEIGHT0 = 60;
 
+    // right menu box
     localparam BOX_X1 = 180;
     localparam BOX_Y1 = 120;
     localparam WIDTH1 = 60;
     localparam HEIGHT1 = 60;
+
+    // <------ Settings box ------->
+    localparam BOX_X2 = 50;
+    localparam BOX_Y2 = 50;
+    localparam WIDTH2 = 160;
+    localparam HEIGHT2 = 120;
+
+    // Settings menu layout parameters
+    localparam TITLE_Y = 55;  // Height of "Settings" title
+    localparam SENSITIVITY_Y = 70; // Height of sensitivity block
+    localparam COLOR_Y = 90; 
+
+    // Settings sections layout parameters
+    // Title section
+    localparam TITLE_BOX_X = 60;
+    localparam TITLE_BOX_Y = 55;
+    localparam TITLE_BOX_WIDTH = 140;
+    localparam TITLE_BOX_HEIGHT = 20;
+    
+    // Sensitivity section
+    localparam SENS_BOX_X = 60;
+    localparam SENS_BOX_Y = 80;
+    localparam SENS_BOX_WIDTH = 140;
+    localparam SENS_BOX_HEIGHT = 30;
+    localparam SLIDER_X_START = SENS_BOX_X + 10;
+    localparam SLIDER_X_END = SENS_BOX_X + SENS_BOX_WIDTH - 10;
+    localparam SLIDER_HEIGHT = 6;
+    localparam KNOB_SIZE = 8;
+    
+    // Color selection section
+    localparam COLOR_BOX_X = 60;
+    localparam COLOR_BOX_Y = 115;
+    localparam COLOR_BOX_WIDTH = 140;
+    localparam COLOR_BOX_HEIGHT = 40;
+    localparam COLOR_BOX_SIZE = 12;
+    localparam COLOR_BOX_SPACING = 15;
+    localparam COLOR_BOX_START_X = COLOR_BOX_X + 10;
+
+    // Settings state variables
+    reg [7:0] mouse_sensitivity = 8'd128; // Default medium sensitivity (0-255)
+    reg [2:0] font_color_chosen = 3'd0;    // 0:White, 1:Red, 2:Green, 3:Blue, 4:Yellow, 5:Cyan, 6:Magenta
+
+    // Settings UI elements
+    wire sensitivity_slider_active;
+    wire [8:0] sensitivity_knob_x;
+
+    // Calculate knob position based on current sensitivity
+    assign sensitivity_knob_x = SLIDER_X_START + ((mouse_sensitivity * (SLIDER_X_END - SLIDER_X_START)) >> 8);
+
+    // Detect if cursor is over interactive elements
+    wire cursor_on_sensitivity_slider = (mouse_x_px >= SLIDER_X_START && mouse_x_px <= SLIDER_X_END && 
+                                   mouse_y_px >= SENSITIVITY_Y - 3 && mouse_y_px <= SENSITIVITY_Y + SLIDER_HEIGHT + 3);
+
+    // Color box positions and click detection
+    wire [6:0] cursor_on_color_box;
+    wire [6:0] color_box_active;
+    
+
+    // assigns logic for when cursor is on each color box
+    generate
+        genvar i;
+        for (i = 0; i < 7; i = i + 1) begin : color_boxes
+            localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
+            assign cursor_on_color_box[i] = (mouse_x_px >= BOX_X && mouse_x_px <= BOX_X + COLOR_BOX_SIZE && 
+                                        mouse_y_px >= COLOR_BOX_Y && mouse_y_px <= COLOR_BOX_Y + COLOR_BOX_SIZE);
+            assign color_box_active[i] = (font_color_chosen == i);
+        end
+    endgenerate
+
+    // Settings UI drawing logic
+    wire settings_title, settings_sensitivity_label, settings_color_label;
+    wire settings_sensitivity_slider, settings_sensitivity_knob;
+    wire [6:0] settings_color_box, settings_color_box_border;
+
+    // Title text area settings (TODO: ASSIGN "SETTINGS" word inside here)
+    assign settings_title = (px_src >= 65 && px_src <= 135 && py_src == TITLE_Y);
+
+    // Labels
+    assign settings_sensitivity_label = (px_src >= 40 && px_src <= 135 && py_src >= SENSITIVITY_Y-8 && py_src <= SENSITIVITY_Y-2);
+    assign settings_color_label = (px_src >= 40 && px_src <= 120 && py_src >= COLOR_Y-8 && py_src <= COLOR_Y-2);
+
+    // Sensitivity slider track
+    assign settings_sensitivity_slider = (px_src >= SLIDER_X_START && px_src <= SLIDER_X_END && 
+                                        py_src >= SENSITIVITY_Y && py_src <= SENSITIVITY_Y + SLIDER_HEIGHT);
+
+    // Sensitivity slider knob
+    assign settings_sensitivity_knob = (px_src >= sensitivity_knob_x - (KNOB_SIZE/2) && 
+                                    px_src <= sensitivity_knob_x + (KNOB_SIZE/2) && 
+                                    py_src >= SENSITIVITY_Y - 2 && 
+                                    py_src <= SENSITIVITY_Y + SLIDER_HEIGHT + 2);
+
+    // Color boxes
+    generate
+        for (i = 0; i < 7; i = i + 1) begin : color_box_drawing
+            localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
+            assign settings_color_box[i] = (px_src >= BOX_X + 1 && px_src <= BOX_X + COLOR_BOX_SIZE - 1 && 
+                                        py_src >= COLOR_BOX_Y + 1 && py_src <= COLOR_BOX_Y + COLOR_BOX_SIZE - 1);
+            assign settings_color_box_border[i] = (px_src >= BOX_X && px_src <= BOX_X + COLOR_BOX_SIZE && 
+                                                py_src >= COLOR_BOX_Y && py_src <= COLOR_BOX_Y + COLOR_BOX_SIZE) && 
+                                                !settings_color_box[i];
+        end
+    endgenerate
+
+    // Function to get color for each box
+    function [11:0] get_color_for_box;
+        input [2:0] color_idx;
+        begin
+            case (color_idx)
+                3'd0: get_color_for_box = WHITE;
+                3'd1: get_color_for_box = RED;
+                3'd2: get_color_for_box = GREEN; 
+                3'd3: get_color_for_box = BLUE;
+                3'd4: get_color_for_box = YELLOW;
+                3'd5: get_color_for_box = CYAN;
+                3'd6: get_color_for_box = MAGENTA;
+                default: get_color_for_box = WHITE;
+            endcase
+        end
+    endfunction
+
+    // Function to get border color for color box (white if active, gray if not)
+    function [11:0] get_border_color;
+        input [2:0] box_idx;
+        input active;
+        begin
+            if (active)
+                get_border_color = WHITE;
+            else if (cursor_on_color_box[box_idx])
+                get_border_color = YELLOW;
+            else
+                get_border_color = 12'h888; // Gray
+        end
+    endfunction
+
+    // Settings interaction logic
+    reg sensitivity_dragging = 0;
+
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            sensitivity_dragging <= 0;
+            mouse_sensitivity <= 8'd128;
+            font_color_chosen <= 3'd0;
+        end else if (state == S_USER_SETTINGS) begin
+            // Start dragging sensitivity slider
+            if (left_click && cursor_on_sensitivity_slider && !sensitivity_dragging) begin
+                sensitivity_dragging <= 1;
+            end
+            // Stop dragging sensitivity slider
+            else if (!left_click && sensitivity_dragging) begin
+                sensitivity_dragging <= 0;
+            end
+            // Update sensitivity while dragging
+            else if (sensitivity_dragging && left_click) begin
+                if (mouse_x_px < SLIDER_X_START) 
+                    mouse_sensitivity <= 8'd0;
+                else if (mouse_x_px > SLIDER_X_END)
+                    mouse_sensitivity <= 8'd255;
+                else
+                    mouse_sensitivity <= ((mouse_x_px - SLIDER_X_START) * 256) / (SLIDER_X_END - SLIDER_X_START);
+            end
+            
+            // Color box selection
+            if (left_click) begin
+                case (1'b1)
+                    cursor_on_color_box[0]: font_color_chosen <= 3'd0;
+                    cursor_on_color_box[1]: font_color_chosen <= 3'd1;
+                    cursor_on_color_box[2]: font_color_chosen <= 3'd2;
+                    cursor_on_color_box[3]: font_color_chosen <= 3'd3;
+                    cursor_on_color_box[4]: font_color_chosen <= 3'd4;
+                    cursor_on_color_box[5]: font_color_chosen <= 3'd5;
+                    cursor_on_color_box[6]: font_color_chosen <= 3'd6;
+                endcase
+            end
+        end
+    end
+
 
     // Instances of layered boxes for display, currently have: menu's manual box and menu's auto box
     // each box has 3 layers of border, can change colour if you want: (black) outer - bo, (white) mid - wm, (black) inner - bi`   
@@ -699,6 +884,54 @@ module Top(
         .in_black_outer(a_bo), .in_white_mid(a_wm), .in_black_inner(a_bi),
         .in_fill(a_fill), .in_any_border(a_any)
     );
+
+
+    wire sett_bo, sett_wm, sett_bi, sett_fill, sett_any;
+    layered_box #(
+        .TOP_LEFT_X(BOX_X2), .TOP_LEFT_Y(BOX_Y2), .WIDTH(WIDTH2), .HEIGHT(HEIGHT2),
+        .OUTER_THICK(2), .MID_THICK(2), .INNER_THICK(2)
+    ) setting_outer_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(sett_bo), .in_white_mid(sett_wm), .in_black_inner(sett_bi),
+        .in_fill(sett_fill), .in_any_border(sett_any)
+    );
+
+    // Title section box
+    wire title_bo, title_wm, title_bi, title_fill, title_any;
+    layered_box #(
+        .TOP_LEFT_X(TITLE_BOX_X), .TOP_LEFT_Y(TITLE_BOX_Y), 
+        .WIDTH(TITLE_BOX_WIDTH), .HEIGHT(TITLE_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_title_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(title_bo), .in_white_mid(title_wm), .in_black_inner(title_bi),
+        .in_fill(title_fill), .in_any_border(title_any)
+    );
+
+    // Sensitivity section box
+    wire sens_bo, sens_wm, sens_bi, sens_fill, sens_any;
+    layered_box #(
+        .TOP_LEFT_X(SENS_BOX_X), .TOP_LEFT_Y(SENS_BOX_Y), 
+        .WIDTH(SENS_BOX_WIDTH), .HEIGHT(SENS_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_sens_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(sens_bo), .in_white_mid(sens_wm), .in_black_inner(sens_bi),
+        .in_fill(sens_fill), .in_any_border(sens_any)
+    );
+
+    // Color selection section box
+    wire color_bo, color_wm, color_bi, color_fill, color_any;
+    layered_box #(
+        .TOP_LEFT_X(COLOR_BOX_X), .TOP_LEFT_Y(COLOR_BOX_Y), 
+        .WIDTH(COLOR_BOX_WIDTH), .HEIGHT(COLOR_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_color_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(color_bo), .in_white_mid(color_wm), .in_black_inner(color_bi),
+        .in_fill(color_fill), .in_any_border(color_any)
+    );
+
 
     // Cursor over boxes (click detection uses mouse_x/y in source grid)
     wire cursor_on_manual_box = (mouse_x_px >= BOX_X0 && mouse_x_px < BOX_X0 + WIDTH0 && mouse_y_px >= BOX_Y0 && mouse_y_px < BOX_Y0 + HEIGHT0);
@@ -724,7 +957,7 @@ module Top(
         end else begin 
             // every pixel that is not overwritten should be the camera's output
             if (sw[0]) begin
-                frame_pixel <= (bitmap_pixel ? 12'hFFF : 12'h000);
+                frame_pixel <= (bitmap_pixel ? WHITE : BLACK);
             end else begin
                 frame_pixel <= image_pixel;
             end
@@ -754,22 +987,22 @@ module Top(
                         if (m_fill) begin
                             frame_pixel <= GREEN; // green fill
                         end else if (m_bi) begin
-                            frame_pixel <= 12'h000; // black inner border
+                            frame_pixel <= BLACK; // black inner border
                         end else if (m_wm) begin
-                            frame_pixel <= 12'hFFF; // white mid border
+                            frame_pixel <= WHITE; // white mid border
                         end else if (m_bo) begin
-                            frame_pixel <= 12'h000; // black outer border
+                            frame_pixel <= BLACK; // black outer border
                         end
 
                         // TODO: Display box for start game auto
                         if (a_fill) begin
                             frame_pixel <= RED; // red fill
                         end else if (a_bi) begin
-                            frame_pixel <= 12'h000; // black inner border
+                            frame_pixel <= BLACK; // black inner border
                         end else if (a_wm) begin
-                            frame_pixel <= 12'hFFF; // white mid border
+                            frame_pixel <= WHITE; // white mid border
                         end else if (a_bo) begin
-                            frame_pixel <= 12'h000; // black outer border
+                            frame_pixel <= BLACK; // black outer border
                         end
                     end
                 end
@@ -784,6 +1017,49 @@ module Top(
                         frame_pixel <= cursor_colour;
                     end else begin
                         // TODO: Display settings options (e.g. mouse sensitivity, crosshair colour, etc)
+                        // 1. First draw the SETTINGS BOX background and borders
+                        if (sett_fill) begin 
+                            frame_pixel <= WHITE;  // White background for the popup
+                        end else if (sett_bi) begin
+                            frame_pixel <= BLACK;  // inner black border
+                        end else if (sett_wm) begin  // FIXED: was a_wm
+                            frame_pixel <= WHITE;   // white mid border  
+                        end else if (sett_bo) begin  // FIXED: was a_bo
+                            frame_pixel <= BLACK;   // black outer border
+                        end
+                        
+                        // 2. Then draw the SETTINGS TITLE area (black text on white background)
+                        if (title_fill) begin 
+                            frame_pixel <= BLACK;  // "SETTINGS" text in black
+                        end
+                        
+                        // 3. Draw sensitivity labels (black text)
+                        if (sens_fill) begin
+                            frame_pixel <= BLACK; // "Sensitivity" label
+                        end
+                        
+                        // 4. Draw sensitivity slider
+                        if (settings_sensitivity_slider) begin
+                            frame_pixel <= (cursor_on_sensitivity_slider || sensitivity_dragging) ? YELLOW : BLACK;
+                        end
+                        else if (settings_sensitivity_knob) begin
+                            frame_pixel <= (sensitivity_dragging) ? YELLOW : RED;
+                        end
+                        
+                        // 5. Draw color label
+                        if (color_fill) begin
+                            frame_pixel <= 12'hEEE; // "Font Color" label  
+                        end
+                        
+                        // Color boxes - check each color box
+                        // Draw color boxes
+                        for (integer i = 0; i < 7; i = i + 1) begin
+                            if (settings_color_box_border[i]) begin
+                                frame_pixel <= get_border_color(i[2:0], color_box_active[i]);
+                            end else if (settings_color_box[i]) begin
+                                frame_pixel <= get_color_for_box(i[2:0]);
+                            end
+                        end
                     end
                 end
 

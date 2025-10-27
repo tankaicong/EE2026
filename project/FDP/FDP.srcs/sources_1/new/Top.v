@@ -572,9 +572,10 @@ module Top(
     localparam BLUE = 12'hF00;
     localparam WHITE = 12'hFFF;
     localparam BLACK = 12'h000;
-    localparam YELLOW = 12'hFF0;
-    localparam CYAN = 12'h0FF;
+    localparam CYAN = 12'hFF0;
+    localparam YELLOW = 12'h0FF;
     localparam MAGENTA = 12'hF0F;
+    localparam GREY = 12'h888;
 
     // cooldown 
     localparam CROSSHAIR_HEIGHT = 11;
@@ -694,7 +695,6 @@ module Top(
 
     // Settings menu layout parameters
     localparam TITLE_Y = 55;  // Height of "Settings" title
-    localparam SENSITIVITY_Y = 70; // Height of sensitivity block
     localparam COLOR_Y = 90; 
 
     // Settings sections layout parameters
@@ -708,20 +708,22 @@ module Top(
     localparam SENS_BOX_X = 60;
     localparam SENS_BOX_Y = 80;
     localparam SENS_BOX_WIDTH = 140;
-    localparam SENS_BOX_HEIGHT = 30;
+    localparam SENS_BOX_HEIGHT = 25;
     localparam SLIDER_X_START = SENS_BOX_X + 10;
+    localparam SLIDER_Y_POS = 105; // Height of sensitivity block
     localparam SLIDER_X_END = SENS_BOX_X + SENS_BOX_WIDTH - 10;
     localparam SLIDER_HEIGHT = 6;
     localparam KNOB_SIZE = 8;
     
     // Color selection section
     localparam COLOR_BOX_X = 60;
-    localparam COLOR_BOX_Y = 115;
+    localparam COLOR_BOX_Y = 130;
     localparam COLOR_BOX_WIDTH = 140;
-    localparam COLOR_BOX_HEIGHT = 40;
+    localparam COLOR_BOX_HEIGHT = 35;
     localparam COLOR_BOX_SIZE = 12;
     localparam COLOR_BOX_SPACING = 15;
-    localparam COLOR_BOX_START_X = COLOR_BOX_X + 10;
+    localparam COLOR_BOX_START_X = COLOR_BOX_X + 20;
+    localparam COLOR_MINOR_BOX = COLOR_BOX_Y + 10;
 
     // Settings state variables
     reg [7:0] mouse_sensitivity = 8'd128; // Default medium sensitivity (0-255)
@@ -736,7 +738,7 @@ module Top(
 
     // Detect if cursor is over interactive elements
     wire cursor_on_sensitivity_slider = (mouse_x_px >= SLIDER_X_START && mouse_x_px <= SLIDER_X_END && 
-                                   mouse_y_px >= SENSITIVITY_Y - 3 && mouse_y_px <= SENSITIVITY_Y + SLIDER_HEIGHT + 3);
+                                   mouse_y_px >= SLIDER_Y_POS - 3 && mouse_y_px <= SLIDER_Y_POS + SLIDER_HEIGHT + 3);
 
     // Color box positions and click detection
     wire [6:0] cursor_on_color_box;
@@ -749,7 +751,7 @@ module Top(
         for (i = 0; i < 7; i = i + 1) begin : color_boxes
             localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
             assign cursor_on_color_box[i] = (mouse_x_px >= BOX_X && mouse_x_px <= BOX_X + COLOR_BOX_SIZE && 
-                                        mouse_y_px >= COLOR_BOX_Y && mouse_y_px <= COLOR_BOX_Y + COLOR_BOX_SIZE);
+                                        mouse_y_px >= COLOR_MINOR_BOX && mouse_y_px <= COLOR_MINOR_BOX + COLOR_BOX_SIZE);
             assign color_box_active[i] = (font_color_chosen == i);
         end
     endgenerate
@@ -763,27 +765,27 @@ module Top(
     assign settings_title = (px_src >= 65 && px_src <= 135 && py_src == TITLE_Y);
 
     // Labels
-    assign settings_sensitivity_label = (px_src >= 40 && px_src <= 135 && py_src >= SENSITIVITY_Y-8 && py_src <= SENSITIVITY_Y-2);
+    assign settings_sensitivity_label = (px_src >= 40 && px_src <= 135 && py_src >= SLIDER_Y_POS-8 && py_src <= SLIDER_Y_POS-2);
     assign settings_color_label = (px_src >= 40 && px_src <= 120 && py_src >= COLOR_Y-8 && py_src <= COLOR_Y-2);
 
     // Sensitivity slider track
     assign settings_sensitivity_slider = (px_src >= SLIDER_X_START && px_src <= SLIDER_X_END && 
-                                        py_src >= SENSITIVITY_Y && py_src <= SENSITIVITY_Y + SLIDER_HEIGHT);
+                                        py_src >= SLIDER_Y_POS && py_src <= SLIDER_Y_POS + SLIDER_HEIGHT);
 
     // Sensitivity slider knob
     assign settings_sensitivity_knob = (px_src >= sensitivity_knob_x - (KNOB_SIZE/2) && 
                                     px_src <= sensitivity_knob_x + (KNOB_SIZE/2) && 
-                                    py_src >= SENSITIVITY_Y - 2 && 
-                                    py_src <= SENSITIVITY_Y + SLIDER_HEIGHT + 2);
+                                    py_src >= SLIDER_Y_POS - 2 && 
+                                    py_src <= SLIDER_Y_POS + SLIDER_HEIGHT + 2);
 
     // Color boxes
     generate
         for (i = 0; i < 7; i = i + 1) begin : color_box_drawing
             localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
             assign settings_color_box[i] = (px_src >= BOX_X + 1 && px_src <= BOX_X + COLOR_BOX_SIZE - 1 && 
-                                        py_src >= COLOR_BOX_Y + 1 && py_src <= COLOR_BOX_Y + COLOR_BOX_SIZE - 1);
+                                        py_src >= COLOR_MINOR_BOX + 1 && py_src <= COLOR_MINOR_BOX + COLOR_BOX_SIZE - 1);
             assign settings_color_box_border[i] = (px_src >= BOX_X && px_src <= BOX_X + COLOR_BOX_SIZE && 
-                                                py_src >= COLOR_BOX_Y && py_src <= COLOR_BOX_Y + COLOR_BOX_SIZE) && 
+                                                py_src >= COLOR_MINOR_BOX && py_src <= COLOR_MINOR_BOX + COLOR_BOX_SIZE) && 
                                                 !settings_color_box[i];
         end
     endgenerate
@@ -805,7 +807,7 @@ module Top(
         end
     endfunction
 
-    // Function to get border color for color box (white if active, gray if not)
+    // Function to get border color for color box (white if active, GREY if not)
     function [11:0] get_border_color;
         input [2:0] box_idx;
         input active;
@@ -815,7 +817,7 @@ module Top(
             else if (cursor_on_color_box[box_idx])
                 get_border_color = YELLOW;
             else
-                get_border_color = 12'h888; // Gray
+                get_border_color = GREY; 
         end
     endfunction
 
@@ -1040,10 +1042,11 @@ module Top(
                         
                         // 4. Draw sensitivity slider
                         if (settings_sensitivity_slider) begin
-                            frame_pixel <= (cursor_on_sensitivity_slider || sensitivity_dragging) ? YELLOW : BLACK;
+                            frame_pixel <= (cursor_on_sensitivity_slider || sensitivity_dragging) ? YELLOW : GREEN;
                         end
-                        else if (settings_sensitivity_knob) begin
-                            frame_pixel <= (sensitivity_dragging) ? YELLOW : RED;
+                        
+                        if (settings_sensitivity_knob) begin
+                            frame_pixel <= (sensitivity_dragging) ? GREY : BLACK;
                         end
                         
                         // 5. Draw color label

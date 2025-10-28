@@ -455,39 +455,6 @@ module Top(
         .ready_o(ready_o)
     );
 
-    // ----------- MOUSE CONTROLLER ----------- //
-    wire [15:0] mouse_led;
-    wire [11:0] mouse_vga_color;
-
-    // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
-    wire servo_x_pwm;
-    wire servo_y_pwm;
-
-    // temporary holder for screen pixel coordinates (to be replaced)
-    wire [13:0] x_coord;
-    wire [13:0] y_coord;
-
-    // Cooldown progress from mouse controller
-    wire [7:0] cooldown_progress;
-    localparam COOLDOWN = 200_000_000;
-
-    // mouse controller module
-    mouse_movement mouse_ctrl (
-        .clk(clk),
-        .btnU(btnU),
-        .x_coord(x_coord),
-        .y_coord(y_coord),
-        .mouse_clk(mouse_clk),
-        .mouse_data(mouse_data),
-        .servo_x_pwm(servo_x_pwm),
-        .servo_y_pwm(servo_y_pwm),
-        .led(mouse_led),
-        .cooldown_progress(cooldown_progress)
-    );
-
-    // always @(*) begin
-    //     led = mouse_led;
-    // end
 
     // ----------- UART CONTROLLER ----------- //
     // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
@@ -579,7 +546,7 @@ module Top(
 
     // cooldown 
     localparam CROSSHAIR_HEIGHT = 11;
-    wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) / 255;
+    wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) >> 8;
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
     wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
 
@@ -639,23 +606,105 @@ module Top(
 
 
 
-    // Detect mouse click inside box
-    wire left_click, right_click;
-    wire [11:0] mouse_x_raw, mouse_y_raw;
 
-    MouseCtl mouse_inst (
+    // ----------- MOUSE CONTROLLER ----------- //
+
+    // Synchronize reset to mouse controller clock domain
+    reg [2:0] mouse_rst_sync = 3'b111;
+    always @(posedge clk) begin
+        mouse_rst_sync <= {mouse_rst_sync[1:0], btnU};
+    end
+    wire mouse_reset = mouse_rst_sync[2];
+
+
+    wire left_click, right_click, new_event;
+    wire [11:0] mouse_x_raw, mouse_y_raw;
+    
+    MouseCtl mouse_instance (
         .clk(clk),
-        .rst(btnU),
+        .rst(mouse_reset),
         .ps2_clk(mouse_clk),
         .ps2_data(mouse_data),
+        .xpos(mouse_x_raw),
+        .ypos(mouse_y_raw),
+        .zpos(zpos),
         .left(left_click),
         .right(right_click),
-        .xpos(mouse_x_raw),
-        .ypos(mouse_y_raw)
+        .new_event(new_event),
+        // .setx(1'b0),
+        // .sety(1'b0),
+        // .setmax_x(10'd640),
+        // .setmax_y(9'd480),
+        .setx(),
+        .sety(),
+        .setmax_x(),
+        .setmax_y(),
+        // .value(12'd1024)
+        .value()
     );
 
-    wire [8:0] mouse_x_px = mouse_x_raw[8:0];   // 0-305
-    wire [7:0] mouse_y_px = mouse_y_raw[7:0];   // 0-239
+
+    wire [15:0] mouse_led;
+    wire [11:0] mouse_vga_color;
+
+    // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
+    wire servo_x_pwm;
+    wire servo_y_pwm;
+
+    // Cooldown progress from mouse controller
+    wire [7:0] cooldown_progress;
+    localparam COOLDOWN = 200_000_000;
+
+    // mouse controller module
+    mouse_movement mouse_ctrl (
+        .clk(clk),
+        .btnU(mouse_reset),
+        .left(left_click),
+        .right(right_click),
+        .new_event(new_event),
+        .xpos(mouse_x_raw),
+        .ypos(mouse_y_raw),
+        .mouse_clk(mouse_clk),
+        .mouse_data(mouse_data),
+        .servo_x_pwm(servo_x_pwm),
+        .servo_y_pwm(servo_y_pwm),
+        .led(mouse_led),
+        .cooldown_progress(cooldown_progress)
+    );
+
+    // always @(*) begin
+    //     led = mouse_led;
+    // end
+
+
+
+    // Synchronize mouse inputs to clk25 domain with main VGA logic
+    reg [2:0] left_click_sync = 3'b000;
+    reg [2:0] right_click_sync = 3'b000;
+    reg [11:0] mouse_x_sync, mouse_y_sync;
+
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            left_click_sync <= 3'b000;
+            right_click_sync <= 3'b000;
+            mouse_x_sync <= 12'd0;
+            mouse_y_sync <= 12'd0;
+        end else begin
+            left_click_sync <= {left_click_sync[1:0], left_click};
+            right_click_sync <= {right_click_sync[1:0], right_click};
+            mouse_x_sync <= mouse_x_raw;
+            mouse_y_sync <= mouse_y_raw;
+        end
+    end
+
+    // Use synchronized versions for edge detection
+    wire left_click_edge = left_click_sync[1] & ~left_click_sync[2];
+    wire right_click_edge = right_click_sync[1] & ~right_click_sync[2];
+
+    // Update mouse position derivations to use synchronized values
+    wire [8:0] mouse_x_px = mouse_x_sync[8:0];
+    wire [7:0] mouse_y_px = mouse_y_sync[7:0];
+
 
     // Source-grid coords for current pixel
     wire [8:0] px_src = frame_x[9:1] - 14; // 0..305
@@ -739,6 +788,11 @@ module Top(
     // Detect if cursor is over interactive elements
     wire cursor_on_sensitivity_slider = (mouse_x_px >= SLIDER_X_START && mouse_x_px <= SLIDER_X_END && 
                                    mouse_y_px >= SLIDER_Y_POS - 3 && mouse_y_px <= SLIDER_Y_POS + SLIDER_HEIGHT + 3);
+
+    wire cursor_on_knob = (mouse_x_px >= sensitivity_knob_x - (KNOB_SIZE/2) && 
+                       mouse_x_px <= sensitivity_knob_x + (KNOB_SIZE/2) && 
+                       mouse_y_px >= SLIDER_Y_POS - 2 && 
+                       mouse_y_px <= SLIDER_Y_POS + SLIDER_HEIGHT + 2);
 
     // Color box positions and click detection
     wire [6:0] cursor_on_color_box;
@@ -831,25 +885,25 @@ module Top(
             font_color_chosen <= 3'd0;
         end else if (state == S_USER_SETTINGS) begin
             // Start dragging sensitivity slider
-            if (left_click && cursor_on_sensitivity_slider && !sensitivity_dragging) begin
+            // Start or continue dragging
+            if (left_click && cursor_on_sensitivity_slider) begin
                 sensitivity_dragging <= 1;
-            end
-            // Stop dragging sensitivity slider
-            else if (!left_click && sensitivity_dragging) begin
-                sensitivity_dragging <= 0;
-            end
-            // Update sensitivity while dragging
-            else if (sensitivity_dragging && left_click) begin
+                
+                // Update position immediately (whether starting or continuing drag)
                 if (mouse_x_px < SLIDER_X_START) 
                     mouse_sensitivity <= 8'd0;
                 else if (mouse_x_px > SLIDER_X_END)
                     mouse_sensitivity <= 8'd255;
                 else
                     mouse_sensitivity <= ((mouse_x_px - SLIDER_X_START) * 256) / (SLIDER_X_END - SLIDER_X_START);
+            end 
+            // Stop dragging when mouse released
+            else if (!left_click) begin
+                sensitivity_dragging <= 0;
             end
             
             // Color box selection
-            if (left_click) begin
+            if (left_click_edge) begin
                 case (1'b1)
                     cursor_on_color_box[0]: font_color_chosen <= 3'd0;
                     cursor_on_color_box[1]: font_color_chosen <= 3'd1;
@@ -949,6 +1003,10 @@ module Top(
     localparam S_GAME_MANUAL_MODE = 2;
     localparam S_GAME_AUTO_MODE = 3;
 
+    // address debouncing for state change settings 
+    reg [23:0] state_change_cooldown = 0;
+    localparam STATE_COOLDOWN = 24'd5_000_000;
+
     always @(posedge clk25) begin
         if (vga_reset) begin
             state <= S_MENU;
@@ -957,25 +1015,31 @@ module Top(
             // Output random canvas of colours by separate FPGA using sw[4]
             frame_pixel <= canvas_pixel;
         end else begin 
+            // debouncing for right click
+            if (state_change_cooldown > 0) begin
+                state_change_cooldown <= state_change_cooldown - 1;
+            end
+            else if (right_click_edge) begin
+                prev_state <= state;
+                state <= S_USER_SETTINGS;
+                state_change_cooldown <= STATE_COOLDOWN;
+            end
+
             // every pixel that is not overwritten should be the camera's output
             if (sw[0]) begin
                 frame_pixel <= (bitmap_pixel ? WHITE : BLACK);
             end else begin
                 frame_pixel <= image_pixel;
             end
-            
-            if (right_click) begin
-                prev_state <= state;
-                state <= S_USER_SETTINGS;
-            end
+                
             // TODO: have a small corner that perm displays "right-click to enter settings"
 
             // State machine for different overlays
             case (state)
                 S_MENU: begin
-                    if (left_click && cursor_on_manual_box) begin
+                    if (left_click_edge && cursor_on_manual_box) begin
                         state <= S_GAME_MANUAL_MODE;
-                    end else if (left_click && cursor_on_auto_box) begin
+                    end else if (left_click_edge && cursor_on_auto_box) begin
                         state <= S_GAME_AUTO_MODE;
                     end 
                     
@@ -1011,7 +1075,7 @@ module Top(
                 
                 S_USER_SETTINGS: begin
                     // right-click again to return to prev_state
-                    if (right_click) begin
+                    if (right_click_edge) begin
                         state <= prev_state;
                     end
 
@@ -1042,11 +1106,17 @@ module Top(
                         
                         // 4. Draw sensitivity slider
                         if (settings_sensitivity_slider) begin
-                            frame_pixel <= (cursor_on_sensitivity_slider || sensitivity_dragging) ? YELLOW : GREEN;
+                            frame_pixel <= GREEN;
                         end
                         
+            
                         if (settings_sensitivity_knob) begin
-                            frame_pixel <= (sensitivity_dragging) ? GREY : BLACK;
+                            if (sensitivity_dragging)
+                                frame_pixel <= GREY;           // Grey when dragging
+                            else if (cursor_on_knob)
+                                frame_pixel <= YELLOW;         // Yellow when hovering
+                            else
+                                frame_pixel <= BLACK;    
                         end
                         
                         // 5. Draw color label

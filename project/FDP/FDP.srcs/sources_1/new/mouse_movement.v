@@ -23,49 +23,19 @@
 module mouse_movement(
     input clk,
     input btnU, // reset
-    input [13:0] x_coord,  // pixel index width
-    input [13:0] y_coord, // pixel index height
+    input left,
+    input right,
+    input new_event,
+    input [13:0] xpos,
+    input [13:0] ypos,
     inout mouse_clk,  //PS2 mouse clock
     inout mouse_data,  //PS2 data packets
-    `ifdef SIMULATION
-        input left_sim, // simulation-only input to simulate left clicks
-    `endif
     output servo_x_pwm, // PWM signal for X servo
     output servo_y_pwm, // PWM signal for Y servo
     output reg [15:0] led,  //Bullet counts
     output reg [7:0] cooldown_progress
     );
-    
-    wire [13:0] xpos;
-    wire [13:0] ypos;
-    wire [3:0] zpos;
 
-// for simulation purposes
-    wire left, right, middle, new_event;
-    
-    MouseCtl mouse_instance (
-        .clk(clk),
-        .rst(btnU),
-        .ps2_clk(mouse_clk),
-        .ps2_data(mouse_data),
-        .xpos(xpos),
-        .ypos(ypos),
-        .zpos(zpos),
-        .left(left),
-        .middle(middle),
-        .right(right),
-        .new_event(new_event),
-        // .setx(1'b0),
-        // .sety(1'b0),
-        // .setmax_x(10'd640),
-        // .setmax_y(9'd480),
-        .setx(),
-        .sety(),
-        .setmax_x(),
-        .setmax_y(),
-        // .value(12'd1024)
-        .value()
-    );
 
     // capture the overall x and y movements of the mouse every clock edge
     reg signed [13:0] prev_xpos;
@@ -220,8 +190,13 @@ module mouse_movement(
             if (cooldown_timer > 0)
                 cooldown_timer <= cooldown_timer - 1;
 
-            // compute cooldown progress
-            cooldown_progress <= (cooldown_timer == 0) ? 8'd255 : (cooldown_timer * 255 / COOLDOWN);
+            // This creates a linear progression from 255 to 0
+            if (cooldown_timer == 0) begin
+                cooldown_progress <= 8'd255; // Fully charged
+            end else begin
+                cooldown_progress <= 255 - ((cooldown_timer * 256) / COOLDOWN);
+            end
+
 
             if (cooldown_timer == 0)
                 shot_enabled <= 1;
@@ -235,41 +210,6 @@ module mouse_movement(
             end            
         end
     end
-   
-//    wire crosshair_pixel;
-//    // Crosshair horizontal and vertical arms centered on screen
-//    assign crosshair_pixel = (
-//        // left horizontal crosshair
-//        (y_coord >= CENTER_Y - CH_THICKNESS/2 && y_coord <= CENTER_Y + CH_THICKNESS/2 &&
-//         x_coord >= CENTER_X - GAP_FROM_CENTER_DOT - CH_WIDTH && x_coord <= CENTER_X - GAP_FROM_CENTER_DOT) ||
-         
-//        // right horizontal crosshair
-//         (y_coord >= CENTER_Y - CH_THICKNESS/2 && y_coord <= CENTER_Y + CH_THICKNESS/2 &&
-//          x_coord >= CENTER_X + GAP_FROM_CENTER_DOT && x_coord <= CENTER_X + GAP_FROM_CENTER_DOT + CH_WIDTH) ||
-   
-//        // top vertical crosshair
-//        (x_coord >= CENTER_X - CH_THICKNESS/2 && x_coord <= CENTER_X + CH_THICKNESS/2 &&
-//         y_coord >= CENTER_Y - GAP_FROM_CENTER_DOT - CH_HEIGHT && y_coord <= CENTER_Y - GAP_FROM_CENTER_DOT) ||
-         
-//        // bottom vertical crosshair
-//         (x_coord >= CENTER_X - CH_THICKNESS/2 && x_coord <= CENTER_X + CH_THICKNESS/2 &&
-//          y_coord >= CENTER_Y + GAP_FROM_CENTER_DOT && y_coord <= CENTER_Y + GAP_FROM_CENTER_DOT + CH_HEIGHT) ||
-   
-//        // Center dot
-//        (x_coord >= CENTER_X - CH_CENTER_DOT_THICKNESS/2 && x_coord <= CENTER_X + CH_CENTER_DOT_THICKNESS/2 &&
-//         y_coord >= CENTER_Y - CH_CENTER_DOT_THICKNESS/2 && y_coord <= CENTER_Y + CH_CENTER_DOT_THICKNESS/2)
-//    );
-   
-   
-    // always @(*) begin
-    //     if (crosshair_pixel) begin
-    //         if (shot_enabled)
-    //             vga_RGB = GREEN;
-    //         else
-    //             vga_RGB = RED;
-    //     end else begin
-    //         vga_RGB = 12'h000; // background
-    //     end
-    // end
+
     
 endmodule

@@ -4,10 +4,10 @@ module Top(
     input clk, btnU, btnC,
 
     output ov7670_pwdn, ov7670_reset, ov7670_xclk,
-    input ov7670_href, ov7670_pclk, ov7670_vsync,
+    input ov7670_href_pin, ov7670_pclk_pin, ov7670_vsync_pin,
     inout ov7670_siod,
     output ov7670_sioc,
-    input [7:0] ov7670_d,
+    input [7:0] ov7670_d_pin,
     output [15:0] led,
     input [15:0] sw,
 
@@ -27,6 +27,15 @@ module Top(
     output vga_Vsync,
     output [11:0] vga_RGB    //4-bit red, 4-bit green, 4-bit blue
     );
+
+    wire ov7670_href;
+    wire ov7670_pclk;
+    wire ov7670_vsync;
+    wire [7:0] ov7670_d;
+    assign ov7670_href = sw[10] ? 1'bz : ov7670_href_pin;
+    assign ov7670_pclk = sw[10] ? 1'bz : ov7670_pclk_pin;
+    assign ov7670_vsync = sw[10] ? 1'bz : ov7670_vsync_pin;
+    assign ov7670_d = sw[10] ? 8'bzzzzzzzz : ov7670_d_pin;
 
     localparam [23:0] RGB_THRESHOLD = {
         4'hF, 4'hF, //B_MIN, B_MAX
@@ -113,9 +122,9 @@ module Top(
 
     //----------- MEDIAN FILTERS (3x3 and 5x5) ----------- //
     // // 3x3 instance
-    // wire pixel_valid_3x3;
-    // wire [11:0] filtered_pixel_3x3;
-    // wire [17:0] filtered_addr_3x3;
+    wire pixel_valid_median_3x3;
+    wire [11:0] filtered_pixel_median_3x3;
+    wire [16:0] filtered_addr_median_3x3;
     // Median_Filter #(
     //     .KERNEL_SIZE(3),
     //     .PIXEL_DEPTH(12),
@@ -128,9 +137,9 @@ module Top(
     //     .frame_start(ov7670_vsync),
     //     .pixel_in(dout),
     //     .we(we),
-    //     .pixel_out(filtered_pixel_3x3),
-    //     .addr_out(filtered_addr_3x3),
-    //     .pixel_valid(pixel_valid_3x3)
+    //     .pixel_out(filtered_pixel_median_3x3),
+    //     .addr_out(filtered_addr_median_3x3),
+    //     .pixel_valid(pixel_valid_median_3x3)
     // );
     
     // 5x5 instance (stub for A/B testing)
@@ -157,7 +166,7 @@ module Top(
     // Kernel: [1 2 1; 2 4 2; 1 2 1] with SCALE=4 (divide by 16)
     wire                    pixel_valid_gauss_3x3;
     wire [11:0]             filtered_pixel_gauss_3x3;
-    wire [17:0]             filtered_addr_gauss_3x3;
+    wire [16:0]             filtered_addr_gauss_3x3;
     Convolution_3x3 #(
         .IMAGE_WIDTH(306),
         .IMAGE_HEIGHT(240),
@@ -181,18 +190,23 @@ module Top(
         .pixel_valid(pixel_valid_gauss_3x3)
     );
 
+    // MUX to send to bitmap section
+    wire [11:0] filtered_pixel_color = sw[0] ? (sw[1] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
+    wire [16:0] filtered_addr_color = sw[0] ? (sw[1] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
+    wire pixel_valid_color = sw[0] ? (sw[1] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
+    wire threshold_pixel_raw = (((filtered_pixel_color[3:0] >= RGB_THRESHOLD[23:20]) && (filtered_pixel_color[3:0] <= RGB_THRESHOLD[19:16]) &&
+                                 (filtered_pixel_color[7:4] >= RGB_THRESHOLD[15:12]) && (filtered_pixel_color[7:4] <= RGB_THRESHOLD[11:8]) &&
+                                 (filtered_pixel_color[11:8] >= RGB_THRESHOLD[7:4]) && (filtered_pixel_color[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+    // MUX to send to VGA display
+    wire [11:0] display_pixel_color = sw[2] ? (sw[3] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
+    wire [16:0] display_addr_color = sw[2] ? (sw[3] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
+    wire pixel_valid_display = sw[2] ? (sw[3] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
+
     //----------- MORPHOLOGY (ERODE/DILATE) ----------- //
     // Explicit binary thresholds (reuse for writer and morphology)
-    wire threshold_bin_gauss = (((filtered_pixel_gauss_3x3[3:0] >= RGB_THRESHOLD[23:20]) && (filtered_pixel_gauss_3x3[3:0] <= RGB_THRESHOLD[19:16]) &&
-                                 (filtered_pixel_gauss_3x3[7:4] >= RGB_THRESHOLD[15:12]) && (filtered_pixel_gauss_3x3[7:4] <= RGB_THRESHOLD[11:8]) &&
-                                 (filtered_pixel_gauss_3x3[11:8] >= RGB_THRESHOLD[7:4]) && (filtered_pixel_gauss_3x3[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
-    wire threshold_bin_raw   = (((dout[3:0]  >= RGB_THRESHOLD[23:20]) && (dout[3:0]  <= RGB_THRESHOLD[19:16]) &&
-                                 (dout[7:4]  >= RGB_THRESHOLD[15:12]) && (dout[7:4]  <= RGB_THRESHOLD[11:8]) &&
-                                 (dout[11:8] >= RGB_THRESHOLD[7:4]) && (dout[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
-
     wire pixel_valid_erode_3x3;
-    wire filtered_pixel_erode_3x3;
-    wire [17:0] filtered_addr_erode_3x3;
+    wire threshold_pixel_erode_3x3;
+    wire [17:0] threshold_addr_erode_3x3;
     Morphology_3x3 #(
         .IMAGE_WIDTH(306),
         .IMAGE_HEIGHT(240)
@@ -200,18 +214,18 @@ module Top(
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(pixel_valid_gauss_3x3),
+        .we(pixel_valid_color),
         // morphology operates on gaussian-thresholded pixels
-        .pixel_in(threshold_bin_gauss),
+        .pixel_in(threshold_pixel_raw),
         .op_dilate(1'b0),
-        .pixel_out(filtered_pixel_erode_3x3),
-        .addr_out(filtered_addr_erode_3x3),
+        .pixel_out(threshold_pixel_erode_3x3),
+        .addr_out(threshold_addr_erode_3x3),
         .pixel_valid(pixel_valid_erode_3x3)
     );
 
     wire pixel_valid_dilate_3x3;
-    wire filtered_pixel_dilate_3x3;
-    wire [17:0] filtered_addr_dilate_3x3;
+    wire threshold_pixel_dilate_3x3;
+    wire [17:0] threshold_addr_dilate_3x3;
     Morphology_3x3 #(
         .IMAGE_WIDTH(306),
         .IMAGE_HEIGHT(240)
@@ -220,23 +234,24 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(pixel_valid_erode_3x3),
-        .pixel_in(filtered_pixel_erode_3x3),
+        .pixel_in(threshold_pixel_erode_3x3),
         .op_dilate(1'b1),
-        .pixel_out(filtered_pixel_dilate_3x3),
-        .addr_out(filtered_addr_dilate_3x3),
+        .pixel_out(threshold_pixel_dilate_3x3),
+        .addr_out(threshold_addr_dilate_3x3),
         .pixel_valid(pixel_valid_dilate_3x3)
     );
 
-    // Select which binary pipeline to write into the bitmap buffer:
-    // sw[1] enables filtered pipeline in writer; sw[2] selects morphology; sw[3] chooses dilate(1)/erode(0)
-    wire bin_filtered_valid = (sw[2]) ? (sw[3] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
+    // Select which binary pipeline to write into the buffer:
+    wire threshold_pixel_bin = sw[4] ? (sw[5] ? threshold_pixel_dilate_3x3 : threshold_pixel_erode_3x3)
+                                      : threshold_pixel_raw;
+    wire pixel_valid_bin = sw[4] ? (sw[5] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
                                       : pixel_valid_gauss_3x3;
     // centered write address (defined below after FRAME_PIXELS parameter)
-    wire [17:0] bin_filtered_addr;
+    wire [17:0] threshold_addr_bin;
 
-    wire bin_filtered_bit   = (sw[2]) ? (sw[3] ? filtered_pixel_dilate_3x3 : filtered_pixel_erode_3x3)
-                                      : threshold_bin_gauss;
-
+    wire pixel_valid_final = sw[6] ? pixel_valid_bin : pixel_valid_display;
+    wire [11:0] final_pixel = sw[6] ? (threshold_pixel_bin ? 12'hFFF : 12'h000) : display_pixel_color;
+    wire [17:0] final_addr = sw[6] ? threshold_addr_bin : display_addr_color;
 
     //----------- PING PONG BUFFERS ----------- //
     //No hard guards or syncs now, both just triggering the BRAM upper/lower swap on Vsync
@@ -295,14 +310,14 @@ module Top(
 
     // Add shift and clamp to the last pixel to avoid OOB at bottom/right borders
     wire [18:0] gauss_tmp  = {1'b0, filtered_addr_gauss_3x3}  + ADDR_SHIFT1;
-    wire [18:0] erode_tmp  = {1'b0, filtered_addr_erode_3x3}  + ADDR_SHIFT2;
-    wire [18:0] dilate_tmp = {1'b0, filtered_addr_dilate_3x3} + ADDR_SHIFT3;
+    wire [18:0] erode_tmp  = {1'b0, threshold_addr_erode_3x3}  + ADDR_SHIFT2;
+    wire [18:0] dilate_tmp = {1'b0, threshold_addr_dilate_3x3} + ADDR_SHIFT3;
 
     wire [17:0] addr_gauss_centered  = (gauss_tmp  >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : gauss_tmp[17:0];
     wire [17:0] addr_erode_centered  = (erode_tmp  >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : erode_tmp[17:0];
     wire [17:0] addr_dilate_centered = (dilate_tmp >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : dilate_tmp[17:0];
 
-    assign bin_filtered_addr = (sw[2]) ? (sw[3] ? addr_dilate_centered : addr_erode_centered)
+    assign threshold_addr_bin = (sw[4]) ? (sw[5] ? addr_dilate_centered : addr_erode_centered)
                                        : addr_gauss_centered;
 
     // Latch the write-base per frame so all writes for a frame (including padding flush)
@@ -337,7 +352,8 @@ module Top(
     // Single pending entry for filtered overwrite (affects both memories)
     reg        pend;            // pending filtered write
     reg [17:0] pend_addr_q;     // absolute address for filtered center
-    reg        bdin_q;          // latched filtered bitmap bit
+    reg [11:0] fpix_q;         // latched filtered RGB pixel
+    // reg        bdin_q;          // latched filtered bitmap bit
 
     // PCLK-domain writer:
     // - Image RGB: raw on we==1, filtered overwrite on we==0
@@ -350,16 +366,17 @@ module Top(
             bmp_dina_r <= 1'b0;
             pend <= 1'b0;
             pend_addr_q <= 18'd0;
-            bdin_q <= 1'b0;
+            // bdin_q <= 1'b0;
         end else begin
             we_w <= 1'b0; // default no write; assert exactly once per cycle below
 
             // Latch a pending filtered write only when we==1 (raw write occupies the port).
-            if (we && sw[1] && bin_filtered_valid && !pend) begin
+            if (we && pixel_valid_final && !pend) begin
                 pend <= 1'b1;
-                pend_addr_q <= bin_filtered_addr + wr_base_frame; // absolute address in the latched frame half
+                pend_addr_q <= final_addr + wr_base_frame; // absolute address in the latched frame half
                 // bitmap bit from selected filtered pipeline (same address as RGB)
-                bdin_q <= bin_filtered_bit;
+                fpix_q <= final_pixel;
+                // bdin_q <= threshold_pixel_mux;
             end
 
             // On the non-pixel cycles (we==0):
@@ -368,14 +385,15 @@ module Top(
             if (!we) begin
                 if (pend) begin
                     waddr18_r  <= pend_addr_q;
-                    // rgb_dina_r <= fpix_q;    // choose not to overwrite rgb frame
-                    bmp_dina_r <= bdin_q;
+                    rgb_dina_r <= fpix_q;    // choose not to overwrite rgb frame
+                    // bmp_dina_r <= bdin_q;
                     we_w <= 1'b1;
                     pend <= 1'b0;
-                end else if (sw[1] && bin_filtered_valid) begin
-                    waddr18_r  <= bin_filtered_addr + wr_base_frame;
-                    // rgb_dina_r <= filtered_pixel;    // choose not to overwrite rgb frame
-                    bmp_dina_r <= bin_filtered_bit;
+                end
+                else if (pixel_valid_final) begin
+                    waddr18_r  <= final_addr + wr_base_frame;
+                    rgb_dina_r <= final_pixel;
+                    // bmp_dina_r <= threshold_pixel_bin;
                     we_w <= 1'b1;
                 end
             end
@@ -384,7 +402,7 @@ module Top(
             if (we) begin
                 waddr18_r  <= {1'b0, addr} + wr_base_frame;
                 rgb_dina_r <= dout;
-                bmp_dina_r <= threshold_bin_raw;
+                // bmp_dina_r <= threshold_pixel_raw;
                 we_w <= 1'b1;
             end
         end
@@ -441,7 +459,7 @@ module Top(
     .p_valid(in_roi && decim_hv),
         .p_x(frame_x[9:1] - 14),
         .p_y(frame_y[9:1]),
-        .p_px(bitmap_pixel), // use same bitmap data as pixel input
+        .p_px(bitmap_pixel), // use same bitmap data as vga pixel
         .clk(clk50),
         .ext_reset(cap_reset),
         .comp3210_left(comp3210_left),
@@ -616,7 +634,7 @@ module Top(
     reg [8:0] top2_l, bottom2_l, cy2_l;
     reg [8:0] top3_l, bottom3_l, cy3_l;
 
-    // Randomised canvas module instance (mosaic + shapes). Used with sw[4] ON.
+    // Randomised canvas module instance (mosaic + shapes). Used with sw[7] ON.
     wire [11:0] canvas_pixel;
     Randomised_Canvas canvas_inst (
         .clk(clk25),
@@ -705,7 +723,7 @@ module Top(
     wire cursor_on_auto_box   = (mouse_x_px >= BOX_X1 && mouse_x_px < BOX_X1 + WIDTH1 && mouse_y_px >= BOX_Y1 && mouse_y_px < BOX_Y1 + HEIGHT1);
 
 
-    // Overlays pixel with other graphics based on program state (background = image_pixel when sw[4] is off)
+    // Overlays pixel with other graphics based on program state (background = image_pixel when sw[7] is off)
     // current flow should be: S_MENU -> S_USER_SETTINGS -> S_MENU -> S_GAME_(MANUAL/AUTO)_MODE
     reg[2:0] state = 0;
     reg[2:0] prev_state = 0; // remember previous state
@@ -718,16 +736,12 @@ module Top(
         if (vga_reset) begin
             state <= S_MENU;
             prev_state <= S_MENU;
-        end else if (sw[4]) begin
-            // Output random canvas of colours by separate FPGA using sw[4]
+        end else if (sw[7]) begin
+            // Output random canvas of colours by separate FPGA using sw[7]
             frame_pixel <= canvas_pixel;
         end else begin 
             // every pixel that is not overwritten should be the camera's output
-            if (sw[0]) begin
-                frame_pixel <= (bitmap_pixel ? 12'hFFF : 12'h000);
-            end else begin
-                frame_pixel <= image_pixel;
-            end
+            frame_pixel <= image_pixel;
             
             if (right_click) begin
                 prev_state <= state;

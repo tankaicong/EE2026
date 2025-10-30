@@ -18,7 +18,7 @@ module Median_Filter
     input [PIXEL_DEPTH-1:0] pixel_in,        // RGB444
     input we,                              // 1 = pixel valid this cycle
     output reg [11:0] pixel_out,             // RGB444 of the pixel whose grayscale is the window median
-    output reg [17:0] addr_out,               // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
+    output reg [16:0] addr_out,               // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg pixel_valid
 );
 

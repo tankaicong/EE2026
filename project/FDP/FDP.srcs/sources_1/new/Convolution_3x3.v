@@ -44,7 +44,7 @@ module Convolution_3x3
     input  wire                 pixel_bin_in,         // 1-bit bitmap
 
     output reg  [PIXEL_DEPTH-1:0] pixel_out,          // RGB444 filtered output
-    output reg  [17:0]           addr_out,            // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
+    output reg  [16:0]           addr_out,            // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg                   pixel_valid
 );
 

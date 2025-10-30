@@ -82,25 +82,24 @@ set_property -dict { PACKAGE_PIN G2   IOSTANDARD LVCMOS33 } [get_ports uart_rx];
 
 #Pmod Header JB
 set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports ov7670_pwdn];#Sch name = JB1
-set_property -dict { PACKAGE_PIN A16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[0]}];#Sch name = JB2
-set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[2]}];#Sch name = JB3
-set_property -dict { PACKAGE_PIN B16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[4]}];#Sch name = JB4
+set_property -dict { PACKAGE_PIN A16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[0]}];#Sch name = JB2
+set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[2]}];#Sch name = JB3
+set_property -dict { PACKAGE_PIN B16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[4]}];#Sch name = JB4
 set_property -dict { PACKAGE_PIN A15   IOSTANDARD LVCMOS33 } [get_ports ov7670_reset];#Sch name = JB7
-set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[1]}];#Sch name = JB8
-set_property -dict { PACKAGE_PIN C15   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[3]}];#Sch name = JB9
-set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[5]}];#Sch name = JB10
+set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[1]}];#Sch name = JB8
+set_property -dict { PACKAGE_PIN C15   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[3]}];#Sch name = JB9
+set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[5]}];#Sch name = JB10
 
 #Pmod Header JC
-set_property -dict { PACKAGE_PIN K17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[6]}];#Sch name = JC1
+set_property -dict { PACKAGE_PIN K17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[6]}];#Sch name = JC1
 set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports ov7670_xclk];#Sch name = JC2
-set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports ov7670_href];#Sch name = JC3
+set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports ov7670_href_pin];#Sch name = JC3
 set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports ov7670_siod];#Sch name = JC4
-set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d[7]}];#Sch name = JC7
-set_property -dict { PACKAGE_PIN M19   IOSTANDARD LVCMOS33 } [get_ports ov7670_pclk];#Sch name = JC8
-# Override differential clock constraint for camera pixel clock
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {ov7670_pclk_IBUF}]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {ov7670_vsync_IBUF}]
-set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports ov7670_vsync];#Sch name = JC9
+set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 } [get_ports {ov7670_d_pin[7]}];#Sch name = JC7
+set_property -dict { PACKAGE_PIN M19   IOSTANDARD LVCMOS33 } [get_ports ov7670_pclk_pin];#Sch name = JC8
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets {ov7670_pclk_pin_IBUF}]
+
+set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports ov7670_vsync_pin];#Sch name = JC9
 set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports ov7670_sioc];#Sch name = JC10
 
 ##Pmod Header JXADC

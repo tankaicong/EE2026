@@ -51,3 +51,10 @@ xvlog.*
 
 
 unisims
+
+## training data
+project/CNN/WIDER_*/
+project/CNN/wider_*/
+
+# Ignore training checkpoints
+project/CNN/checkpoints/

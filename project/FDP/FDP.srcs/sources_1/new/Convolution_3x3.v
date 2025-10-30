@@ -21,7 +21,7 @@
 
 module Convolution_3x3
 #(
-    parameter IMAGE_WIDTH   = 306,
+    parameter IMAGE_WIDTH   = 320,
     parameter IMAGE_HEIGHT  = 240,
     parameter PIXEL_DEPTH   = 12,           // RGB444 packed as {R[3:0], G[3:0], B[3:0]}
     parameter COEF_WIDTH    = 8,            // signed coeffs width
@@ -63,7 +63,7 @@ module Convolution_3x3
 
     // row/column counters for current incoming sample position (row, col)
     // These counters are allowed to extend to IMAGE_WIDTH/HEIGHT during padding.
-    reg [9:0]  col;                // supports >= 306 and +1 padding column
+    reg [9:0]  col;                // supports >= 320 and +1 padding column
     reg [9:0]  row;                // supports >= 240 and +1 padding row
 
     // Convenience: detect padding phases

@@ -61,7 +61,7 @@ module UFDS_Detector(
 
     );
 
-localparam integer WIDTH = 306;
+localparam integer WIDTH = 320;
 localparam integer HEIGHT = 240;
 localparam integer x_bitsize = 9;
 localparam integer y_bitsize = 8;

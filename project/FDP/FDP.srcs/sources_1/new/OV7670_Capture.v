@@ -45,10 +45,10 @@ module OV7670_Capture(
             wr_hold <= { wr_hold[0], (href & ~wr_hold[0]) };  // pixel complete detection
             we <= 1'b0;
             if (pixel_complete && href) begin
-                if (~cam_x[0] && ~cam_y[0] && cam_x >= 28) begin    //i only want [13:319] = 306 right-side pixels
+                if (~cam_x[0] && ~cam_y[0]) begin    //i only want [0:319] = 320 right-side pixels
                     // RGB444 input
                     dout <= { d_latch[3:0], d_latch[7:4], d_latch[11:8] };
-                    addr <= (cam_y[8:1]) * 18'd306 + cam_x[9:1]-14;
+                    addr <= (cam_y[8:1]) * 18'd320 + cam_x[9:1];
                     we <= 1'b1;
                 end
                 // advance X after processing pixel

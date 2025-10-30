@@ -47,8 +47,7 @@ module VGA_Controller(
     wire [8:0] src_y = vCounter[9:1]; // vCounter (0-479)  >> 1 (0..239)
     wire [8:0] src_x = hCounter[9:1]; // hCounter (0..639) >> 1 (0..319)
     // Clamp to avoid unsigned underflow when cropping left 14 pixels
-    wire [8:0] src_x_adj = (src_x >= 9'd14) ? (src_x - 9'd14) : 9'd0;
-    assign frame_addr = src_y * 306 + src_x_adj;     // crop to 306 right-side pixels
+    assign frame_addr = src_y * 320 + src_x;     // crop to 320 right-side pixels
     assign frame_x = hCounter;
     assign frame_y = vCounter;
 

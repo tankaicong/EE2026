@@ -473,38 +473,6 @@ module Top(
         .ready_o(ready_o)
     );
 
-    // ----------- MOUSE CONTROLLER ----------- //
-    wire [15:0] mouse_led;
-    wire [11:0] mouse_vga_color;
-
-    // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
-    wire servo_x_pwm;
-    wire servo_y_pwm;
-
-    // temporary holder for screen pixel coordinates (to be replaced)
-    wire [13:0] x_coord;
-    wire [13:0] y_coord;
-
-    // Cooldown progress from mouse controller
-    wire [7:0] cooldown_progress;
-
-    // mouse controller module
-    mouse_movement mouse_ctrl (
-        .clk(clk),
-        .btnU(btnU),
-        .x_coord(x_coord),
-        .y_coord(y_coord),
-        .mouse_clk(mouse_clk),
-        .mouse_data(mouse_data),
-        .servo_x_pwm(servo_x_pwm),
-        .servo_y_pwm(servo_y_pwm),
-        .led(mouse_led),
-        .cooldown_progress(cooldown_progress)
-    );
-
-    // always @(*) begin
-    //     led = mouse_led;
-    // end
 
     // ----------- UART CONTROLLER ----------- //
     // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
@@ -586,10 +554,17 @@ module Top(
     // ----------- DISPLAY OUTPUTS ----------- //
     localparam GREEN = 12'h0F0;
     localparam RED = 12'h00F;
-    localparam COOLDOWN = 200_000_000;
+    localparam BLUE = 12'hF00;
+    localparam WHITE = 12'hFFF;
+    localparam BLACK = 12'h000;
+    localparam CYAN = 12'hFF0;
+    localparam YELLOW = 12'h0FF;
+    localparam MAGENTA = 12'hF0F;
+    localparam GREY = 12'h888;
 
+    // cooldown 
     localparam CROSSHAIR_HEIGHT = 11;
-    wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) / 255;
+    wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) >> 8;
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
     wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
 
@@ -649,23 +624,105 @@ module Top(
 
 
 
-    // Detect mouse click inside box
-    wire left_click, right_click;
-    wire [11:0] mouse_x_raw, mouse_y_raw;
 
-    MouseCtl mouse_inst (
+    // ----------- MOUSE CONTROLLER ----------- //
+
+    // Synchronize reset to mouse controller clock domain
+    reg [2:0] mouse_rst_sync = 3'b111;
+    always @(posedge clk) begin
+        mouse_rst_sync <= {mouse_rst_sync[1:0], btnU};
+    end
+    wire mouse_reset = mouse_rst_sync[2];
+
+
+    wire left_click, right_click, new_event;
+    wire [11:0] mouse_x_raw, mouse_y_raw;
+    
+    MouseCtl mouse_instance (
         .clk(clk),
-        .rst(btnU),
+        .rst(mouse_reset),
         .ps2_clk(mouse_clk),
         .ps2_data(mouse_data),
+        .xpos(mouse_x_raw),
+        .ypos(mouse_y_raw),
+        .zpos(zpos),
         .left(left_click),
         .right(right_click),
-        .xpos(mouse_x_raw),
-        .ypos(mouse_y_raw)
+        .new_event(new_event),
+        // .setx(1'b0),
+        // .sety(1'b0),
+        // .setmax_x(10'd640),
+        // .setmax_y(9'd480),
+        .setx(),
+        .sety(),
+        .setmax_x(),
+        .setmax_y(),
+        // .value(12'd1024)
+        .value()
     );
 
-    wire [8:0] mouse_x_px = mouse_x_raw[8:0];   // 0-305
-    wire [7:0] mouse_y_px = mouse_y_raw[7:0];   // 0-239
+
+    wire [15:0] mouse_led;
+    wire [11:0] mouse_vga_color;
+
+    // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
+    wire servo_x_pwm;
+    wire servo_y_pwm;
+
+    // Cooldown progress from mouse controller
+    wire [7:0] cooldown_progress;
+    localparam COOLDOWN = 200_000_000;
+
+    // mouse controller module
+    mouse_movement mouse_ctrl (
+        .clk(clk),
+        .btnU(mouse_reset),
+        .left(left_click),
+        .right(right_click),
+        .new_event(new_event),
+        .xpos(mouse_x_raw),
+        .ypos(mouse_y_raw),
+        .mouse_clk(mouse_clk),
+        .mouse_data(mouse_data),
+        .servo_x_pwm(servo_x_pwm),
+        .servo_y_pwm(servo_y_pwm),
+        .led(mouse_led),
+        .cooldown_progress(cooldown_progress)
+    );
+
+    // always @(*) begin
+    //     led = mouse_led;
+    // end
+
+
+
+    // Synchronize mouse inputs to clk25 domain with main VGA logic
+    reg [2:0] left_click_sync = 3'b000;
+    reg [2:0] right_click_sync = 3'b000;
+    reg [11:0] mouse_x_sync, mouse_y_sync;
+
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            left_click_sync <= 3'b000;
+            right_click_sync <= 3'b000;
+            mouse_x_sync <= 12'd0;
+            mouse_y_sync <= 12'd0;
+        end else begin
+            left_click_sync <= {left_click_sync[1:0], left_click};
+            right_click_sync <= {right_click_sync[1:0], right_click};
+            mouse_x_sync <= mouse_x_raw;
+            mouse_y_sync <= mouse_y_raw;
+        end
+    end
+
+    // Use synchronized versions for edge detection
+    wire left_click_edge = left_click_sync[1] & ~left_click_sync[2];
+    wire right_click_edge = right_click_sync[1] & ~right_click_sync[2];
+
+    // Update mouse position derivations to use synchronized values
+    wire [8:0] mouse_x_px = mouse_x_sync[8:0];
+    wire [7:0] mouse_y_px = mouse_y_sync[7:0];
+
 
     // Source-grid coords for current pixel
     wire [8:0] px_src = frame_x[9:1] - 14; // 0..305
@@ -685,15 +742,199 @@ module Top(
 
 
     // Parameters for overlay boxes
+    // begin shooting game box
     localparam BOX_X0 = 30;
     localparam BOX_Y0 = 120;
     localparam WIDTH0 = 60;
     localparam HEIGHT0 = 60;
 
+    // right menu box
     localparam BOX_X1 = 180;
     localparam BOX_Y1 = 120;
     localparam WIDTH1 = 60;
     localparam HEIGHT1 = 60;
+
+    // <------ Settings box ------->
+    localparam BOX_X2 = 50;
+    localparam BOX_Y2 = 50;
+    localparam WIDTH2 = 160;
+    localparam HEIGHT2 = 120;
+
+    // Settings menu layout parameters
+    localparam TITLE_Y = 55;  // Height of "Settings" title
+    localparam COLOR_Y = 90; 
+
+    // Settings sections layout parameters
+    // Title section
+    localparam TITLE_BOX_X = 60;
+    localparam TITLE_BOX_Y = 55;
+    localparam TITLE_BOX_WIDTH = 140;
+    localparam TITLE_BOX_HEIGHT = 20;
+    
+    // Sensitivity section
+    localparam SENS_BOX_X = 60;
+    localparam SENS_BOX_Y = 80;
+    localparam SENS_BOX_WIDTH = 140;
+    localparam SENS_BOX_HEIGHT = 25;
+    localparam SLIDER_X_START = SENS_BOX_X + 10;
+    localparam SLIDER_Y_POS = 105; // Height of sensitivity block
+    localparam SLIDER_X_END = SENS_BOX_X + SENS_BOX_WIDTH - 10;
+    localparam SLIDER_HEIGHT = 6;
+    localparam KNOB_SIZE = 8;
+    
+    // Color selection section
+    localparam COLOR_BOX_X = 60;
+    localparam COLOR_BOX_Y = 130;
+    localparam COLOR_BOX_WIDTH = 140;
+    localparam COLOR_BOX_HEIGHT = 35;
+    localparam COLOR_BOX_SIZE = 12;
+    localparam COLOR_BOX_SPACING = 15;
+    localparam COLOR_BOX_START_X = COLOR_BOX_X + 20;
+    localparam COLOR_MINOR_BOX = COLOR_BOX_Y + 10;
+
+    // Settings state variables
+    reg [7:0] mouse_sensitivity = 8'd128; // Default medium sensitivity (0-255)
+    reg [2:0] font_color_chosen = 3'd0;    // 0:White, 1:Red, 2:Green, 3:Blue, 4:Yellow, 5:Cyan, 6:Magenta
+
+    // Settings UI elements
+    wire sensitivity_slider_active;
+    wire [8:0] sensitivity_knob_x;
+
+    // Calculate knob position based on current sensitivity
+    assign sensitivity_knob_x = SLIDER_X_START + ((mouse_sensitivity * (SLIDER_X_END - SLIDER_X_START)) >> 8);
+
+    // Detect if cursor is over interactive elements
+    wire cursor_on_sensitivity_slider = (mouse_x_px >= SLIDER_X_START && mouse_x_px <= SLIDER_X_END && 
+                                   mouse_y_px >= SLIDER_Y_POS - 3 && mouse_y_px <= SLIDER_Y_POS + SLIDER_HEIGHT + 3);
+
+    wire cursor_on_knob = (mouse_x_px >= sensitivity_knob_x - (KNOB_SIZE/2) && 
+                       mouse_x_px <= sensitivity_knob_x + (KNOB_SIZE/2) && 
+                       mouse_y_px >= SLIDER_Y_POS - 2 && 
+                       mouse_y_px <= SLIDER_Y_POS + SLIDER_HEIGHT + 2);
+
+    // Color box positions and click detection
+    wire [6:0] cursor_on_color_box;
+    wire [6:0] color_box_active;
+    
+
+    // assigns logic for when cursor is on each color box
+    generate
+        genvar i;
+        for (i = 0; i < 7; i = i + 1) begin : color_boxes
+            localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
+            assign cursor_on_color_box[i] = (mouse_x_px >= BOX_X && mouse_x_px <= BOX_X + COLOR_BOX_SIZE && 
+                                        mouse_y_px >= COLOR_MINOR_BOX && mouse_y_px <= COLOR_MINOR_BOX + COLOR_BOX_SIZE);
+            assign color_box_active[i] = (font_color_chosen == i);
+        end
+    endgenerate
+
+    // Settings UI drawing logic
+    wire settings_title, settings_sensitivity_label, settings_color_label;
+    wire settings_sensitivity_slider, settings_sensitivity_knob;
+    wire [6:0] settings_color_box, settings_color_box_border;
+
+    // Title text area settings (TODO: ASSIGN "SETTINGS" word inside here)
+    assign settings_title = (px_src >= 65 && px_src <= 135 && py_src == TITLE_Y);
+
+    // Labels
+    assign settings_sensitivity_label = (px_src >= 40 && px_src <= 135 && py_src >= SLIDER_Y_POS-8 && py_src <= SLIDER_Y_POS-2);
+    assign settings_color_label = (px_src >= 40 && px_src <= 120 && py_src >= COLOR_Y-8 && py_src <= COLOR_Y-2);
+
+    // Sensitivity slider track
+    assign settings_sensitivity_slider = (px_src >= SLIDER_X_START && px_src <= SLIDER_X_END && 
+                                        py_src >= SLIDER_Y_POS && py_src <= SLIDER_Y_POS + SLIDER_HEIGHT);
+
+    // Sensitivity slider knob
+    assign settings_sensitivity_knob = (px_src >= sensitivity_knob_x - (KNOB_SIZE/2) && 
+                                    px_src <= sensitivity_knob_x + (KNOB_SIZE/2) && 
+                                    py_src >= SLIDER_Y_POS - 2 && 
+                                    py_src <= SLIDER_Y_POS + SLIDER_HEIGHT + 2);
+
+    // Color boxes
+    generate
+        for (i = 0; i < 7; i = i + 1) begin : color_box_drawing
+            localparam BOX_X = COLOR_BOX_START_X + (i * COLOR_BOX_SPACING);
+            assign settings_color_box[i] = (px_src >= BOX_X + 1 && px_src <= BOX_X + COLOR_BOX_SIZE - 1 && 
+                                        py_src >= COLOR_MINOR_BOX + 1 && py_src <= COLOR_MINOR_BOX + COLOR_BOX_SIZE - 1);
+            assign settings_color_box_border[i] = (px_src >= BOX_X && px_src <= BOX_X + COLOR_BOX_SIZE && 
+                                                py_src >= COLOR_MINOR_BOX && py_src <= COLOR_MINOR_BOX + COLOR_BOX_SIZE) && 
+                                                !settings_color_box[i];
+        end
+    endgenerate
+
+    // Function to get color for each box
+    function [11:0] get_color_for_box;
+        input [2:0] color_idx;
+        begin
+            case (color_idx)
+                3'd0: get_color_for_box = WHITE;
+                3'd1: get_color_for_box = RED;
+                3'd2: get_color_for_box = GREEN; 
+                3'd3: get_color_for_box = BLUE;
+                3'd4: get_color_for_box = YELLOW;
+                3'd5: get_color_for_box = CYAN;
+                3'd6: get_color_for_box = MAGENTA;
+                default: get_color_for_box = WHITE;
+            endcase
+        end
+    endfunction
+
+    // Function to get border color for color box (white if active, GREY if not)
+    function [11:0] get_border_color;
+        input [2:0] box_idx;
+        input active;
+        begin
+            if (active)
+                get_border_color = WHITE;
+            else if (cursor_on_color_box[box_idx])
+                get_border_color = YELLOW;
+            else
+                get_border_color = GREY; 
+        end
+    endfunction
+
+    // Settings interaction logic
+    reg sensitivity_dragging = 0;
+
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            sensitivity_dragging <= 0;
+            mouse_sensitivity <= 8'd128;
+            font_color_chosen <= 3'd0;
+        end else if (state == S_USER_SETTINGS) begin
+            // Start dragging sensitivity slider
+            // Start or continue dragging
+            if (left_click && cursor_on_sensitivity_slider) begin
+                sensitivity_dragging <= 1;
+                
+                // Update position immediately (whether starting or continuing drag)
+                if (mouse_x_px < SLIDER_X_START) 
+                    mouse_sensitivity <= 8'd0;
+                else if (mouse_x_px > SLIDER_X_END)
+                    mouse_sensitivity <= 8'd255;
+                else
+                    mouse_sensitivity <= ((mouse_x_px - SLIDER_X_START) * 256) / (SLIDER_X_END - SLIDER_X_START);
+            end 
+            // Stop dragging when mouse released
+            else if (!left_click) begin
+                sensitivity_dragging <= 0;
+            end
+            
+            // Color box selection
+            if (left_click_edge) begin
+                case (1'b1)
+                    cursor_on_color_box[0]: font_color_chosen <= 3'd0;
+                    cursor_on_color_box[1]: font_color_chosen <= 3'd1;
+                    cursor_on_color_box[2]: font_color_chosen <= 3'd2;
+                    cursor_on_color_box[3]: font_color_chosen <= 3'd3;
+                    cursor_on_color_box[4]: font_color_chosen <= 3'd4;
+                    cursor_on_color_box[5]: font_color_chosen <= 3'd5;
+                    cursor_on_color_box[6]: font_color_chosen <= 3'd6;
+                endcase
+            end
+        end
+    end
+
 
     // Instances of layered boxes for display, currently have: menu's manual box and menu's auto box
     // each box has 3 layers of border, can change colour if you want: (black) outer - bo, (white) mid - wm, (black) inner - bi`   
@@ -718,6 +959,54 @@ module Top(
         .in_fill(a_fill), .in_any_border(a_any)
     );
 
+
+    wire sett_bo, sett_wm, sett_bi, sett_fill, sett_any;
+    layered_box #(
+        .TOP_LEFT_X(BOX_X2), .TOP_LEFT_Y(BOX_Y2), .WIDTH(WIDTH2), .HEIGHT(HEIGHT2),
+        .OUTER_THICK(2), .MID_THICK(2), .INNER_THICK(2)
+    ) setting_outer_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(sett_bo), .in_white_mid(sett_wm), .in_black_inner(sett_bi),
+        .in_fill(sett_fill), .in_any_border(sett_any)
+    );
+
+    // Title section box
+    wire title_bo, title_wm, title_bi, title_fill, title_any;
+    layered_box #(
+        .TOP_LEFT_X(TITLE_BOX_X), .TOP_LEFT_Y(TITLE_BOX_Y), 
+        .WIDTH(TITLE_BOX_WIDTH), .HEIGHT(TITLE_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_title_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(title_bo), .in_white_mid(title_wm), .in_black_inner(title_bi),
+        .in_fill(title_fill), .in_any_border(title_any)
+    );
+
+    // Sensitivity section box
+    wire sens_bo, sens_wm, sens_bi, sens_fill, sens_any;
+    layered_box #(
+        .TOP_LEFT_X(SENS_BOX_X), .TOP_LEFT_Y(SENS_BOX_Y), 
+        .WIDTH(SENS_BOX_WIDTH), .HEIGHT(SENS_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_sens_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(sens_bo), .in_white_mid(sens_wm), .in_black_inner(sens_bi),
+        .in_fill(sens_fill), .in_any_border(sens_any)
+    );
+
+    // Color selection section box
+    wire color_bo, color_wm, color_bi, color_fill, color_any;
+    layered_box #(
+        .TOP_LEFT_X(COLOR_BOX_X), .TOP_LEFT_Y(COLOR_BOX_Y), 
+        .WIDTH(COLOR_BOX_WIDTH), .HEIGHT(COLOR_BOX_HEIGHT),
+        .OUTER_THICK(1), .MID_THICK(1), .INNER_THICK(1)
+    ) setting_color_box (
+        .x(px_src), .y(py_src),
+        .in_black_outer(color_bo), .in_white_mid(color_wm), .in_black_inner(color_bi),
+        .in_fill(color_fill), .in_any_border(color_any)
+    );
+
+
     // Cursor over boxes (click detection uses mouse_x/y in source grid)
     wire cursor_on_manual_box = (mouse_x_px >= BOX_X0 && mouse_x_px < BOX_X0 + WIDTH0 && mouse_y_px >= BOX_Y0 && mouse_y_px < BOX_Y0 + HEIGHT0);
     wire cursor_on_auto_box   = (mouse_x_px >= BOX_X1 && mouse_x_px < BOX_X1 + WIDTH1 && mouse_y_px >= BOX_Y1 && mouse_y_px < BOX_Y1 + HEIGHT1);
@@ -732,6 +1021,10 @@ module Top(
     localparam S_GAME_MANUAL_MODE = 2;
     localparam S_GAME_AUTO_MODE = 3;
 
+    // address debouncing for state change settings 
+    reg [23:0] state_change_cooldown = 0;
+    localparam STATE_COOLDOWN = 24'd5_000_000;
+
     always @(posedge clk25) begin
         if (vga_reset) begin
             state <= S_MENU;
@@ -740,6 +1033,16 @@ module Top(
             // Output random canvas of colours by separate FPGA using sw[7]
             frame_pixel <= canvas_pixel;
         end else begin 
+            // debouncing for right click
+            if (state_change_cooldown > 0) begin
+                state_change_cooldown <= state_change_cooldown - 1;
+            end
+            else if (right_click_edge) begin
+                prev_state <= state;
+                state <= S_USER_SETTINGS;
+                state_change_cooldown <= STATE_COOLDOWN;
+            end
+
             // every pixel that is not overwritten should be the camera's output
             frame_pixel <= image_pixel;
             
@@ -752,9 +1055,9 @@ module Top(
             // State machine for different overlays
             case (state)
                 S_MENU: begin
-                    if (left_click && cursor_on_manual_box) begin
+                    if (left_click_edge && cursor_on_manual_box) begin
                         state <= S_GAME_MANUAL_MODE;
-                    end else if (left_click && cursor_on_auto_box) begin
+                    end else if (left_click_edge && cursor_on_auto_box) begin
                         state <= S_GAME_AUTO_MODE;
                     end 
                     
@@ -768,29 +1071,29 @@ module Top(
                         if (m_fill) begin
                             frame_pixel <= GREEN; // green fill
                         end else if (m_bi) begin
-                            frame_pixel <= 12'h000; // black inner border
+                            frame_pixel <= BLACK; // black inner border
                         end else if (m_wm) begin
-                            frame_pixel <= 12'hFFF; // white mid border
+                            frame_pixel <= WHITE; // white mid border
                         end else if (m_bo) begin
-                            frame_pixel <= 12'h000; // black outer border
+                            frame_pixel <= BLACK; // black outer border
                         end
 
                         // TODO: Display box for start game auto
                         if (a_fill) begin
                             frame_pixel <= RED; // red fill
                         end else if (a_bi) begin
-                            frame_pixel <= 12'h000; // black inner border
+                            frame_pixel <= BLACK; // black inner border
                         end else if (a_wm) begin
-                            frame_pixel <= 12'hFFF; // white mid border
+                            frame_pixel <= WHITE; // white mid border
                         end else if (a_bo) begin
-                            frame_pixel <= 12'h000; // black outer border
+                            frame_pixel <= BLACK; // black outer border
                         end
                     end
                 end
                 
                 S_USER_SETTINGS: begin
                     // right-click again to return to prev_state
-                    if (right_click) begin
+                    if (right_click_edge) begin
                         state <= prev_state;
                     end
 
@@ -798,6 +1101,56 @@ module Top(
                         frame_pixel <= cursor_colour;
                     end else begin
                         // TODO: Display settings options (e.g. mouse sensitivity, crosshair colour, etc)
+                        // 1. First draw the SETTINGS BOX background and borders
+                        if (sett_fill) begin 
+                            frame_pixel <= WHITE;  // White background for the popup
+                        end else if (sett_bi) begin
+                            frame_pixel <= BLACK;  // inner black border
+                        end else if (sett_wm) begin  // FIXED: was a_wm
+                            frame_pixel <= WHITE;   // white mid border  
+                        end else if (sett_bo) begin  // FIXED: was a_bo
+                            frame_pixel <= BLACK;   // black outer border
+                        end
+                        
+                        // 2. Then draw the SETTINGS TITLE area (black text on white background)
+                        if (title_fill) begin 
+                            frame_pixel <= BLACK;  // "SETTINGS" text in black
+                        end
+                        
+                        // 3. Draw sensitivity labels (black text)
+                        if (sens_fill) begin
+                            frame_pixel <= BLACK; // "Sensitivity" label
+                        end
+                        
+                        // 4. Draw sensitivity slider
+                        if (settings_sensitivity_slider) begin
+                            frame_pixel <= GREEN;
+                        end
+                        
+            
+                        if (settings_sensitivity_knob) begin
+                            if (sensitivity_dragging)
+                                frame_pixel <= GREY;           // Grey when dragging
+                            else if (cursor_on_knob)
+                                frame_pixel <= YELLOW;         // Yellow when hovering
+                            else
+                                frame_pixel <= BLACK;    
+                        end
+                        
+                        // 5. Draw color label
+                        if (color_fill) begin
+                            frame_pixel <= 12'hEEE; // "Font Color" label  
+                        end
+                        
+                        // Color boxes - check each color box
+                        // Draw color boxes
+                        for (integer i = 0; i < 7; i = i + 1) begin
+                            if (settings_color_box_border[i]) begin
+                                frame_pixel <= get_border_color(i[2:0], color_box_active[i]);
+                            end else if (settings_color_box[i]) begin
+                                frame_pixel <= get_color_for_box(i[2:0]);
+                            end
+                        end
                     end
                 end
 

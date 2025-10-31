@@ -125,22 +125,22 @@ module Top(
     wire pixel_valid_median_3x3;
     wire [11:0] filtered_pixel_median_3x3;
     wire [16:0] filtered_addr_median_3x3;
-    // Median_Filter #(
-    //     .KERNEL_SIZE(3),
-    //     .PIXEL_DEPTH(12),
-    //     .IMAGE_WIDTH(310),
-    //     .IMAGE_HEIGHT(240)
-    // )
-    // median_filter(
-    //     .clk(ov7670_pclk),
-    //     .reset(cap_reset),
-    //     .frame_start(ov7670_vsync),
-    //     .pixel_in(dout),
-    //     .we(we),
-    //     .pixel_out(filtered_pixel_median_3x3),
-    //     .addr_out(filtered_addr_median_3x3),
-    //     .pixel_valid(pixel_valid_median_3x3)
-    // );
+    Median_Filter #(
+        .KERNEL_SIZE(3),
+        .PIXEL_DEPTH(12),
+        .IMAGE_WIDTH(310),
+        .IMAGE_HEIGHT(240)
+    )
+    median_filter(
+        .clk(ov7670_pclk),
+        .reset(cap_reset),
+        .frame_start(ov7670_vsync),
+        .pixel_in(dout),
+        .we(we),
+        .pixel_out(filtered_pixel_median_3x3),
+        .addr_out(filtered_addr_median_3x3),
+        .pixel_valid(pixel_valid_median_3x3)
+    );
     
     // 5x5 instance (stub for A/B testing)
     // wire pixel_valid_5x5;
@@ -167,28 +167,28 @@ module Top(
     wire                    pixel_valid_gauss_3x3;
     wire [11:0]             filtered_pixel_gauss_3x3;
     wire [16:0]             filtered_addr_gauss_3x3;
-    // Convolution_3x3 #(
-    //     .IMAGE_WIDTH(310),
-    //     .IMAGE_HEIGHT(240),
-    //     .PIXEL_DEPTH(12),
-    //     .COEF_WIDTH(8),
-    //     .k00(1), .k01(2), .k02(1),
-    //     .k10(2), .k11(4), .k12(2),
-    //     .k20(1), .k21(2), .k22(1),
-    //     .BIAS(0),
-    //     .SCALE(4)
-    // ) gaussian3x3 (
-    //     .clk(ov7670_pclk),
-    //     .reset(cap_reset),
-    //     .frame_start(ov7670_vsync),
-    //     .we(we),
-    //     .mode_rgb(1'b1),             // camera provides RGB444
-    //     .pixel_rgb_in(dout),
-    //     .pixel_bin_in(1'b0),
-    //     .pixel_out(filtered_pixel_gauss_3x3),
-    //     .addr_out(filtered_addr_gauss_3x3),
-    //     .pixel_valid(pixel_valid_gauss_3x3)
-    // );
+    Convolution_3x3 #(
+        .IMAGE_WIDTH(310),
+        .IMAGE_HEIGHT(240),
+        .PIXEL_DEPTH(12),
+        .COEF_WIDTH(8),
+        .k00(1), .k01(2), .k02(1),
+        .k10(2), .k11(4), .k12(2),
+        .k20(1), .k21(2), .k22(1),
+        .BIAS(0),
+        .SCALE(4)
+    ) gaussian3x3 (
+        .clk(ov7670_pclk),
+        .reset(cap_reset),
+        .frame_start(ov7670_vsync),
+        .we(we),
+        .mode_rgb(1'b1),             // camera provides RGB444
+        .pixel_rgb_in(dout),
+        .pixel_bin_in(1'b0),
+        .pixel_out(filtered_pixel_gauss_3x3),
+        .addr_out(filtered_addr_gauss_3x3),
+        .pixel_valid(pixel_valid_gauss_3x3)
+    );
 
     // MUX to send to bitmap section
     wire [11:0] filtered_pixel_color = sw[0] ? (sw[1] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;

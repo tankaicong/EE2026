@@ -4,7 +4,7 @@
 -- Date        : Fri Oct 31 04:09:20 2025
 -- Host        : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 -- Command     : write_vhdl -force -mode funcsim
---               /media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem_sim_netlist.vhdl
+--               C:/Users/Kenneth/Desktop/ee2026/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem_sim_netlist.vhdl
 -- Design      : image_mem
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.

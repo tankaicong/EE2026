@@ -4,7 +4,7 @@
 -- Date        : Fri Oct 31 04:09:20 2025
 -- Host        : kc-ThinkPad-T14-Gen-5 running 64-bit Ubuntu 22.04.5 LTS
 -- Command     : write_vhdl -force -mode synth_stub
---               /media/kc/Data/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem_stub.vhdl
+--               C:/Users/Kenneth/Desktop/ee2026/EE2026/project/FDP/FDP.srcs/sources_1/ip/image_mem/image_mem_stub.vhdl
 -- Design      : image_mem
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35tcpg236-1

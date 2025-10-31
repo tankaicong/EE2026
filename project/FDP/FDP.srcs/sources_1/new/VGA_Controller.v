@@ -11,7 +11,7 @@ module VGA_Controller(
     output reg [3:0] vga_blue,
     output reg vga_hsync,
     output reg vga_vsync,
-    output [16:0] frame_addr,    // BRAM address for 320x240 frame (doubled to 640x480)
+    output [16:0] frame_addr,    // BRAM address for 320x240 source (cropped to 310x240)
     output [9:0] frame_x,  // current x coord in frame (0..639)
     output [9:0] frame_y,  // current y coord in frame (0..479)
     input [11:0] frame_pixel,
@@ -46,8 +46,9 @@ module VGA_Controller(
     localparam SRC_HEIGHT = 240;
     wire [8:0] src_y = vCounter[9:1]; // vCounter (0-479)  >> 1 (0..239)
     wire [8:0] src_x = hCounter[9:1]; // hCounter (0..639) >> 1 (0..319)
-    // Clamp to avoid unsigned underflow when cropping left 14 pixels
-    assign frame_addr = src_y * 320 + src_x;     // crop to 320 right-side pixels
+    // Clamp to avoid unsigned underflow when cropping left 10 pixels
+    wire [8:0] src_x_adj = (src_x >= 9'd10) ? (src_x - 9'd10) : 9'd0;
+    assign frame_addr = src_y * 310 + src_x_adj;     // crop to 310 right-side pixels
     assign frame_x = hCounter;
     assign frame_y = vCounter;
 
@@ -68,9 +69,9 @@ module VGA_Controller(
         frame_pixel_q <= frame_pixel;
 
         // Pixel outputs (when not blank) - READ FROM BRAM (aligned)
-        // Start outputting a couple cycles earlier so the first shown pixel maps
-        // to src_x_adj == 0 (i.e., the leftmost cropped column).
-        if (hCounter >= 30) begin
+    // Start outputting a couple cycles earlier so the first shown pixel maps
+    // to src_x_adj == 0 (i.e., the leftmost cropped column). 2*offset + pipeline(2) = 22
+    if (hCounter >= 22) begin
             if (blank == 1'b0) begin
                 vga_red   <= frame_pixel_q[11:8];
                 vga_green <= frame_pixel_q[7:4];

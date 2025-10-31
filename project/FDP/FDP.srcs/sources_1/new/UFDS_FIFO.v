@@ -18,15 +18,15 @@ module UFDS_FIFO #(
     localparam DEPTH = (1 << ADDR_BITS);
 
     // Memory
-    (* ram_style = "distributed" *) reg [WIDTH-1:0] mem [0:DEPTH-1];
+    (* ram_style = "block" *) reg [WIDTH-1:0] mem [0:DEPTH-1];
 
     // Binary and Gray pointers
-    (* ram_style = "distributed" *) reg [ADDR_BITS:0] wr_bin = 0, rd_bin = 0;
-    (* ram_style = "distributed" *) reg [ADDR_BITS:0] wr_gray = 0, rd_gray = 0;
+    (* ram_style = "block" *) reg [ADDR_BITS:0] wr_bin = 0, rd_bin = 0;
+    (* ram_style = "block" *) reg [ADDR_BITS:0] wr_gray = 0, rd_gray = 0;
 
     // Synchronizers for cross-domain Gray pointers
-    (* ram_style = "distributed" *) reg [ADDR_BITS:0] rd_gray_w1=0, rd_gray_w2=0;
-    (* ram_style = "distributed" *) reg [ADDR_BITS:0] wr_gray_r1=0, wr_gray_r2=0;
+    (* ram_style = "block" *) reg [ADDR_BITS:0] rd_gray_w1=0, rd_gray_w2=0;
+    (* ram_style = "block" *) reg [ADDR_BITS:0] wr_gray_r1=0, wr_gray_r2=0;
 
     // Bin<->Gray helpers
     // Compute NEXT (incremented) pointers independently of gating to avoid combinational loops.

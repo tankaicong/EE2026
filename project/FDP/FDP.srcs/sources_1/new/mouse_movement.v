@@ -127,8 +127,6 @@ module mouse_movement(
     wire [20:0] pulse_width_x = 100_000 + ((180 - servo_x_angle) << 9 );
     wire [20:0] pulse_width_y = 100_000 + (servo_y_angle << 9);
 
-    // 100_000/180
-
     always @(posedge clk) begin
         // Reset counter every 20 ms as most servo motors works with such
         if (pwm_counter >= 2_000_000 - 1)
@@ -149,9 +147,9 @@ module mouse_movement(
 
     // Logic for Crosshair overlay and LED for ammo rounds 
     // Screen parameters
-    localparam WIDTH  = 320;
+    localparam WIDTH  = 310;
     localparam HEIGHT = 240;
-    localparam CENTER_X = WIDTH / 2;  // 160
+    localparam CENTER_X = WIDTH / 2;  // 155
     localparam CENTER_Y = HEIGHT / 2;  // 120
     
     // // Crosshair parameters
@@ -171,9 +169,7 @@ module mouse_movement(
     reg [4:0] bullet_count = 5'd16;
 
     // Add 2 seconds cooldown on each shot
-
     localparam COOLDOWN = 134_217_728; // 1s
-
 
 
     always @(posedge clk) begin
@@ -196,7 +192,6 @@ module mouse_movement(
             // end else begin
             //     cooldown_progress <= 255 - (cooldown_timer >> 19); //* 256) / 200_000_000);
             // end
-
 
             if (cooldown_timer == 0)
                 shot_enabled <= 1;

@@ -12,8 +12,8 @@ module layered_box #(
     parameter integer MID_THICK     = 1,  // white band
     parameter integer INNER_THICK   = 1   // inner black
 )(
-    input  wire [9:0] x,  // VGA X (0..639)
-    input  wire [8:0] y,  // VGA Y (0..479)
+    input  wire [8:0] x,  // source X (0..309)
+    input  wire [7:0] y,  // source Y (0..239)
     output wire        in_black_outer,
     output wire        in_white_mid,
     output wire        in_black_inner,

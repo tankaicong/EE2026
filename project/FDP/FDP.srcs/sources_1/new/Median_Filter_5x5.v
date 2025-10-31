@@ -11,7 +11,7 @@
 module Median_Filter_5x5
 #(  parameter PIXEL_DEPTH  = 12,      // RGB444
     parameter GRAY_DEPTH   = 4,       // Grayscale
-    parameter IMAGE_WIDTH  = 320,
+    parameter IMAGE_WIDTH  = 310,
     parameter IMAGE_HEIGHT = 240)
 (
     input clk,
@@ -45,7 +45,7 @@ module Median_Filter_5x5
     reg [PIXEL_DEPTH-1:0] cw [0:KS-1][0:KS-1];
 
     // Position counters
-    reg [9:0]  col; // >= 320
+    reg [9:0]  col; // >= 310
     reg [8:0]  row; // >= 240
     reg [17:0] in_index;
 

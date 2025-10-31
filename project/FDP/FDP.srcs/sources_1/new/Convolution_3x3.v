@@ -21,7 +21,7 @@
 
 module Convolution_3x3
 #(
-    parameter IMAGE_WIDTH   = 320,
+    parameter IMAGE_WIDTH   = 310,
     parameter IMAGE_HEIGHT  = 240,
     parameter PIXEL_DEPTH   = 12,           // RGB444 packed as {R[3:0], G[3:0], B[3:0]}
     parameter COEF_WIDTH    = 8,            // signed coeffs width
@@ -63,7 +63,7 @@ module Convolution_3x3
 
     // row/column counters for current incoming sample position (row, col)
     // These counters are allowed to extend to IMAGE_WIDTH/HEIGHT during padding.
-    reg [9:0]  col;                // supports >= 320 and +1 padding column
+    reg [9:0]  col;                // supports >= 310 and +1 padding column
     reg [9:0]  row;                // supports >= 240 and +1 padding row
 
     // Convenience: detect padding phases
@@ -74,9 +74,10 @@ module Convolution_3x3
     wire [9:0] cen_row = (row == 0) ? 10'd0 : (row - 10'd1);
     wire [9:0] cen_col = (col == 0) ? 10'd0 : (col - 10'd1);
 
-    // Valid output whenever center is within image bounds and we are running
-    wire center_in_bounds = (row != 0) && (col != 0) &&
-                            (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
+    // Valid output whenever center is within image bounds and we are running.
+    // Allow top row and left column by relying on zero-initialized windows
+    // for proper zero-padding semantics.
+    wire center_in_bounds = (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
 
     // Select current input pixel (RGB444 or bitmap replicated) or zero during padding
     wire [PIXEL_DEPTH-1:0] rgb_from_mode = mode_rgb ? pixel_rgb_in : (pixel_bin_in ? 12'h111 : 12'h000);
@@ -85,6 +86,11 @@ module Convolution_3x3
     // Previous rows at current column (guard reads during pad column)
     reg [PIXEL_DEPTH-1:0] cprev1; // row-1, same col
     reg [PIXEL_DEPTH-1:0] cprev2; // row-2, same col
+    
+    // Track last valid samples at the end of a real row to support right-edge replication
+    reg [PIXEL_DEPTH-1:0] last_cprev1_row; // linebuf1 at last real column
+    reg [PIXEL_DEPTH-1:0] last_cprev2_row; // linebuf2 at last real column
+    reg [PIXEL_DEPTH-1:0] last_cur_rgb_row; // current rgb at last real column
 
     // Signed math widths
     localparam integer IN_CH_WIDTH = 5; // we extend 4-bit channel to 5 bits with leading 0
@@ -150,11 +156,14 @@ module Convolution_3x3
             if (we || (running && (is_pad_col || is_pad_row))) begin
                 // Safe reads from line buffers
                 if (is_pad_col) begin
-                    cprev1 = 12'd0;
-                    cprev2 = 12'd0;
+                    // Replicate the last real column for right-edge padding
+                    cprev1 = last_cprev1_row;
+                    cprev2 = last_cprev2_row;
                 end else begin
-                    cprev1 = clinebuf1[col];
-                    cprev2 = clinebuf2[col];
+                    // Top-edge replication: when row==0, there is no prior row; use current
+                    // When row==1, row-2 is out of range; replicate row-1 into row-2
+                    cprev1 = (row == 0) ? cur_rgb : clinebuf1[col];
+                    cprev2 = (row == 0) ? cur_rgb : (row == 1 ? clinebuf1[col] : clinebuf2[col]);
                 end
 
                 // Update sliding window (shift left, insert newest at [*][2])
@@ -162,10 +171,29 @@ module Convolution_3x3
                 cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = cprev1; // middle from row-1
                 cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = cur_rgb; // bottom inserts current
 
+                // Left-edge replication to avoid dim left column due to zeros
+                if (col == 10'd0) begin
+                    // replicate current/nearest values into missing neighbors
+                    cw0[0] = cprev2; cw0[1] = cprev2;
+                    cw1[0] = cprev1; cw1[1] = cprev1;
+                    cw2[0] = cur_rgb; cw2[1] = cur_rgb;
+                end else if (col == 10'd1) begin
+                    // far-left neighbor equals the previous column (already in [1])
+                    cw0[0] = cw0[1];
+                    cw1[0] = cw1[1];
+                    cw2[0] = cw2[1];
+                end
+
                 // Update line buffers for next rows (color) when within real column range
                 if (!is_pad_col) begin
                     clinebuf2[col] <= cprev1;
                     clinebuf1[col] <= cur_rgb;
+                    // Remember last real column values for right-edge replication
+                    if (col == (IMAGE_WIDTH-1)) begin
+                        last_cprev1_row <= cprev1;
+                        last_cprev2_row <= cprev2;
+                        last_cur_rgb_row <= cur_rgb;
+                    end
                 end
 
                 // Convolution core in its own block to keep declarations first

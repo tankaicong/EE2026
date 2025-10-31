@@ -26,7 +26,7 @@ module ufds_sim(    );
 // Verifies neighbor helpers return zeros on the first line (edges)
 // Verifies U/UL/UR fetch from the previous row when we preload labels between lines
 
-    // Drive a full 320x240 frame through the Bridge so FS/LS/FE are correct
+    // Drive a full 306x240 frame through the Bridge so FS/LS/FE are correct
     localparam integer IMG_W = 24;
     localparam integer IMG_H = 12;
 
@@ -42,7 +42,7 @@ module ufds_sim(    );
 
     // Producer-side regs (match Bridge port widths)
     reg  p_valid_r, p_px_r;
-    reg  [8:0] p_x_r; // 0..319
+    reg  [8:0] p_x_r; // 0..305
     reg  [7:0] p_y_r; // 0..239
 
     // Streaming coordinates
@@ -187,7 +187,7 @@ end
         // Wait DUT ready
         #44150;
 
-        // Stream the full 320x240 frame; only a 24x12 region has foreground
+        // Stream the full 306x240 frame; only a 24x12 region has foreground
         for (y=0; y<IMG_H; y=y+1) begin
             for (x=0; x<IMG_W; x=x+1) begin
                 push_pixel(x, y, fg(x,y));

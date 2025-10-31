@@ -57,7 +57,7 @@ module Top(
 
     // ----------- VGA CONTROLLER ----------- //
     // Wire for BRAM address from VGA controller
-    wire [16:0] frame_addr;             // logical 0..(320*240-1)
+    wire [16:0] frame_addr;             // logical 0..(310*240-1)
     wire [11:0] image_pixel;            // 12-bit RGB444 from BRAM
     reg [11:0] frame_pixel;            // RGB444 to VGA
     wire [9:0] frame_x;  // current x coord in frame (0..639)
@@ -99,7 +99,7 @@ module Top(
     );
 
     wire we;
-    wire [16:0] addr;          // logical capture address within a frame (0..73439)
+    wire [16:0] addr;          // logical capture address within a frame (0..74399)
     wire [11:0] dout;          // RGB444 from capture
 
     // Debounce / synchronize btnU to camera pixel clock domain for capture reset
@@ -128,7 +128,7 @@ module Top(
     Median_Filter #(
         .KERNEL_SIZE(3),
         .PIXEL_DEPTH(12),
-        .IMAGE_WIDTH(320),
+        .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
     )
     median_filter(
@@ -148,7 +148,7 @@ module Top(
     // wire [17:0] filtered_addr_5x5;
     // Median_Filter_5x5 #(
     //     .PIXEL_DEPTH(12),
-    //     .IMAGE_WIDTH(320),
+    //     .IMAGE_WIDTH(310),
     //     .IMAGE_HEIGHT(240)
     // )
     // median_filter_5x5(
@@ -168,7 +168,7 @@ module Top(
     wire [11:0]             filtered_pixel_gauss_3x3;
     wire [16:0]             filtered_addr_gauss_3x3;
     Convolution_3x3 #(
-        .IMAGE_WIDTH(320),
+        .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240),
         .PIXEL_DEPTH(12),
         .COEF_WIDTH(8),
@@ -197,11 +197,15 @@ module Top(
     wire threshold_pixel_raw = (((filtered_pixel_color[3:0] >= RGB_THRESHOLD[23:20]) && (filtered_pixel_color[3:0] <= RGB_THRESHOLD[19:16]) &&
                                  (filtered_pixel_color[7:4] >= RGB_THRESHOLD[15:12]) && (filtered_pixel_color[7:4] <= RGB_THRESHOLD[11:8]) &&
                                  (filtered_pixel_color[11:8] >= RGB_THRESHOLD[7:4]) && (filtered_pixel_color[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+    // Threshold directly on the RAW captured pixel (dout), for immediate bitmap writes on we cycles when sw[6]=1
+    wire threshold_pixel_dout = (
+        (dout[3:0]  >= RGB_THRESHOLD[23:20]) && (dout[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
+        (dout[7:4]  >= RGB_THRESHOLD[15:12]) && (dout[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
+        (dout[11:8] >= RGB_THRESHOLD[7:4])   && (dout[11:8] <= RGB_THRESHOLD[3:0])     // R in range
+    ) ? 1'b1 : 1'b0;
     // MUX to send to VGA display
     wire [11:0] display_pixel_color = sw[2] ? (sw[3] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
-    // NOTE: For 3x3 filters, the addr coming out of the stage is top-left of the 3x3 window.
-    // For correct alignment when writing back to the frame buffer for display, use CENTERED addresses.
-    // We keep pixel_valid selection as-is.
+    wire [16:0] display_addr_color = sw[2] ? (sw[3] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
     wire pixel_valid_display = sw[2] ? (sw[3] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
 
     //----------- MORPHOLOGY (ERODE/DILATE) ----------- //
@@ -210,7 +214,7 @@ module Top(
     wire threshold_pixel_erode_3x3;
     wire [17:0] threshold_addr_erode_3x3;
     Morphology_3x3 #(
-        .IMAGE_WIDTH(320),
+        .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
     ) erode3x3 (
         .clk(ov7670_pclk),
@@ -229,7 +233,7 @@ module Top(
     wire threshold_pixel_dilate_3x3;
     wire [17:0] threshold_addr_dilate_3x3;
     Morphology_3x3 #(
-        .IMAGE_WIDTH(320),
+        .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
     ) dilate3x3 (
         .clk(ov7670_pclk),
@@ -246,8 +250,11 @@ module Top(
     // Select which binary pipeline to write into the buffer:
     wire threshold_pixel_bin = sw[4] ? (sw[5] ? threshold_pixel_dilate_3x3 : threshold_pixel_erode_3x3)
                                       : threshold_pixel_raw;
+    // Pixel valid for bitmap path must align with the address source used for bitmap writes:
+    // - If morphology is enabled (sw[4]=1), use the corresponding morphology valid
+    // - Else, use gaussian valid (provides padding flush so right/bottom borders are covered)
     wire pixel_valid_bin = sw[4] ? (sw[5] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
-                                      : pixel_valid_gauss_3x3;
+                                      : pixel_valid_color;
     // centered write address (defined below after FRAME_PIXELS parameter)
     wire [17:0] threshold_addr_bin;
 
@@ -260,8 +267,8 @@ module Top(
     //Seems to be working fine and no tears for now so f it we ball I guess
     
     //Ping-pong buffer parameters (RGB444, 12-bit):
-    localparam [17:0] FRAME_PIXELS   = 18'd76800;    // 320*240
-    localparam [17:0] TOTAL_PIXELS   = 18'd153600; // 2*76800
+    localparam [17:0] FRAME_PIXELS   = 18'd74400;
+    localparam [17:0] TOTAL_PIXELS   = 18'd148800; // 2*74400
 
     //PCLK domain: toggle write buffer on rising edge of camera VSYNC
     reg vsync_d1 = 1'b0;
@@ -304,42 +311,22 @@ module Top(
     wire [17:0] rd_base = 18'd0;
     wire [17:0] addrb18 = {1'b0, frame_addr} + rd_base;
 
-    // ----------- ADDRESS RECENTERING FOR 3x3 STAGES ----------- //
-    // Cancel the inherent (-1,-1) window-center shift per stage by adding
-    // (+1 row, +1 col) = +321 addresses for a 320x240 frame. Apply per-stage:
-    //   Gaussian: +321; Erode(after Gauss): +642; Dilate(after Erode): +963
-    localparam [17:0] ADDR_SHIFT1 = 18'd321;
-    localparam [17:0] ADDR_SHIFT2 = 18'd642;
-    localparam [17:0] ADDR_SHIFT3 = 18'd963;
-
-    // Add shift and clamp to the last pixel to avoid OOB at bottom/right borders
-    // For display path: center the 3x3 Gaussian (and Median, if enabled) outputs as well.
-    wire [18:0] gauss_tmp  = {1'b0, filtered_addr_gauss_3x3}  + ADDR_SHIFT1;
-    wire [18:0] median_tmp = {1'b0, filtered_addr_median_3x3} + ADDR_SHIFT1;
-    wire [18:0] erode_tmp  = {1'b0, threshold_addr_erode_3x3}  + ADDR_SHIFT2;
-    wire [18:0] dilate_tmp = {1'b0, threshold_addr_dilate_3x3} + ADDR_SHIFT3;
-
-    wire [17:0] addr_gauss_centered  = (gauss_tmp  >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : gauss_tmp[17:0];
-    wire [17:0] addr_median_centered = (median_tmp >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : median_tmp[17:0];
-    wire [17:0] addr_erode_centered  = (erode_tmp  >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : erode_tmp[17:0];
-    wire [17:0] addr_dilate_centered = (dilate_tmp >= FRAME_PIXELS) ? (FRAME_PIXELS - 1) : dilate_tmp[17:0];
-
-    assign threshold_addr_bin = (sw[4]) ? (sw[5] ? addr_dilate_centered : addr_erode_centered)
-                                       : addr_gauss_centered;
-
-    // Centered address for the display write path as well; avoid negative/underflow wrap that causes frame "cuts".
-    wire [17:0] display_addr_color = sw[2]
-                                     ? (sw[3] ? addr_median_centered : addr_gauss_centered)
-                                     : {1'b0, addr};
+    // ----------- ADDRESSING FOR FILTER STAGES ----------- //
+    // Use the filter modules' reported center addresses directly. They already
+    // correspond to the window center (aligned in the source coordinate space).
+    // Widen to 18 bits when mixing with frame bases.
+    assign threshold_addr_bin = sw[4]
+                                ? (sw[5] ? threshold_addr_dilate_3x3 : threshold_addr_erode_3x3)
+                                : {1'b0, filtered_addr_color};
 
     // Latch the write-base per frame so all writes for a frame (including padding flush)
-    // target the same half. In single-buffer mode (wr_base hard-wired to 0), this must be 0
-    // from reset to avoid writing into an out-of-range half when BRAM depth is 73440.
-    reg [17:0] wr_base_frame = 18'd0;
+    // target the same half. Arm on VSYNC rise, capture on the first incoming pixel (we==1)
+    // of the new frame to avoid any overlap hazards.
+    reg [17:0] wr_base_frame = FRAME_PIXELS; // consistent with wr_sel reset to 1 (TOP) on cap_reset
     reg        wrb_arm = 1'b0;
     always @(posedge ov7670_pclk) begin
         if (cap_reset) begin
-            wr_base_frame <= 18'd0;
+            wr_base_frame <= FRAME_PIXELS;
             wrb_arm <= 1'b0;
         end else begin
             if (cam_vsync_rise) begin
@@ -397,7 +384,7 @@ module Top(
             if (!we) begin
                 if (pend) begin
                     waddr18_r  <= pend_addr_q;
-                    rgb_dina_r <= fpix_q;
+                    rgb_dina_r <= fpix_q;    // choose not to overwrite rgb frame
                     // bmp_dina_r <= bdin_q;
                     we_w <= 1'b1;
                     pend <= 1'b0;
@@ -410,10 +397,12 @@ module Top(
                 end
             end
 
-            // On pixel-complete cycles (we==1), always write the RAW pixel to its address
+            // On pixel-complete cycles (we==1):
+            //  - If sw[6]=1 (bitmap mode), write immediate threshold(dout) so the frame never shows RGB
+            //  - Else, write RAW RGB as usual
             if (we) begin
                 waddr18_r  <= {1'b0, addr} + wr_base_frame;
-                rgb_dina_r <= dout;
+                rgb_dina_r <= sw[6] ? (threshold_pixel_dout ? 12'hFFF : 12'h000) : dout;
                 // bmp_dina_r <= threshold_pixel_raw;
                 we_w <= 1'b1;
             end
@@ -429,6 +418,15 @@ module Top(
         .addrb(addrb18),
         .doutb(image_pixel)   // read RGB444
     );
+    // Dual_Port_Buffer frame_buffer(
+    //     .clka(ov7670_pclk),
+    //     .wea(we_w),
+    //     .addra(waddr18_r),
+    //     .dina(rgb_dina_r),          // write RGB444 (raw on we cycles, filtered on alt cycles)
+    //     .clkb(clk25),
+    //     .addrb(addrb18),
+    //     .doutb(image_pixel)   // read RGB444
+    // );
 
     //----------- BITMAP STREAM (1-bit, synced to VGA read) ----------- //
     // Eliminate the dedicated bitmap BRAM; derive the bitmap bit on-the-fly
@@ -459,17 +457,17 @@ module Top(
     wire [63:0] comp3210_area;                                 // 4x area[15:0]
     wire [2:0]  comp_count;
     wire        ready_o;
-    // Only feed UFDS within the 320x240 cropped active area (x in [0,319], y in [0,239])
-    wire in_roi = active_area && (frame_x[9:1] < 10'd320) && (frame_y[9:1] < 10'd240);
+    // Only feed UFDS within the 310x240 cropped active area (x in [10,319], y in [0,239])
+    wire in_roi = active_area && (frame_x[9:1] >= 10'd10) && (frame_x[9:1] < 10'd320) && (frame_y[9:1] < 10'd240);
     // Decimate the VGA-doubled raster (640x480) to source grid (320x240):
     // take only even hCounter/vCounter pixels so each source pixel is enqueued once
     wire decim_hv = (~frame_x[0]) && (~frame_y[0]);
     UFDS_Bridge ufds_bridge (
         .pclk(clk25),
         .p_rst(cap_reset),
-    // Gate valid to ROI AND decimate by 2x2 so UFDS sees exactly 320x240 unique pixels per frame
+    // Gate valid to ROI AND decimate by 2x2 so UFDS sees exactly 310x240 unique pixels per frame
     .p_valid(in_roi && decim_hv),
-        .p_x(frame_x[9:1]),
+        .p_x(frame_x[9:1] - 10),
         .p_y(frame_y[9:1]),
         .p_px(bitmap_pixel), // use same bitmap data as vga pixel
         .clk(clk50),
@@ -800,7 +798,7 @@ module Top(
     wire [7:0] mouse_y_px = (mouse_y_sync[10:1] >= 10'd240) ? 8'd239 : mouse_y_sync[8:1];
 
     // Source-grid coords for current pixel
-    wire [8:0] px_src = frame_x[9:1]; // 0..319
+    wire [8:0] px_src = frame_x[9:1] - 10; // 0..309
     wire [7:0] py_src = frame_y[9:1];      // 0..239
 
     // Create a 3x3 cursor in source-grid (appears doubled in VGA)
@@ -1095,7 +1093,7 @@ module Top(
                 end
 
                 S_GAME_MANUAL_MODE: begin
-                    if (frame_addr == 76799) begin
+                    if (frame_addr == 74399) begin
                         // snapshot UFDS results once per VGA frame
                         left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
                         left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
@@ -1104,7 +1102,7 @@ module Top(
                     end else begin
                         // --- Crosshair drawing with user-selected color ---
                         // === Bottom vertical arm ===
-                        if (frame_x[9:1] == 160 &&
+                        if (frame_x[9:1]-10 == 155 &&
                             frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
 
                             // Green portion rises upward from bottom
@@ -1115,7 +1113,7 @@ module Top(
                         end
 
                         // === Top vertical arm ===
-                        else if (frame_x[9:1] == 160 &&
+            else if (frame_x[9:1]-10 == 155 &&
                                 frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
 
                             // Mirror the same cooldown progress upward
@@ -1126,8 +1124,8 @@ module Top(
                         end
 
                         // === Left horizontal arm ===
-                        else if (frame_y[9:1] == 120 &&
-                                frame_x[9:1] >= 160-11 && frame_x[9:1] <= 160-2) begin
+            else if (frame_y[9:1] == 120 &&
+                frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
 
                             // Turn green once cooldown crosses midpoint
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
@@ -1137,8 +1135,8 @@ module Top(
                         end
 
                         // === Right horizontal arm ===
-                        else if (frame_y[9:1] == 120 &&
-                                frame_x[9:1] >= 160+2 && frame_x[9:1] <= 160+11) begin
+            else if (frame_y[9:1] == 120 &&
+                frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
 
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
                                 frame_pixel <= crosshair_rgb;
@@ -1148,39 +1146,39 @@ module Top(
                         else if (in_roi && (
                             // Comp 0
                             (
-                                (frame_x[9:1] == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_x[9:1] == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_y[9:1] == top0_l      && frame_x[9:1] >= left0_l  && frame_x[9:1] <= right0_l) ||
-                                (frame_y[9:1] == bottom0_l   && frame_x[9:1] >= left0_l  && frame_x[9:1] <= right0_l) ||
-                                (frame_x[9:1] == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
-                                (frame_y[9:1] == cy0_l       && frame_x[9:1] >= cx0_l-2 && frame_x[9:1] <= cx0_l+2)
+                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
                             ) ||
                             // Comp 1
                             (
-                                (frame_x[9:1] == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_x[9:1] == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_y[9:1] == top1_l      && frame_x[9:1] >= left1_l  && frame_x[9:1] <= right1_l) ||
-                                (frame_y[9:1] == bottom1_l   && frame_x[9:1] >= left1_l  && frame_x[9:1] <= right1_l) ||
-                                (frame_x[9:1] == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
-                                (frame_y[9:1] == cy1_l       && frame_x[9:1] >= cx1_l-2 && frame_x[9:1] <= cx1_l+2)
+                                (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
+                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
                             ) ||
                             // Comp 2
                             (
-                                (frame_x[9:1] == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_x[9:1] == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_y[9:1] == top2_l      && frame_x[9:1] >= left2_l  && frame_x[9:1] <= right2_l) ||
-                                (frame_y[9:1] == bottom2_l   && frame_x[9:1] >= left2_l  && frame_x[9:1] <= right2_l) ||
-                                (frame_x[9:1] == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
-                                (frame_y[9:1] == cy2_l       && frame_x[9:1] >= cx2_l-2 && frame_x[9:1] <= cx2_l+2)
+                                (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
+                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
                             ) ||
                             // Comp 3
                             (
-                                (frame_x[9:1] == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_x[9:1] == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_y[9:1] == top3_l      && frame_x[9:1] >= left3_l  && frame_x[9:1] <= right3_l) ||
-                                (frame_y[9:1] == bottom3_l   && frame_x[9:1] >= left3_l  && frame_x[9:1] <= right3_l) ||
-                                (frame_x[9:1] == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
-                                (frame_y[9:1] == cy3_l       && frame_x[9:1] >= cx3_l-2 && frame_x[9:1] <= cx3_l+2)
+                                (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
+                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
                             )
                         )) begin
                             frame_pixel <= 12'h00F;

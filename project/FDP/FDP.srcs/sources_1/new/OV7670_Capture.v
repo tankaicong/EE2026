@@ -13,7 +13,7 @@ module OV7670_Capture(
     input vsync, href,
     input ext_reset,            // external reset (synchronous to pclk domain)
     input [7:0] d,
-    output reg [16:0] addr,      // 0..76800-1 (320x240)
+    output reg [16:0] addr,      // 0..74400-1 (310x240 after crop)
     output reg [11:0] dout,      // Stored as 12-bit RGB444 in BRAM
     output reg we               // 1-cycle write enable
 );
@@ -45,10 +45,10 @@ module OV7670_Capture(
             wr_hold <= { wr_hold[0], (href & ~wr_hold[0]) };  // pixel complete detection
             we <= 1'b0;
             if (pixel_complete && href) begin
-                if (~cam_x[0] && ~cam_y[0] && cam_x >= 28) begin    //i only want [13:319] = 306 right-side pixels
+                if (~cam_x[0] && ~cam_y[0] && cam_x >= 20) begin    // keep [10:319] = 310 right-side pixels
                     // RGB444 input
                     dout <= { d_latch[3:0], d_latch[7:4], d_latch[11:8] };
-                    addr <= (cam_y[8:1]) * 18'd306 + cam_x[9:1]-14;
+                    addr <= (cam_y[8:1]) * 18'd310 + (cam_x[9:1] - 10);
                     we <= 1'b1;
                 end
                 // advance X after processing pixel

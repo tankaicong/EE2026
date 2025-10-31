@@ -12,7 +12,7 @@ module layered_box #(
     parameter integer MID_THICK     = 3,  // white band
     parameter integer INNER_THICK   = 3   // inner black
 )(
-    input  wire [8:0] x,  // source X (0..305)
+    input  wire [8:0] x,  // source X (0..309)
     input  wire [7:0] y,  // source Y (0..239)
     output wire        in_black_outer,
     output wire        in_white_mid,

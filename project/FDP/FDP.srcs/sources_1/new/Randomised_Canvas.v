@@ -18,10 +18,10 @@ module Randomised_Canvas(
     output reg  [11:0] pixel_out      // RGB444 pixel output
 );
 
-    // ROI: same as Top.v definition for UFDS (x in [14,319], y in [0,239]) on source grid (divide by 2)
+    // ROI: same as Top.v definition for UFDS (x in [10,319], y in [0,239]) on source grid (divide by 2)
     wire [9:0] fx = frame_x;
     wire [9:0] fy = frame_y;
-    wire [8:0] src_x = fx[9:1] - 14; // 0..305
+    wire [8:0] src_x = fx[9:1] - 10; // 0..309
     wire [7:0] src_y = fy[9:1];      // 0..239
 
     // Synchronize btnC into this clk domain and detect rising edge
@@ -77,14 +77,14 @@ module Randomised_Canvas(
     wire [8:0] r3_x_raw = {1'b0, seed3[8:0]};
     wire [7:0] r3_y_raw = seed3[15:8];
 
-    // Clamp to ROI (306x240)
-    wire [8:0] r0_x = (r0_x_raw > (9'd305 - r0_w)) ? (9'd305 - r0_w) : r0_x_raw;
+    // Clamp to ROI (310x240)
+    wire [8:0] r0_x = (r0_x_raw > (9'd309 - r0_w)) ? (9'd309 - r0_w) : r0_x_raw;
     wire [7:0] r0_y = (r0_y_raw > (8'd239 - r0_h)) ? (8'd239 - r0_h) : r0_y_raw;
-    wire [8:0] r1_x = (r1_x_raw > (9'd305 - r1_w)) ? (9'd305 - r1_w) : r1_x_raw;
+    wire [8:0] r1_x = (r1_x_raw > (9'd309 - r1_w)) ? (9'd309 - r1_w) : r1_x_raw;
     wire [7:0] r1_y = (r1_y_raw > (8'd239 - r1_h)) ? (8'd239 - r1_h) : r1_y_raw;
-    wire [8:0] r2_x = (r2_x_raw > (9'd305 - r2_w)) ? (9'd305 - r2_w) : r2_x_raw;
+    wire [8:0] r2_x = (r2_x_raw > (9'd309 - r2_w)) ? (9'd309 - r2_w) : r2_x_raw;
     wire [7:0] r2_y = (r2_y_raw > (8'd239 - r2_h)) ? (8'd239 - r2_h) : r2_y_raw;
-    wire [8:0] r3_x = (r3_x_raw > (9'd305 - r3_w)) ? (9'd305 - r3_w) : r3_x_raw;
+    wire [8:0] r3_x = (r3_x_raw > (9'd309 - r3_w)) ? (9'd309 - r3_w) : r3_x_raw;
     wire [7:0] r3_y = (r3_y_raw > (8'd239 - r3_h)) ? (8'd239 - r3_h) : r3_y_raw;
 
     // Circles: radius in [6..30] and clamped centers
@@ -92,13 +92,13 @@ module Randomised_Canvas(
     wire [5:0] c1_r = 6'd6 + seed1[5:0];
     wire [5:0] c2_r = 6'd6 + seed2[5:0];
     wire [5:0] c3_r = 6'd6 + seed3[5:0];
-    wire [8:0] c0_cx = (r0_x_raw > (9'd305 - {3'b000, c0_r})) ? (9'd305 - {3'b000, c0_r}) : r0_x_raw;
+    wire [8:0] c0_cx = (r0_x_raw > (9'd309 - {3'b000, c0_r})) ? (9'd309 - {3'b000, c0_r}) : r0_x_raw;
     wire [7:0] c0_cy = (r0_y_raw > (8'd239 - {2'b00, c0_r})) ? (8'd239 - {2'b00, c0_r}) : r0_y_raw;
-    wire [8:0] c1_cx = (r1_x_raw > (9'd305 - {3'b000, c1_r})) ? (9'd305 - {3'b000, c1_r}) : r1_x_raw;
+    wire [8:0] c1_cx = (r1_x_raw > (9'd309 - {3'b000, c1_r})) ? (9'd309 - {3'b000, c1_r}) : r1_x_raw;
     wire [7:0] c1_cy = (r1_y_raw > (8'd239 - {2'b00, c1_r})) ? (8'd239 - {2'b00, c1_r}) : r1_y_raw;
-    wire [8:0] c2_cx = (r2_x_raw > (9'd305 - {3'b000, c2_r})) ? (9'd305 - {3'b000, c2_r}) : r2_x_raw;
+    wire [8:0] c2_cx = (r2_x_raw > (9'd309 - {3'b000, c2_r})) ? (9'd309 - {3'b000, c2_r}) : r2_x_raw;
     wire [7:0] c2_cy = (r2_y_raw > (8'd239 - {2'b00, c2_r})) ? (8'd239 - {2'b00, c2_r}) : r2_y_raw;
-    wire [8:0] c3_cx = (r3_x_raw > (9'd305 - {3'b000, c3_r})) ? (9'd305 - {3'b000, c3_r}) : r3_x_raw;
+    wire [8:0] c3_cx = (r3_x_raw > (9'd309 - {3'b000, c3_r})) ? (9'd309 - {3'b000, c3_r}) : r3_x_raw;
     wire [7:0] c3_cy = (r3_y_raw > (8'd239 - {2'b00, c3_r})) ? (8'd239 - {2'b00, c3_r}) : r3_y_raw;
 
     // Type selection: 0=rect, 1=circle

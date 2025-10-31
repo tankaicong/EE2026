@@ -61,7 +61,7 @@ module UFDS_Detector(
 
     );
 
-localparam integer WIDTH = 306;
+localparam integer WIDTH = 310;
 localparam integer HEIGHT = 240;
 localparam integer x_bitsize = 9;
 localparam integer y_bitsize = 8;
@@ -79,8 +79,8 @@ reg [y_bitsize-1:0] y;
  * just swap the roles of these two after every row (using toggle_line 0: prev=buff0, curr=buff1; 1: prev=buff1, curr=buff0)
  * each entry stores the component ID
 */
-(* ram_style = "distributed" *) reg [label_bits-1:0] row0_labels[0:WIDTH-1];
-(* ram_style = "distributed" *) reg [label_bits-1:0] row1_labels[0:WIDTH-1];
+(* ram_style = "block" *) reg [label_bits-1:0] row0_labels[0:WIDTH-1];
+(* ram_style = "block" *) reg [label_bits-1:0] row1_labels[0:WIDTH-1];
 reg toggle_line; // 0: prev=buff0, curr=buff1; 1: prev=buff1, curr=buff0
 
 /*
@@ -90,20 +90,20 @@ reg toggle_line; // 0: prev=buff0, curr=buff1; 1: prev=buff1, curr=buff0
 localparam integer MAX_LABELS = 512; // can reduce if dont need this many labels
 localparam integer FIND_MAX_ITERATIONS = 8; // to prevent infinite loop in find, since loops in functions are combinational. Height of tree is O(log n) = 4
 
-(* ram_style = "distributed" *) reg [label_bits-1:0] parent [0:MAX_LABELS-1]; // C++ eq: vector<int> parent (MAX_LABELS);
-(* ram_style = "distributed" *) reg [3:0] rank [0:MAX_LABELS-1]; // C++ eq: vector<int> rank (MAX_LABELS); 
-(* ram_style = "distributed" *) reg active_root [0:MAX_LABELS-1]; // boolean array marking whether a component ID is in use as a root
-(* ram_style = "distributed" *) reg [label_bits-1:0] next_label; // next unused label n0.
+(* ram_style = "block" *) reg [label_bits-1:0] parent [0:MAX_LABELS-1]; // C++ eq: vector<int> parent (MAX_LABELS);
+(* ram_style = "block" *) reg [3:0] rank [0:MAX_LABELS-1]; // C++ eq: vector<int> rank (MAX_LABELS); 
+(* ram_style = "block" *) reg active_root [0:MAX_LABELS-1]; // boolean array marking whether a component ID is in use as a root
+(* ram_style = "block" *) reg [label_bits-1:0] next_label; // next unused label n0.
 
 // stats for each component (hence only store for root pixel, where parent[label] == label)
 // centroid_x = sum_x / area ; centroid_y = sum_y / area
-(* ram_style = "distributed" *) reg [16:0] area [0:MAX_LABELS-1]; // number of pixels in this component
-(* ram_style = "distributed" *) reg [15:0] sum_x [0:MAX_LABELS-1]; // sum of x coordinates of pixels in this component
-(* ram_style = "distributed" *) reg [15:0] sum_y [0:MAX_LABELS-1]; // sum of y coordinates of pixels in this component
-(* ram_style = "distributed" *) reg [x_bitsize-1:0] min_x [0:MAX_LABELS-1]; 
-(* ram_style = "distributed" *) reg [x_bitsize-1:0] max_x [0:MAX_LABELS-1]; 
-(* ram_style = "distributed" *) reg [y_bitsize-1:0] min_y [0:MAX_LABELS-1]; 
-(* ram_style = "distributed" *) reg [y_bitsize-1:0] max_y [0:MAX_LABELS-1]; 
+(* ram_style = "block" *) reg [16:0] area [0:MAX_LABELS-1]; // number of pixels in this component
+(* ram_style = "block" *) reg [15:0] sum_x [0:MAX_LABELS-1]; // sum of x coordinates of pixels in this component
+(* ram_style = "block" *) reg [15:0] sum_y [0:MAX_LABELS-1]; // sum of y coordinates of pixels in this component
+(* ram_style = "block" *) reg [x_bitsize-1:0] min_x [0:MAX_LABELS-1]; 
+(* ram_style = "block" *) reg [x_bitsize-1:0] max_x [0:MAX_LABELS-1]; 
+(* ram_style = "block" *) reg [y_bitsize-1:0] min_y [0:MAX_LABELS-1]; 
+(* ram_style = "block" *) reg [y_bitsize-1:0] max_y [0:MAX_LABELS-1]; 
 
 
 // retrieve the reduced neighbour pixel's labels 
@@ -304,12 +304,14 @@ always @(posedge clk) begin
                 if (in_valid) begin
                     // sample provisional neighbor labels
                     curr_pix_q <= curr_pix;
-                    // latch frame_end associated with this accepted pixel
-                    // frame_end_accepted_pixel <= frame_end;
-                    left <= left_label;
-                    up <= up_label;
-                    upleft <= upleft_label;
-                    upright <= upright_label;
+                    // On the very first pixel of each line, force west-side neighbors to 0
+                    // to avoid accidental wrap unions caused by x/toggle_line updates
+                    // occurring in the same cycle as line_start.
+                    left   <= (line_start) ? {label_bits{1'b0}} : left_label;
+                    upleft <= (line_start) ? {label_bits{1'b0}} : upleft_label;
+                    // north neighbors remain valid at line start (refer to previous line)
+                    up     <= up_label;
+                    upright<= upright_label;
 
                     state <= S_SAMPLE;
                 end

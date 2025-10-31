@@ -4,7 +4,7 @@ module UFDS_Bridge (
     input  wire pclk,
     input  wire p_rst,
     input  wire p_valid,
-    input  wire [8:0] p_x,  // 0..305 (306 pixels wide)
+    input  wire [8:0] p_x,  // 0..309 (310 pixels wide)
     input  wire [7:0] p_y,  // 0..239 (240 pixels tall)
     input  wire p_px,
     // UFDS @ 100 MHz
@@ -31,7 +31,7 @@ module UFDS_Bridge (
 
     wire p_fs = (p_x==9'd0 && p_y==8'd0) ? 1'b1 : 1'b0; // frame start when x=0,y=0
     wire p_ls = (p_x==9'd0) ? 1'b1 : 1'b0;              // line start when x=0
-    wire p_fe = (p_x == 9'd305 && p_y == 8'd239) ? 1'b1 : 1'b0; // frame end at last pixel (306x240)
+    wire p_fe = (p_x == 9'd309 && p_y == 8'd239) ? 1'b1 : 1'b0; // frame end at last pixel (310x240)
 
     // FIFO signals
     wire        wr_full;

@@ -147,9 +147,9 @@ module mouse_movement(
 
     // Logic for Crosshair overlay and LED for ammo rounds 
     // Screen parameters
-    localparam WIDTH  = 306;
+    localparam WIDTH  = 310;
     localparam HEIGHT = 240;
-    localparam CENTER_X = WIDTH / 2;  // 153
+    localparam CENTER_X = WIDTH / 2;  // 155
     localparam CENTER_Y = HEIGHT / 2;  // 120
     
     // // Crosshair parameters

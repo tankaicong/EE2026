@@ -51,7 +51,7 @@ module Capture_Median_tb;
     Median_Filter #(
         .KERNEL_SIZE(3),
         .PIXEL_DEPTH(12),
-        .IMAGE_WIDTH((FRAME_WIDTH-28)/2), // filter expects 306-wide active capture
+        .IMAGE_WIDTH((FRAME_WIDTH-20)/2), // filter expects 310-wide active capture
         .IMAGE_HEIGHT(FRAME_HEIGHT/2)
     ) u_med (
         .clk(pclk),

@@ -38,7 +38,7 @@ module cv_settings_dragdrop (
     input wire [8:0] mouse_y, // 0..479
     input wire mouse_left,
 
-    // Drop boxes
+    // drop boxes
     input wire [9:0] pre_x, // top-left X
     input wire [8:0] pre_y, // top-left Y
     input wire [9:0] pre_w, // width
@@ -48,14 +48,14 @@ module cv_settings_dragdrop (
     input wire [9:0] morph_w, // width
     input wire [8:0] morph_h, // height
 
-    // Concatenated top-left positions (send to BRAM)
+    // concatenated top-left positions (send to BRAM)
     output wire [59:0] boxes_x, // 6 x 10 bit, {box5..box0}
     output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0} 
 
-    // Hover flags: 1 when mouse is currently over the box (for educational box to pop out)
+    // hover flags: 1 when mouse is currently over the box (for educational box to pop out)
     output wire [5:0] hover, // box0..box5
 
-    // Recorded orders for morphology: up to 4 steps, 2-bit code per step
+    // recorded orders for morphology: up to 4 steps, 2-bit code per step
     output reg [2:0] morph_count,
     // 01 = ERODE, 10 = DILATE
     output reg [1:0] morph_order0,
@@ -63,25 +63,27 @@ module cv_settings_dragdrop (
     output reg [1:0] morph_order2,
     output reg [1:0] morph_order3,
 
-    // Also expose how many pre boxes are placed and their chronological order
+    // also expose how many pre boxes are placed and their chronological order
     output reg [1:0] pre_count,
     // 01 = GAUSS, 10 = MEDIAN
     output reg [1:0] pre_order0,
     output reg [1:0] pre_order1,
-    // Concatenated order outputs (leftmost box in LSB, rightmost in MSB)
+    // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
     output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
-    output wire [3:0] pre_order_vector // [1:0]=leftmost, [3:2]=rightmost
+    output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
+    // z-order control: index of box to render on top (foreground)
+    output reg  [2:0] front_idx
 );
 
-    // ---- Box definitions ----
-    // Preprocessing boxes (cyan): GAUSS, MEDIAN (72x34)
+    // --------------- Box definitions ----------------
+    // preprocessing boxes (cyan): GAUSS, MEDIAN (72x34)
     localparam [9:0] W_PRE = 10'd72;
     localparam [8:0] H_ALL = 9'd34; // all boxes uniform height 34
 
-    // Morphology boxes (magenta): ERODE/DILATE (40x34)
+    // ,orphology boxes (magenta): ERODE/DILATE (40x34)
     localparam [9:0] W_MOR = 10'd40;
 
-    // Initial positions: (320,352),(394,352),(468,352),(510,352),(552,352),(594,352)
+    // initial positions: (320,352),(394,352),(468,352),(510,352),(552,352),(594,352)
     localparam [9:0] X0_INIT = 10'd320;
     localparam [9:0] X1_INIT = 10'd394;
     localparam [9:0] X2_INIT = 10'd468;
@@ -90,13 +92,13 @@ module cv_settings_dragdrop (
     localparam [9:0] X5_INIT = 10'd594;
     localparam [8:0] Y_INIT = 9'd352;
 
-    // Box types
+    // box types
     localparam [2:0] T_GAUSS = 3'd1;
     localparam [2:0] T_MEDIAN = 3'd2;
     localparam [2:0] T_ERODE = 3'd3;
     localparam [2:0] T_DILATE = 3'd4;
 
-    // Registers for current top-left positions 
+    // registers for current top-left positions
     // x0 is box0 (GAUSS), x1 is box1 (MEDIAN), x2 is box2 (ERODE A), x3 is box3 (ERODE B), x4 is box4 (DILATE A), x5 is box5 (DILATE B)
     reg [9:0] x0, x1, x2, x3, x4, x5;
     reg [8:0] y0, y1, y2, y3, y4, y5;
@@ -116,7 +118,7 @@ module cv_settings_dragdrop (
     reg [1:0] ac, bc, cc, dc; // corresponding codes (01=ERODE, 10=DILATE)
     reg [9:0] tmpx; reg [1:0] tmpc; // swap temps
 
-    // Hover
+    // hover stuff
     wire hov0 = (mouse_x >= x0) && (mouse_x < (x0 + W_PRE)) && (mouse_y >= y0) && (mouse_y < (y0 + H_ALL));
     wire hov1 = (mouse_x >= x1) && (mouse_x < (x1 + W_PRE)) && (mouse_y >= y1) && (mouse_y < (y1 + H_ALL));
     wire hov2 = (mouse_x >= x2) && (mouse_x < (x2 + W_MOR)) && (mouse_y >= y2) && (mouse_y < (y2 + H_ALL));
@@ -125,12 +127,13 @@ module cv_settings_dragdrop (
     wire hov5 = (mouse_x >= x5) && (mouse_x < (x5 + W_MOR)) && (mouse_y >= y5) && (mouse_y < (y5 + H_ALL));
     assign hover = {hov5, hov4, hov3, hov2, hov1, hov0};
 
-    // Helper: clamp mouse to top-left when dragging
+    // top-left mouse-aligned positions so a box centers under the cursor while dragging
     wire [9:0] mx_pre = (mouse_x <= (W_PRE>>1)) ? 10'd0 : (mouse_x - (W_PRE>>1));
     wire [8:0] my_all = (mouse_y <= (H_ALL>>1)) ? 9'd0 : (mouse_y - (H_ALL>>1));
     wire [9:0] mx_mor = (mouse_x <= (W_MOR>>1)) ? 10'd0 : (mouse_x - (W_MOR>>1));
 
-    // In-drop checks using center point
+    // in-drop checks using center point, check if the center of a box lies within the corresponding drop zone
+    // a box only snaps if its type matches the zone (pre vs morph); otherwise it snaps back.
     wire in_pre0 = ((x0 + (W_PRE>>1)) >= pre_x) && ((x0 + (W_PRE>>1)) < (pre_x + pre_w))
                 && ((y0 + (H_ALL>>1)) >= pre_y) && ((y0 + (H_ALL>>1)) < (pre_y + pre_h));
     wire in_pre1 = ((x1 + (W_PRE>>1)) >= pre_x) && ((x1 + (W_PRE>>1)) < (pre_x + pre_w))
@@ -145,17 +148,18 @@ module cv_settings_dragdrop (
     wire in_m5 = ((x5 + (W_MOR>>1)) >= morph_x) && ((x5 + (W_MOR>>1)) < (morph_x + morph_w))
               && ((y5 + (H_ALL>>1)) >= morph_y) && ((y5 + (H_ALL>>1)) < (morph_y + morph_h));
 
-    // Compute left margins for centralized layout
+    // compute left margins for centralized layout (center one pre box, or center two side-by-side)
     wire [9:0] pre_left_margin_1 = (pre_w - W_PRE) >> 1; // one box case
     wire [9:0] pre_left_margin_2 = (pre_w - (W_PRE<<1)) >> 1; // two boxes case
 
-    // For morph zone (N=1..4): margin = (morph_w - N*W_MOR)/2
+    // for morph zone (N=1 to 4): margin = (morph_w - N*W_MOR)/2 (the left offset to center 1-4 morph boxes evenly)
     wire [9:0] morph_left_margin_1 = (morph_w - (W_MOR)) >> 1; // one box case
     wire [9:0] morph_left_margin_2 = (morph_w - (W_MOR<<1)) >> 1; // two boxes case
     wire [9:0] morph_left_margin_3 = (morph_w - (W_MOR*3)) >> 1; // three boxes case
     wire [9:0] morph_left_margin_4 = (morph_w - (W_MOR<<2)) >> 1; // four boxes case
 
     reg [1:0] r2; reg [1:0] r3; reg [1:0] r4; reg [1:0] r5;
+    reg [2:0] mc; // local next-value for morph_count used for same-cycle layout decisions
 
     // Initialization and edge sampling
     always @(posedge clk) begin
@@ -174,25 +178,26 @@ module cv_settings_dragdrop (
 
             pre_count <= 2'd0; pre_order0 <= 2'b00; pre_order1 <= 2'b00;
             morph_count <= 3'd0; morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
+            front_idx <= 3'd0;
         end else begin
             // sample left button
             left_q <= mouse_left;
 
-            // Default: if settings not active, ignore interactions but keep positions
+            // default: if settings not active, ignore interactions but keep positions
             if (!settings_active) begin
                 dragging <= 1'b0;
             end else begin
-                // Rising edge: start dragging one hovered box (priority 0..5)
+                // rising edge: start dragging one hovered box (priority 0..5)
                 if (!left_q && mouse_left && !dragging) begin
-                    if (hov0) begin dragging <= 1'b1; drag_idx <= 3'd0; end
-                    else if (hov1) begin dragging <= 1'b1; drag_idx <= 3'd1; end
-                    else if (hov2) begin dragging <= 1'b1; drag_idx <= 3'd2; end
-                    else if (hov3) begin dragging <= 1'b1; drag_idx <= 3'd3; end
-                    else if (hov4) begin dragging <= 1'b1; drag_idx <= 3'd4; end
-                    else if (hov5) begin dragging <= 1'b1; drag_idx <= 3'd5; end
+                    if (hov0) begin dragging <= 1'b1; drag_idx <= 3'd0; front_idx <= 3'd0; end
+                    else if (hov1) begin dragging <= 1'b1; drag_idx <= 3'd1; front_idx <= 3'd1; end
+                    else if (hov2) begin dragging <= 1'b1; drag_idx <= 3'd2; front_idx <= 3'd2; end
+                    else if (hov3) begin dragging <= 1'b1; drag_idx <= 3'd3; front_idx <= 3'd3; end
+                    else if (hov4) begin dragging <= 1'b1; drag_idx <= 3'd4; front_idx <= 3'd4; end
+                    else if (hov5) begin dragging <= 1'b1; drag_idx <= 3'd5; front_idx <= 3'd5; end
                 end
 
-                // While held: follow mouse
+                // while held: follow mouse
                 if (dragging && mouse_left) begin
                     case (drag_idx)
                         3'd0: begin x0 <= (mx_pre > (10'd639 - W_PRE)) ? (10'd639 - W_PRE) : mx_pre; y0 <= (my_all > (9'd479 - H_ALL)) ? (9'd479 - H_ALL) : my_all; end
@@ -204,7 +209,7 @@ module cv_settings_dragdrop (
                     endcase
                 end
 
-                // Falling edge: drop logic
+                // falling edge: drop logic
                 if (left_q && !mouse_left && dragging) begin
                     case (drag_idx)
                         // GAUSS (0)
@@ -268,7 +273,7 @@ module cv_settings_dragdrop (
                 end
             end
 
-            // Snap positions into drop zones when placed and not actively dragging
+            // snap positions into drop zones when placed and not actively dragging
             if (!dragging) begin
                 // PRE drop snapped positions (two slots max) based on physical order
                 if (placed0_pre || placed1_pre) begin
@@ -277,7 +282,9 @@ module cv_settings_dragdrop (
                         if (placed0_pre) begin x0 <= pre_x + pre_left_margin_1; y0 <= pre_y; end
                         if (placed1_pre) begin x1 <= pre_x + pre_left_margin_1; y1 <= pre_y; end
                     end else if (placed0_pre && placed1_pre) begin
-                        if (x0 <= x1) begin
+                        // two placed -> side by side
+                        // check when user released which is more left to be first
+                        if (x0 <= x1) begin 
                             x0 <= pre_x + pre_left_margin_2; y0 <= pre_y;
                             x1 <= pre_x + pre_left_margin_2 + W_PRE; y1 <= pre_y;
                         end else begin
@@ -288,38 +295,50 @@ module cv_settings_dragdrop (
                 end
 
                 // MORPH drop snapped positions (up to 4), based on current left-to-right ranks
-                // Count placed
-                morph_count <= {1'b0, placed2_morph} + {1'b0, placed3_morph} + {1'b0, placed4_morph} + {1'b0, placed5_morph};
+                // Count placed using local next-value (avoid 1-cycle stale read of morph_count)
+                mc = {1'b0, placed2_morph} + {1'b0, placed3_morph} + {1'b0, placed4_morph} + {1'b0, placed5_morph};
+                // Compute “ranks” r2 to r5 = number of other morph boxes strictly to the left, i.e., count of those whose x is less than this box’s x.
+                r2 = (placed3_morph && ((x3 < x2) || ((x3 == x2) && (3 < 2))))
+                         + (placed4_morph && ((x4 < x2) || ((x4 == x2) && (4 < 2))))
+                         + (placed5_morph && ((x5 < x2) || ((x5 == x2) && (5 < 2))));
 
-                // Compute ranks (how many others to the left) for each placed box
-                // Note: use strict less-than; equal x may overlap
-                r2 = (placed3_morph && (x3 < x2)) + (placed4_morph && (x4 < x2)) + (placed5_morph && (x5 < x2));
-                r3 = (placed2_morph && (x2 < x3)) + (placed4_morph && (x4 < x3)) + (placed5_morph && (x5 < x3));
-                r4 = (placed2_morph && (x2 < x4)) + (placed3_morph && (x3 < x4)) + (placed5_morph && (x5 < x4));
-                r5 = (placed2_morph && (x2 < x5)) + (placed3_morph && (x3 < x5)) + (placed4_morph && (x4 < x5));
+                r3 = (placed2_morph && ((x2 < x3) || ((x2 == x3) && (2 < 3))))
+                         + (placed4_morph && ((x4 < x3) || ((x4 == x3) && (4 < 3))))
+                         + (placed5_morph && ((x5 < x3) || ((x5 == x3) && (5 < 3))));
 
-                // Base offset by count
-                if (morph_count == 3'd1) begin
+                r4 = (placed2_morph && ((x2 < x4) || ((x2 == x4) && (2 < 4))))
+                         + (placed3_morph && ((x3 < x4) || ((x3 == x4) && (3 < 4))))
+                         + (placed5_morph && ((x5 < x4) || ((x5 == x4) && (5 < 4))));
+
+                r5 = (placed2_morph && ((x2 < x5) || ((x2 == x5) && (2 < 5))))
+                         + (placed3_morph && ((x3 < x5) || ((x3 == x5) && (3 < 5))))
+                         + (placed4_morph && ((x4 < x5) || ((x4 == x5) && (4 < 5))));
+
+                // Base offset by count (use mc)
+                if (mc == 3'd1) begin
                     if (placed2_morph) begin x2 <= morph_x + morph_left_margin_1; y2 <= morph_y; end
                     if (placed3_morph) begin x3 <= morph_x + morph_left_margin_1; y3 <= morph_y; end
                     if (placed4_morph) begin x4 <= morph_x + morph_left_margin_1; y4 <= morph_y; end
                     if (placed5_morph) begin x5 <= morph_x + morph_left_margin_1; y5 <= morph_y; end
-                end else if (morph_count == 3'd2) begin
+                end else if (mc == 3'd2) begin
                     if (placed2_morph) begin x2 <= morph_x + morph_left_margin_2 + (W_MOR * r2); y2 <= morph_y; end
                     if (placed3_morph) begin x3 <= morph_x + morph_left_margin_2 + (W_MOR * r3); y3 <= morph_y; end
                     if (placed4_morph) begin x4 <= morph_x + morph_left_margin_2 + (W_MOR * r4); y4 <= morph_y; end
                     if (placed5_morph) begin x5 <= morph_x + morph_left_margin_2 + (W_MOR * r5); y5 <= morph_y; end
-                end else if (morph_count == 3'd3) begin
+                end else if (mc == 3'd3) begin
                     if (placed2_morph) begin x2 <= morph_x + morph_left_margin_3 + (W_MOR * r2); y2 <= morph_y; end
                     if (placed3_morph) begin x3 <= morph_x + morph_left_margin_3 + (W_MOR * r3); y3 <= morph_y; end
                     if (placed4_morph) begin x4 <= morph_x + morph_left_margin_3 + (W_MOR * r4); y4 <= morph_y; end
                     if (placed5_morph) begin x5 <= morph_x + morph_left_margin_3 + (W_MOR * r5); y5 <= morph_y; end
-                end else if (morph_count == 3'd4) begin
+                end else if (mc == 3'd4) begin
                     if (placed2_morph) begin x2 <= morph_x + morph_left_margin_4 + (W_MOR * r2); y2 <= morph_y; end
                     if (placed3_morph) begin x3 <= morph_x + morph_left_margin_4 + (W_MOR * r3); y3 <= morph_y; end
                     if (placed4_morph) begin x4 <= morph_x + morph_left_margin_4 + (W_MOR * r4); y4 <= morph_y; end
                     if (placed5_morph) begin x5 <= morph_x + morph_left_margin_4 + (W_MOR * r5); y5 <= morph_y; end
                 end
+
+                // Update registered morph_count after using mc for layout
+                morph_count <= mc;
             end
 
             // Morphology processing order: left-to-right by x position (ignore chronological)

@@ -24,6 +24,9 @@ module cv_settings_overlay (
     input  wire [59:0] boxes_x,  // 6 x 10-bit
     input  wire [53:0] boxes_y,  // 6 x 9-bit
 
+    // Index of the box to draw on top (foreground). 0..5; if out-of-range, default order applies.
+    input  wire [2:0]  front_idx,
+
     // Outputs
     output reg         overlay_en,
     output reg [11:0]  overlay_rgb
@@ -84,13 +87,29 @@ module cv_settings_overlay (
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end
 
-            // Filled movable boxes override border
-            if (in0) begin overlay_en = 1'b1; overlay_rgb = BLACK; end
-            else if (in1) begin overlay_en = 1'b1; overlay_rgb = CYAN; end
-            else if (in2) begin overlay_en = 1'b1; overlay_rgb = MAGENTA; end
-            else if (in3) begin overlay_en = 1'b1; overlay_rgb = GREY; end
-            else if (in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
-            else if (in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
+            // Filled movable boxes override border. Draw the selected front_idx last for foreground.
+            // First, if current pixel lies in the front_idx box, draw it immediately.
+            if ((front_idx == 3'd0 && in0) || (front_idx == 3'd1 && in1) || (front_idx == 3'd2 && in2)
+                || (front_idx == 3'd3 && in3) || (front_idx == 3'd4 && in4) || (front_idx == 3'd5 && in5)) begin
+                overlay_en  = 1'b1;
+                case (front_idx)
+                    3'd0: overlay_rgb = BLACK;
+                    3'd1: overlay_rgb = CYAN;
+                    3'd2: overlay_rgb = MAGENTA;
+                    3'd3: overlay_rgb = GREY;
+                    3'd4: overlay_rgb = WHITE;
+                    3'd5: overlay_rgb = YELLOW;
+                    default: overlay_rgb = WHITE;
+                endcase
+            end else begin
+                // Otherwise, draw in default priority order skipping the front_idx
+                if ((front_idx != 3'd0) && in0) begin overlay_en = 1'b1; overlay_rgb = BLACK; end
+                else if ((front_idx != 3'd1) && in1) begin overlay_en = 1'b1; overlay_rgb = CYAN; end
+                else if ((front_idx != 3'd2) && in2) begin overlay_en = 1'b1; overlay_rgb = MAGENTA; end
+                else if ((front_idx != 3'd3) && in3) begin overlay_en = 1'b1; overlay_rgb = GREY; end
+                else if ((front_idx != 3'd4) && in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
+                else if ((front_idx != 3'd5) && in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
+            end
         end
     end
 

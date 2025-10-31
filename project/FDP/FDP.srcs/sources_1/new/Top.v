@@ -730,30 +730,31 @@ module Top(
     // Simple asymmetric debouncers in clk25 domain
     // - Left/right latch immediately on press
     // - Release only after a continuous low for a slightly longer threshold to avoid false releases on hold
-    localparam [22:0] RELEASE_TH = 22'd50000000; // 0.2 s at 25 MHz
+    localparam [19:0] RELEASE_L = 19'd2500000; // 0.1 s at 25 MHz
+    localparam [19:0] RELEASE_R = 19'd500000;  // 0.02 s at 25 MHz
 
     // Left-click debouncer: hold won't release on short bounces
-    reg [22:0] l_rel_cnt = 22'd0;
+    reg [19:0] l_rel_cnt = 19'd0;
     reg        left_deb  = 1'b0; // debounced level
     always @(posedge clk25) begin
         if (vga_reset) begin
             left_deb  <= 1'b0;
-            l_rel_cnt <= 22'd0;
+            l_rel_cnt <= 19'd0;
         end else begin
             if (left_click_sync[1]) begin
                 // immediate latch on press
                 left_deb  <= 1'b1;
-                l_rel_cnt <= 22'd0;
+                l_rel_cnt <= 19'd0;
             end else if (left_deb) begin
                 // count continuous lows before releasing
-                if (l_rel_cnt >= RELEASE_TH) begin
+                if (l_rel_cnt >= RELEASE_L) begin
                     left_deb  <= 1'b0;
-                    l_rel_cnt <= 22'd0;
+                    l_rel_cnt <= 19'd0;
                 end else begin
                     l_rel_cnt <= l_rel_cnt + 1'b1;
                 end
             end else begin
-                l_rel_cnt <= 22'd0;
+                l_rel_cnt <= 19'd0;
             end
         end
     end
@@ -765,25 +766,25 @@ module Top(
     wire left_click_deb  = left_deb;
 
     // Right-click debouncer: same simple scheme
-    reg [22:0] r_rel_cnt = 22'd0;
+    reg [19:0] r_rel_cnt = 19'd0;
     reg        right_deb = 1'b0;
     always @(posedge clk25) begin
         if (vga_reset) begin
             right_deb <= 1'b0;
-            r_rel_cnt <= 22'd0;
+            r_rel_cnt <= 19'd0;
         end else begin
             if (right_click_sync[1]) begin
                 right_deb <= 1'b1;
-                r_rel_cnt <= 22'd0;
+                r_rel_cnt <= 19'd0;
             end else if (right_deb) begin
-                if (r_rel_cnt >= RELEASE_TH) begin
+                if (r_rel_cnt >= RELEASE_R) begin
                     right_deb <= 1'b0;
-                    r_rel_cnt <= 22'd0;
+                    r_rel_cnt <= 19'd0;
                 end else begin
                     r_rel_cnt <= r_rel_cnt + 1'b1;
                 end
             end else begin
-                r_rel_cnt <= 22'd0;
+                r_rel_cnt <= 19'd0;
             end
         end
     end
@@ -868,7 +869,7 @@ module Top(
     localparam [8:0] PRE_Y_VGA = 9'd435;
     localparam [9:0] PRE_W_VGA = 10'd148;
     localparam [8:0] PRE_H_VGA = 9'd34;
-    localparam [9:0] MORPH_X_VGA = 10'd642;
+    localparam [9:0] MORPH_X_VGA = 10'd381;
     localparam [8:0] MORPH_Y_VGA = 9'd435;
     localparam [9:0] MORPH_W_VGA = 10'd166;
     localparam [8:0] MORPH_H_VGA = 9'd34;
@@ -880,6 +881,7 @@ module Top(
     wire [7:0]  morph_order_vector;
     wire [3:0]  pre_order_vector;
     wire [5:0]  box_hover;
+    wire [2:0]  front_idx;
     wire [2:0]  morph_count;
     wire [1:0]  morph_order0, morph_order1, morph_order2, morph_order3;
     wire [1:0]  pre_count;
@@ -899,7 +901,8 @@ module Top(
         .morph_count(morph_count),
         .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
-        .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector)
+        .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector),
+        .front_idx(front_idx)
     );
 
     // Overlay pixel from settings UI (drag/drop) in VGA coordinates
@@ -911,6 +914,7 @@ module Top(
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
+        .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay)
     );
 
@@ -961,12 +965,43 @@ module Top(
     reg [23:0] state_change_cooldown = 0;
     localparam STATE_COOLDOWN = 24'd5_000_000;
 
-    // btnC edge detect in clk25 domain
+    // btnC: synchronize then debounce in clk25 domain (same scheme as mouse clicks)
     reg [2:0] btnC_sync = 3'b000;
     always @(posedge clk25) begin
         btnC_sync <= {btnC_sync[1:0], btnC};
     end
-    wire btnC_edge = btnC_sync[1] & ~btnC_sync[2];
+
+    // Debouncer: immediate latch on press, release only after continuous low for RELEASE_TH cycles
+    reg [19:0] c_rel_cnt = 19'd0;
+    reg        btnC_deb  = 1'b0; // debounced level
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            btnC_deb  <= 1'b0;
+            c_rel_cnt <= 19'd0;
+        end else begin
+            if (btnC_sync[1]) begin
+                // immediate latch on press
+                btnC_deb  <= 1'b1;
+                c_rel_cnt <= 19'd0;
+            end else if (btnC_deb) begin
+                // count continuous lows before releasing
+                if (c_rel_cnt >= RELEASE_R) begin
+                    btnC_deb  <= 1'b0;
+                    c_rel_cnt <= 19'd0;
+                end else begin
+                    c_rel_cnt <= c_rel_cnt + 1'b1;
+                end
+            end else begin
+                c_rel_cnt <= 19'd0;
+            end
+        end
+    end
+    reg btnC_deb_q = 1'b0;
+    always @(posedge clk25) begin
+        if (vga_reset) btnC_deb_q <= 1'b0; else btnC_deb_q <= btnC_deb;
+    end
+    wire btnC_edge = btnC_deb & ~btnC_deb_q; // 1-cycle pulse on debounced rising edge
+    wire btnC_debounced = btnC_deb;          // stable debounced level if needed elsewhere
 
     always @(posedge clk25) begin
         if (vga_reset) begin

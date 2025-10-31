@@ -32,8 +32,8 @@ module mouse_movement(
     inout mouse_data,  //PS2 data packets
     output servo_x_pwm, // PWM signal for X servo
     output servo_y_pwm, // PWM signal for Y servo
-    output reg [15:0] led,  //Bullet counts
-    output reg [7:0] cooldown_progress
+    output reg [15:0] led  //Bullet counts
+    // output reg [7:0] cooldown_progress
     );
 
 
@@ -124,8 +124,10 @@ module mouse_movement(
     //     end
     // end
     // Convert servo angle (0–180 degrees) to pulse width (1 ms – 2 ms)
-    wire [20:0] pulse_width_x = 100_000 + ((180 - servo_x_angle) * 100_000 / 180);
-    wire [20:0] pulse_width_y = 100_000 + (servo_y_angle * 100_000 / 180);
+    wire [20:0] pulse_width_x = 100_000 + ((180 - servo_x_angle) << 9 );
+    wire [20:0] pulse_width_y = 100_000 + (servo_y_angle << 9);
+
+    // 100_000/180
 
     always @(posedge clk) begin
         // Reset counter every 20 ms as most servo motors works with such
@@ -169,11 +171,9 @@ module mouse_movement(
     reg [4:0] bullet_count = 5'd16;
 
     // Add 2 seconds cooldown on each shot
-`ifdef SIMULATION
-    localparam COOLDOWN = 10; // very short cooldown for simulation
-`else
-    localparam COOLDOWN = 200_000_000; // 1s
-`endif
+
+    localparam COOLDOWN = 134_217_728; // 1s
+
 
 
     always @(posedge clk) begin
@@ -182,7 +182,7 @@ module mouse_movement(
             cooldown_timer <= 0;
             shot_enabled <= 1;
             bullet_count <= 16;
-            cooldown_progress <= 8'd255;
+            // cooldown_progress <= 8'd255;
             led <= 16'hFFFF;
         end
         else begin
@@ -191,11 +191,11 @@ module mouse_movement(
                 cooldown_timer <= cooldown_timer - 1;
 
             // This creates a linear progression from 255 to 0
-            if (cooldown_timer == 0) begin
-                cooldown_progress <= 8'd255; // Fully charged
-            end else begin
-                cooldown_progress <= 255 - ((cooldown_timer * 256) / COOLDOWN);
-            end
+            // if (cooldown_timer == 0) begin
+            //     cooldown_progress <= 8'd255; // Fully charged
+            // end else begin
+            //     cooldown_progress <= 255 - (cooldown_timer >> 19); //* 256) / 200_000_000);
+            // end
 
 
             if (cooldown_timer == 0)

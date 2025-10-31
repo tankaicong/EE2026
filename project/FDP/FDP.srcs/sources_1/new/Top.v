@@ -859,6 +859,10 @@ module Top(
     // VGA mouse - clamp to screen bounds
     wire [9:0] mouse_x_vga = (mouse_x_sync >= 12'd639) ? 10'd639 : mouse_x_sync[9:0];
     wire [8:0] mouse_y_vga = (mouse_y_sync >= 12'd479) ? 9'd479 : mouse_y_sync[8:0];
+    // VGA-space 3x3 cursor for VGA-based UIs (e.g., settings overlays) to avoid source-grid offset
+    wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
+    wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
+    wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
 
     // ------------- CV Settings: Drag & Drop for Preprocessing/Morphology --------------
     // Drop boxes: define both VGA (for overlay drawing) and SRC (for drag-drop logic)
@@ -1079,7 +1083,8 @@ module Top(
 
                     // draw CV settings overlay, then draw cursor on top
                     if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
-                    if (within_cursor_3x3) frame_pixel <= 12'hFFF;
+                    // Use VGA-space cursor here (overlay also uses VGA coords)
+                    if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
                 end
 
                 S_USER_SETTINGS: begin
@@ -1089,7 +1094,8 @@ module Top(
                     end
                     // draw user settings overlay, then draw cursor on top
                     if (user_overlay_en) frame_pixel <= user_overlay_rgb;
-                    if (within_cursor_3x3) frame_pixel <= 12'hFFF;
+                    // Use VGA-space cursor here as well (UI drawn in VGA coords)
+                    if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
                 end
 
                 S_GAME_MANUAL_MODE: begin

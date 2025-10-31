@@ -576,9 +576,9 @@ module Top(
 
     // cooldown 
     localparam CROSSHAIR_HEIGHT = 11;
-    wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) >> 8;
+    // wire [7:0] fill_height = (cooldown_progress * CROSSHAIR_HEIGHT) >> 8;
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
-    wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
+    // wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
 
     // Decode concatenated outputs into per-component fields and latch once per VGA frame
     wire [9:0] left0   = comp3210_left[9:0];
@@ -682,7 +682,7 @@ module Top(
     wire servo_y_pwm;
 
     // Cooldown progress from mouse controller
-    wire [7:0] cooldown_progress;
+    // wire [7:0] cooldown_progress;
     localparam COOLDOWN = 200_000_000;
 
     // mouse controller module
@@ -698,8 +698,8 @@ module Top(
         .mouse_data(mouse_data),
         .servo_x_pwm(servo_x_pwm),
         .servo_y_pwm(servo_y_pwm),
-        .led(mouse_led),
-        .cooldown_progress(cooldown_progress)
+        .led(mouse_led)
+        // .cooldown_progress(cooldown_progress)
     );
 
     // always @(*) begin
@@ -1180,10 +1180,10 @@ module Top(
                             frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
 
                             // Green portion rises upward from bottom
-                            if (frame_y[9:1] >= green_top_y)
+                            // if (frame_y[9:1] >= green_top_y)
                                 frame_pixel <= GREEN;
-                            else
-                                frame_pixel <= RED;
+                            // else
+                            //     frame_pixel <= RED;
                         end
 
                         // === Top vertical arm ===
@@ -1191,10 +1191,10 @@ module Top(
                                 frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
 
                             // Mirror the same cooldown progress upward
-                            if (frame_y[9:1] <= (120 - CROSSHAIR_HEIGHT + fill_height))
+                            // if (frame_y[9:1] <= (120 - CROSSHAIR_HEIGHT + fill_height))
                                 frame_pixel <= GREEN;
-                            else
-                                frame_pixel <= RED;
+                            // else
+                            //     frame_pixel <= RED;
                         end
 
                         // === Left horizontal arm ===
@@ -1202,20 +1202,20 @@ module Top(
                                 frame_x[9:1] >= 160-11 && frame_x[9:1] <= 160-2) begin
 
                             // Turn green once cooldown crosses midpoint
-                            if (fill_height >= CROSSHAIR_HEIGHT / 2)
+                            // if (fill_height >= CROSSHAIR_HEIGHT / 2)
                                 frame_pixel <= GREEN;
-                            else
-                                frame_pixel <= RED;
+                            // else
+                            //     frame_pixel <= RED;
                         end
 
                         // === Right horizontal arm ===
                         else if (frame_y[9:1] == 120 &&
                                 frame_x[9:1] >= 160+2 && frame_x[9:1] <= 160+11) begin
 
-                            if (fill_height >= CROSSHAIR_HEIGHT / 2)
+                            // if (fill_height >= CROSSHAIR_HEIGHT / 2)
                                 frame_pixel <= GREEN;
-                            else
-                                frame_pixel <= RED;
+                            // else
+                            //     frame_pixel <= RED;
                         end
                         else if (in_roi && (
                             // Comp 0

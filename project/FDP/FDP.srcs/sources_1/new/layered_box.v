@@ -8,9 +8,9 @@ module layered_box #(
     parameter integer TOP_LEFT_Y    = 0,
     parameter integer WIDTH         = 60,
     parameter integer HEIGHT        = 60,
-    parameter integer OUTER_THICK   = 3,  // outer black
-    parameter integer MID_THICK     = 3,  // white band
-    parameter integer INNER_THICK   = 3   // inner black
+    parameter integer OUTER_THICK   = 1,  // outer black
+    parameter integer MID_THICK     = 1,  // white band
+    parameter integer INNER_THICK   = 1   // inner black
 )(
     input  wire [8:0] x,  // source X (0..309)
     input  wire [7:0] y,  // source Y (0..239)

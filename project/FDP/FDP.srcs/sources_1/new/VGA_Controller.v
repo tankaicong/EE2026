@@ -70,16 +70,10 @@ module VGA_Controller(
         // Pixel outputs (when not blank) - READ FROM BRAM (aligned)
         // Start outputting a couple cycles earlier so the first shown pixel maps
         // to src_x_adj == 0 (i.e., the leftmost cropped column).
-        if (hCounter >= 30) begin
-            if (blank == 1'b0) begin
-                vga_red   <= frame_pixel_q[11:8];
-                vga_green <= frame_pixel_q[7:4];
-                vga_blue  <= frame_pixel_q[3:0];
-            end else begin
-                vga_red   <= 4'b0;
-                vga_green <= 4'b0;
-                vga_blue  <= 4'b0;
-            end
+        if (blank == 1'b0) begin
+            vga_red   <= frame_pixel_q[11:8];
+            vga_green <= frame_pixel_q[7:4];
+            vga_blue  <= frame_pixel_q[3:0];
         end else begin
             vga_red   <= 4'b0;
             vga_green <= 4'b0;

@@ -1184,8 +1184,10 @@ module Top(
     wire cam_box_clicked;
     wire bitmap_box_clicked;
     wire ufds_box_clicked;
+    // Change-view selection code from overlay (00 CAM, 01 PRE, 11 BITMAP, 10 MORPH)
+    wire [1:0] final_out;
     cv_settings_overlay settings_cv_overlay (
-        .settings_active(cv_settings_mode),
+        .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
         .px(frame_x), .py(frame_y),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
@@ -1193,10 +1195,13 @@ module Top(
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
         .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
-        .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA)
+        .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
+        .final_out(final_out)
     );
 
-
+    // Optional: expose selection on LEDs for quick debug
+    assign led[9:8] = final_out;
+    
     // Display Settings UI instance
     wire        user_overlay_en;
     wire [11:0] user_overlay_rgb;

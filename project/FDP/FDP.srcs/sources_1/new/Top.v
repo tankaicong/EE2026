@@ -276,9 +276,9 @@ module Top(
     end
 
     always @(posedge clk) begin
-        Preprocessing_State <= sw[3:0];
-        Morphology_State <= sw[11:4];
-        Final_Out_Control <= sw[13:12];
+        Preprocessing_State <= pre_order_vector;
+        Morphology_State <= morph_order_vector;
+        Final_Out_Control <= sw[1:0];
     end
 
     // input and output pixels from each convolutional block
@@ -460,7 +460,6 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(erode_1_pixel_we),
-        // morphology operates on gaussian-thresholded pixels
         .pixel_in(erode_1_pixel_in),
         .op_dilate(1'b0),
         .pixel_out(erode_1_pixel_out),
@@ -475,7 +474,6 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(erode_2_pixel_we),
-        // morphology operates on gaussian-thresholded pixels
         .pixel_in(erode_2_pixel_in),
         .op_dilate(1'b0),
         .pixel_out(erode_2_pixel_out),

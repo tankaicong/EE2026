@@ -1270,6 +1270,26 @@ module Top(
             endcase
             
         end
+
+        // For settings overlay
+        if (write_high) begin
+            if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
+            else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
+            else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
+            else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+            else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
+            else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
+            else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
+            else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+            else if (overlay_pixel == 4'h8) frame_pixel <= 12'h57B;
+            else if (overlay_pixel == 4'h9) frame_pixel <= 12'hACE;
+            else if (overlay_pixel == 4'hA) frame_pixel <= 12'hBDE;
+            else if (overlay_pixel == 4'hB) frame_pixel <= 12'hEEB;
+            // else if (overlay_pixel == 4'hC) frame_pixel <= 12'h555;
+            // else if (overlay_pixel == 4'hD) frame_pixel <= 12'hDDD;
+            // else if (overlay_pixel == 4'hE) frame_pixel <= 12'h777;
+            else if (overlay_pixel == 4'hF) frame_pixel <= 12'h000;
+        end
     end
 
     // Sets timer
@@ -1282,5 +1302,20 @@ module Top(
     //     .an(an[3:0])
     // );
 
-
+    /* --- Overlay --- */
+    reg [59:0] move_x = 60'h5018A751FE8A252;
+    reg [53:0] move_y = 54'h2C160B0582C160;
+    wire write_high;
+    wire [3:0] overlay_pixel;
+    generate_overlay gen_ovrly (
+        .clk(clk),        // 100MHz clock (used for position updates)
+        .clk25(clk25),    // 25MHz VGA clock for BRAM reads
+        .en(sw[8]),
+        .x(move_x),
+        .y(move_y),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .to_write(write_high),
+        .image_pixel(overlay_pixel)
+    );
 endmodule

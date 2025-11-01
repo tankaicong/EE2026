@@ -1,12 +1,13 @@
 module generate_overlay(
-    input clk,              // 100MHz clk
-    input en,               // Enable overlay generation
-    input [59:0] x,         // x input for all 6 boxes
-    input [53:0] y,         // y input for all 6 boxes
-    input [9:0] frame_x,     // current x coord in frame (0..639) from VGA
-    input [9:0] frame_y,     // current y coord in frame (0..479) from VGA
-    output to_write,        // HIGH for write to VGA, LOW for no write
-    output image_pixel      // BRAM color output (encoded, decode in Top.v)
+    input clk,                      // 100MHz clk
+    input clk25,                    // 25MHz clk
+    input en,                       // Enable overlay generation
+    input [59:0] x,                 // x input for all 6 boxes (10 bits)
+    input [53:0] y,                 // y input for all 6 boxes (9 bits)
+    input [9:0] frame_x,            // current x coord in frame (0..639) from VGA
+    input [9:0] frame_y,            // current y coord in frame (0..479) from VGA
+    output reg to_write,                // HIGH for write to VGA, LOW for no write
+    output [3:0] image_pixel        // BRAM color output (encoded, decode in Top.v)
 );
     /* Takes in X and Y coordinate for movable boxes in order:
     Gaussian, Median, Erode 1, Erode 2, Dilate 1, Dilate 2
@@ -69,22 +70,21 @@ module generate_overlay(
     wire dilate_1_sq, dilate_1_sq_1;
     wire dilate_2_sq, dilate_2_sq_1;
 
-    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + 10'd72)) && (frame_y >= gauss_y && frame_y < (gauss_y + 10'd34));
-    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + 10'd72)) && (frame_y >= gauss_y && frame_y < (gauss_y + 10'd34));
-    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + 10'd72)) && (frame_y >= med_y && frame_y < (med_y + 10'd34));
-    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + 10'd72)) && (frame_y >= med_y && frame_y < (med_y + 10'd34));
-    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + 10'd40)) && (frame_y >= erode_1_y && frame_y < (erode_1_y + 10'd34));
-    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + 10'd40)) && (frame_y >= erode_1_y && frame_y < (erode_1_y + 10'd34));
-    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + 10'd40)) && (frame_y >= erode_2_y && frame_y < (erode_2_y + 10'd34));
-    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + 10'd40)) && (frame_y >= erode_2_y && frame_y < (erode_2_y + 10'd34));
-    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + 10'd40)) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + 10'd34));
-    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + 10'd40)) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + 10'd34));
-    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + 10'd40)) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + 10'd34));
-    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + 10'd40)) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + 10'd34));
+    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
+    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
+    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
+    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
+    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
+    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
+    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
+    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
+    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
+    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
+    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
+    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
 
-    reg [9:0] gauss_x, gauss_y, med_x, med_y,
-            erode_1_x, erode_1_y, erode_2_x, erode_2_y,
-            dilate_1_x, dilate_1_y, dilate_2_x, dilate_2_y;
+    reg [9:0] gauss_x, med_x, erode_1_x, erode_2_x, dilate_1_x, dilate_2_x;
+    reg [8:0] gauss_y, med_y, erode_1_y, erode_2_y, dilate_1_y, dilate_2_y;
     
     always @ (posedge clk) begin
         gauss_x <= x[59:50];
@@ -126,8 +126,16 @@ module generate_overlay(
         else if (dilate_2_sq) begin
             overlay_addr = ((frame_y - dilate_2_y) * 10'd40) + (frame_x - dilate_2_x) + lookup[22*ATTRS + 4];
         end
+        else begin
+            overlay_addr = 18'd0;
+        end
     end
 
     // to_write goes high when overlay enabled and current x/y count is within range
-    assign to_write = en ? ((|gen) || gauss_sq || med_sq || erode_1_sq || erode_2_sq || dilate_1_sq || dilate_2_sq) : 1'b0;
+    wire to_write_int;
+    assign to_write_int = en ? ((|gen) || gauss_sq || med_sq || erode_1_sq || erode_2_sq || dilate_1_sq || dilate_2_sq) : 1'b0;
+
+    always @ (posedge clk25) begin
+        to_write <= to_write_int;
+    end
 endmodule

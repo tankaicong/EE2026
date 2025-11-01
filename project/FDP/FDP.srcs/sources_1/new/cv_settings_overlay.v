@@ -4,11 +4,18 @@
 // Draws two drop zones (borders) and six filled boxes:
 //  - Preprocessing: GAUSS, MEDIAN (cyan), size 72x34
 //  - Morphology: ERODE, DILATE (magenta), size 40x34
+// horizontal black lines at y = 324 and y = 395
+// vertical black lines down from (93, 395), (262, 395), (378, 395), (548,395)
+// vertical black line from (313, 324) to (313, 395)
 
 module cv_settings_overlay (
     input  wire        settings_active,
     input  wire [9:0]  px,        // VGA x (0..639)
     input  wire [8:0]  py,        // VGA y (0..479)
+    // Mouse (VGA coords) and click edge for hit-testing inside overlay
+    input  wire [9:0]  mouse_x,
+    input  wire [8:0]  mouse_y,
+    input  wire        left_edge,
 
     // Drop zones in VGA coords
     input  wire [9:0]  pre_x,
@@ -29,7 +36,11 @@ module cv_settings_overlay (
 
     // Outputs
     output reg         overlay_en,
-    output reg [11:0]  overlay_rgb
+    output reg [11:0]  overlay_rgb,
+    // One-cycle click pulses when left_edge occurs inside these boxes (VGA coords)
+    output wire        cam_box_click,
+    output wire        bitmap_box_click,
+    output wire        ufds_box_click
 );
 
     // Unpack for overlay drawing
@@ -46,13 +57,20 @@ module cv_settings_overlay (
     wire [8:0] y4 = boxes_y[44:36];
     wire [8:0] y5 = boxes_y[53:45];
 
-    // Colors (RGB444)
+    // Colors (BGR444)
     localparam [11:0] BLACK   = 12'h000;
     localparam [11:0] WHITE   = 12'hFFF;
     localparam [11:0] GREY    = 12'h888;
     localparam [11:0] CYAN    = 12'hFF0;
     localparam [11:0] MAGENTA = 12'hF0F;
     localparam [11:0] YELLOW  = 12'h0FF;
+    localparam [11:0] DARKBLUE = 12'hB75;
+    localparam [11:0] BLUE    = 12'hECA;
+    localparam [11:0] LIGHTBLUE = 12'hEDB;
+    localparam [11:0] OFFWHITE  = 12'hBEE;
+    localparam [11:0] BRIGHTBLUE = 12'hFB0;
+    localparam [11:0] BORDERBLUE    = 12'hC70;
+
 
     // Box sizes in VGA
     localparam [9:0] W_PRE = 10'd72;
@@ -75,25 +93,87 @@ module cv_settings_overlay (
     wire in4 = (px >= x4) && (px < (x4 + W_MOR)) && (py >= y4) && (py < (y4 + H_ALL)); // DILATE A
     wire in5 = (px >= x5) && (px < (x5 + W_MOR)) && (py >= y5) && (py < (y5 + H_ALL)); // DILATE B
 
+    // --- Additional UI selection boxes (use W_PRE x H_ALL) ---
+    localparam [9:0] CAM_X = 10'd25;   localparam [8:0] CAM_Y = 9'd435;
+    localparam [9:0] BMP_X = 10'd285;  localparam [8:0] BMP_Y = 9'd435;
+    localparam [9:0] UFDS_X= 10'd558;  localparam [8:0] UFDS_Y= 9'd435;
+    // Borders like drop zones
+    wire in_cam_border  = ((py == CAM_Y) || (py == (CAM_Y + H_ALL - 1))) ? ((px >= CAM_X) && (px < (CAM_X + W_PRE))) :
+                          ((px == CAM_X) || (px == (CAM_X + W_PRE - 1))) ? ((py >= CAM_Y) && (py < (CAM_Y + H_ALL))) : 1'b0;
+    wire in_bmp_border  = ((py == BMP_Y) || (py == (BMP_Y + H_ALL - 1))) ? ((px >= BMP_X) && (px < (BMP_X + W_PRE))) :
+                          ((px == BMP_X) || (px == (BMP_X + W_PRE - 1))) ? ((py >= BMP_Y) && (py < (BMP_Y + H_ALL))) : 1'b0;
+    wire in_ufds_border = ((py == UFDS_Y)|| (py == (UFDS_Y+ H_ALL - 1))) ? ((px >= UFDS_X) && (px < (UFDS_X+ W_PRE))) :
+                          ((px == UFDS_X)|| (px == (UFDS_X+ W_PRE - 1))) ? ((py >= UFDS_Y) && (py < (UFDS_Y+ H_ALL))) : 1'b0;
+
+    // In-rect checks for clicks (include border and interior)
+    wire in_cam_rect   = (mouse_x >= CAM_X)   && (mouse_x < (CAM_X  + W_PRE)) && (mouse_y >= CAM_Y)  && (mouse_y < (CAM_Y  + H_ALL));
+    wire in_bitmap_rect= (mouse_x >= BMP_X)   && (mouse_x < (BMP_X  + W_PRE)) && (mouse_y >= BMP_Y)  && (mouse_y < (BMP_Y  + H_ALL));
+    wire in_ufds_rect  = (mouse_x >= UFDS_X)  && (mouse_x < (UFDS_X + W_PRE)) && (mouse_y >= UFDS_Y) && (mouse_y < (UFDS_Y + H_ALL));
+
     always @(*) begin
         overlay_en  = 1'b0;
         overlay_rgb = 12'h000;
 
         if (settings_active) begin
             // --- Guide lines ---
-            // Horizontal black lines at y = 324 and y = 395 (full width)
-            if ((py == 9'd324) || (py == 9'd395)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            // Separating lines at y = 322 and y = 396 (full width)
+            if ((py == 9'd322) || (py == 9'd396)) begin
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            end
+            if ((py == 9'd323) || (py == 9'd395) || (py == 9'd394)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py == 9'd324) || (py == 9'd397) || (py == 9'd393)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
             end
             // Vertical black lines downwards from (93,395), (262,395), (378,395), (548,395)
             if ((py >= 9'd395) && (px == 10'd93 || px == 10'd262 || px == 10'd378 || px == 10'd548)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
             end
 
-            // Borders first
+            // Upper vertical line from (313,324) to (313,395)
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd313)) begin
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd312)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd312)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd314)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd315)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+
+            // --- Rectangle at (30,348) size 89x42 with vertical bisector ---
+            if ((py == 9'd348) || (py == (9'd348 + 9'd42 - 1))) begin
+                if ((px >= 10'd30) && (px < (10'd30 + 10'd89))) begin
+                    overlay_en = 1'b1; overlay_rgb = BLACK;
+                end
+            end
+            if ((px == 10'd30) || (px == (10'd30 + 10'd89 - 1))) begin
+                if ((py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+                    overlay_en = 1'b1; overlay_rgb = BLACK;
+                end
+            end
+            // Vertical bisecting line (floor(89/2) = 44 px from left)
+            if ((px == (10'd30 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+
+            // Borders first (drop zones and new selection boxes)
             if (in_pre_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end else if (in_morph_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_cam_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_bmp_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_ufds_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end
 
@@ -122,5 +202,10 @@ module cv_settings_overlay (
             end
         end
     end
+
+    // Click pulses exported to Top: generated from left_edge in VGA coords
+    assign cam_box_click    = settings_active && left_edge && in_cam_rect;
+    assign bitmap_box_click = settings_active && left_edge && in_bitmap_rect;
+    assign ufds_box_click   = settings_active && left_edge && in_ufds_rect;
 
 endmodule

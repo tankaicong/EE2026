@@ -807,6 +807,9 @@ module Top(
     // Optional LEDs for quick UART debug
     assign led[0] = tx_fifo_wr_en;     // TX trigger
     assign led[1] = rx_fifo_rd_en;     // RX 10-byte ready
+    // Drag-drop debug LEDs
+    assign led[5] = cv_settings_mode;  // settings screen active
+    assign led[6] = left_click_deb;    // debounced left level
 
     // Show middle pixel value on LEDs for debugging
     // always @(posedge clk25) begin
@@ -1024,6 +1027,7 @@ module Top(
         if (vga_reset) left_deb_q <= 1'b0; else left_deb_q <= left_deb;
     end
     wire left_click_edge = left_deb & ~left_deb_q;
+    wire left_click_fall = ~left_deb & left_deb_q;
     wire left_click_deb  = left_deb;
 
     // Right-click debouncer: same simple scheme
@@ -1159,6 +1163,8 @@ module Top(
         .mouse_x(mouse_x_vga),
         .mouse_y(mouse_y_vga),
         .mouse_left(left_click_deb),
+        .mouse_left_edge(left_click_edge),
+        .mouse_left_fall(left_click_fall),
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
@@ -1167,7 +1173,9 @@ module Top(
         .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
         .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector),
-        .front_idx(front_idx)
+        .front_idx(front_idx),
+        .dragging_o(led[2]),
+        .drop_reason(led[4:3])
     );
 
     // Overlay pixel from settings UI (drag/drop) in VGA coordinates
@@ -1349,6 +1357,14 @@ module Top(
                     // right-click again to return to prev_state
                     if (right_click_edge) begin
                         state <= prev_state;
+                    end
+
+                    // Dim camera feed under the settings region (rows >= 324), keep normal feed above
+                    if (frame_y >= 9'd324) begin
+                        // Per-channel dimming (RGB444 -> halve brightness)
+                        frame_pixel <= { (bram_pixel_out[11:8] >> 1), (bram_pixel_out[7:4] >> 1), (bram_pixel_out[3:0] >> 1) };
+                    end else begin
+                        frame_pixel <= bram_pixel_out;
                     end
 
                     // draw CV settings overlay, then draw cursor on top

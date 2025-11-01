@@ -57,13 +57,20 @@ module cv_settings_overlay (
     wire [8:0] y4 = boxes_y[44:36];
     wire [8:0] y5 = boxes_y[53:45];
 
-    // Colors (RGB444)
+    // Colors (BGR444)
     localparam [11:0] BLACK   = 12'h000;
     localparam [11:0] WHITE   = 12'hFFF;
     localparam [11:0] GREY    = 12'h888;
     localparam [11:0] CYAN    = 12'hFF0;
     localparam [11:0] MAGENTA = 12'hF0F;
     localparam [11:0] YELLOW  = 12'h0FF;
+    localparam [11:0] DARKBLUE = 12'hB75;
+    localparam [11:0] BLUE    = 12'hECA;
+    localparam [11:0] LIGHTBLUE = 12'hEDB;
+    localparam [11:0] OFFWHITE  = 12'hBEE;
+    localparam [11:0] BRIGHTBLUE = 12'hFB0;
+    localparam [11:0] BORDERBLUE    = 12'hC70;
+
 
     // Box sizes in VGA
     localparam [9:0] W_PRE = 10'd72;
@@ -109,17 +116,36 @@ module cv_settings_overlay (
 
         if (settings_active) begin
             // --- Guide lines ---
-            // Horizontal black lines at y = 324 and y = 395 (full width)
-            if ((py == 9'd324) || (py == 9'd395)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            // Separating lines at y = 322 and y = 396 (full width)
+            if ((py == 9'd322) || (py == 9'd396)) begin
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            end
+            if ((py == 9'd323) || (py == 9'd395) || (py == 9'd394)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py == 9'd324) || (py == 9'd397) || (py == 9'd393)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
             end
             // Vertical black lines downwards from (93,395), (262,395), (378,395), (548,395)
             if ((py >= 9'd395) && (px == 10'd93 || px == 10'd262 || px == 10'd378 || px == 10'd548)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
             end
 
+            // Upper vertical line from (313,324) to (313,395)
             if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd313)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd312)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd312)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd314)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((py >= 9'd324) && (py < 9'd395) && (px == 10'd315)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
             end
 
             // --- Rectangle at (30,348) size 89x42 with vertical bisector ---

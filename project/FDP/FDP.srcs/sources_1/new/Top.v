@@ -1199,7 +1199,7 @@ module Top(
         .final_out(final_out)
     );
 
-    // Optional: expose selection on LEDs for quick debug
+    // expose selection on LEDs for quick debug
     assign led[9:8] = final_out;
     
     // Display Settings UI instance

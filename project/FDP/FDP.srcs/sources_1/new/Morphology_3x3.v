@@ -26,6 +26,9 @@ module Morphology_3x3
     input  wire        pixel_in,      // 1-bit bitmap input
     input  wire        op_dilate,     // 1 = dilate (OR of 3x3), 0 = erode (AND of 3x3)
 
+    input  wire signed [11:0] addr_off_col,
+    input  wire signed [11:0] addr_off_row,
+
     output reg         pixel_out,     // 1-bit morphology result
     output reg [17:0]  addr_out,      // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg         pixel_valid
@@ -57,9 +60,17 @@ module Morphology_3x3
     wire [9:0] cen_row = (row == 0) ? 10'd0 : (row - 10'd1);
     wire [9:0] cen_col = (col == 0) ? 10'd0 : (col - 10'd1);
 
-    // Valid output whenever center is within image bounds and we are running
+    // Valid output whenever center is within image bounds; allow runtime offset for address reporting
     wire center_in_bounds = (row != 0) && (col != 0) &&
                             (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
+    // Adjusted center coordinate used only for address reporting
+    wire signed [11:0] adj_cen_col_s = $signed({1'b0, cen_col}) + addr_off_col;
+    wire signed [11:0] adj_cen_row_s = $signed({1'b0, cen_row}) + addr_off_row;
+    wire                adj_col_in   = (adj_cen_col_s >= 0) && (adj_cen_col_s < $signed(IMAGE_WIDTH));
+    wire                adj_row_in   = (adj_cen_row_s >= 0) && (adj_cen_row_s < $signed(IMAGE_HEIGHT));
+    wire [9:0]          adj_cen_col  = adj_cen_col_s[9:0];
+    wire [9:0]          adj_cen_row  = adj_cen_row_s[9:0];
+    wire                center_in_bounds_adj = center_in_bounds && adj_col_in && adj_row_in;
 
     // Current input bit with zero-padding during pad phases
     wire cur_bit = (is_pad_col || is_pad_row) ? 1'b0 : pixel_in;
@@ -126,9 +137,9 @@ module Morphology_3x3
                            w2[0] & w2[1] & w2[2];
                     res  = op_dilate ? any1 : all1;
 
-                    if (center_in_bounds) begin
+                    if (center_in_bounds_adj) begin
                         pixel_out   <= res;
-                        addr_out    <= cen_row * IMAGE_WIDTH + cen_col;
+                        addr_out    <= adj_cen_row * IMAGE_WIDTH + adj_cen_col;
                         pixel_valid <= 1'b1;
                     end else begin
                         pixel_out   <= 1'b0;

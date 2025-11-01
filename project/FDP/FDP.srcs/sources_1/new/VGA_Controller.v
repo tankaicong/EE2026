@@ -52,6 +52,10 @@ module VGA_Controller(
     assign frame_x = hCounter;
     assign frame_y = vCounter;
 
+    localparam integer CROP_LEFT      = 10; // decimated pixels cropped on the left
+    localparam integer TOTAL_LATENCY  = 3;  // BRAM read (>=1) + output regs (>=1)
+    localparam integer X_START_GATE   = (2*CROP_LEFT) + TOTAL_LATENCY; // default 23
+
     always @(posedge clk25) begin
         // Count the horizontal and vertical positions
         if (hCounter == hMaxCount - 1) begin
@@ -69,9 +73,11 @@ module VGA_Controller(
         frame_pixel_q <= frame_pixel;
 
         // Pixel outputs (when not blank) - READ FROM BRAM (aligned)
-    // Start outputting a couple cycles earlier so the first shown pixel maps
-    // to src_x_adj == 0 (i.e., the leftmost cropped column). 2*offset + pipeline(2) = 22
-    if (hCounter >= 22) begin
+        // Start outputting only after the memory+pipeline latency so the first
+        // shown pixel maps to src_x_adj == 0 (leftmost cropped column).
+        // X_START_GATE = 2*crop_left + TOTAL_LATENCY. If your BRAM/IP adds an
+        // extra register stage, bump TOTAL_LATENCY accordingly.
+        if (hCounter >= X_START_GATE) begin
             if (blank == 1'b0) begin
                 vga_red   <= frame_pixel_q[11:8];
                 vga_green <= frame_pixel_q[7:4];

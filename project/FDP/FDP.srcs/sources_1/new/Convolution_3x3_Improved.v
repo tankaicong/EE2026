@@ -1,27 +1,13 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// 3x3 Convolution filter for image processing (streaming)
-// - Supports RGB444 (per-channel) and 1-bit bitmap inputs
-// - Zero-padding semantics at image boundaries (outputs for all pixels)
-// - Streaming interface similar to Median_Filter: clk/reset/frame_start/we
-// - Output pixel_out is RGB444; in bitmap mode the scalar result is replicated
-//   across R, G, B (monochrome RGB) to keep the same interface
-//
-// Kernel is compile-time configurable via parameters k00..k22 (signed).
-// Optional BIAS and right-shift SCALE are applied to the accumulated sum
-// before clamping to 4-bit per channel.
-//
-// NOTE on timing/latency:
-//   Output corresponds to the center of the current 3x3 window, which is
-//   aligned to coordinates (row-1, col-1) relative to the input sampling.
-//   To produce valid outputs for the right-most column and bottom-most row,
-//   this module internally injects one column and one row of zero pixels
-//   (zero-padding) after each line and at the end of the frame, respectively.
+// Convolution_3x3_Improved
+// - Same interface as Convolution_3x3
+// - Kernel sliding/window, padding, addressing, and timing logic copied from Median_Filter.v
+// - Only the mathematical operation differs: perform per-channel 3x3 dot product
 //////////////////////////////////////////////////////////////////////////////////
 
-// Force arithmetic to use DSPs where possible to drastically reduce LUT usage
 (* use_dsp = "yes" *)
-module Convolution_3x3
+module Convolution_3x3_Improved
 #(
     parameter IMAGE_WIDTH   = 310,
     parameter IMAGE_HEIGHT  = 240,
@@ -32,7 +18,7 @@ module Convolution_3x3
         k10 = 0, k11 = 1, k12 = 0,
         k20 = 0, k21 = 0, k22 = 0,
     parameter signed [COEF_WIDTH+7:0] BIAS = 0, // optional bias added per-channel before shifting
-    parameter integer SCALE = 0                   // arithmetic right shift applied after BIAS
+    parameter integer SCALE = 0                  // arithmetic right shift applied after BIAS
 )
 (
     input  wire                 clk,
@@ -45,6 +31,9 @@ module Convolution_3x3
     input  wire [PIXEL_DEPTH-1:0] pixel_rgb_in,       // RGB444
     input  wire                 pixel_bin_in,         // 1-bit bitmap
 
+    input  wire signed [11:0]   addr_off_col,
+    input  wire signed [11:0]   addr_off_row,
+
     output reg  [PIXEL_DEPTH-1:0] pixel_out,          // RGB444 filtered output
     output reg  [16:0]           addr_out,            // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg                   pixel_valid
@@ -54,7 +43,10 @@ module Convolution_3x3
     // stays 1 through internal padding flush, then returns to 0 until next frame_start.
     reg running;
 
-    // Row delays via BRAM for color: two cascaded line delays (depth = IMAGE_WIDTH)
+    // --------------------
+    // Row delays via BRAM (color only)
+    // Two cascaded line delays (depth = IMAGE_WIDTH) for color to match Median_Filter behavior
+    // --------------------
     wire [PIXEL_DEPTH-1:0] color_ld1_out, color_ld2_out;
 
     // 3x3 sliding window shift registers per row (oldest at index 0)
@@ -64,10 +56,10 @@ module Convolution_3x3
 
     // row/column counters for current incoming sample position (row, col)
     // These counters are allowed to extend to IMAGE_WIDTH/HEIGHT during padding.
-    reg [9:0]  col;                // supports >= 310 and +1 padding column
-    reg [9:0]  row;                // supports >= 240 and +1 padding row
+    reg [9:0]  col;                // supports >= IMAGE_WIDTH and +1 padding column
+    reg [9:0]  row;                // supports >= IMAGE_HEIGHT and +1 padding row
 
-    // Convenience: detect padding phases
+    // Padding phase detection
     wire is_pad_col = (col >= IMAGE_WIDTH);
     wire is_pad_row = (row >= IMAGE_HEIGHT);
 
@@ -75,29 +67,59 @@ module Convolution_3x3
     wire [9:0] cen_row = (row == 0) ? 10'd0 : (row - 10'd1);
     wire [9:0] cen_col = (col == 0) ? 10'd0 : (col - 10'd1);
 
-    // Valid output whenever center is within image bounds and we are running.
-    // Allow top row and left column by relying on zero-initialized windows
-    // for proper zero-padding semantics.
+    // Optional adjusted center used only for address reporting (to correct visual shift)
+    // Keep arithmetic in a signed domain while checking bounds
+    wire signed [11:0] adj_cen_col_s = $signed({1'b0, cen_col}) + addr_off_col;
+    wire signed [11:0] adj_cen_row_s = $signed({1'b0, cen_row}) + addr_off_row;
+    wire                adj_col_in   = (adj_cen_col_s >= 0) && (adj_cen_col_s < $signed(IMAGE_WIDTH));
+    wire                adj_row_in   = (adj_cen_row_s >= 0) && (adj_cen_row_s < $signed(IMAGE_HEIGHT));
+    wire [9:0]          adj_cen_col  = adj_cen_col_s[9:0];
+    wire [9:0]          adj_cen_row  = adj_cen_row_s[9:0];
+
+    // Valid output whenever original center is in-bounds and adjusted address is also in-bounds
     wire center_in_bounds = (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
+    wire center_in_bounds_adj = center_in_bounds && adj_col_in && adj_row_in;
 
-    // Select current input pixel (RGB444 or bitmap replicated) or zero during padding
+    // Mode mux: RGB input or replicated 1-bit bitmap; zero during padding phases
     wire [PIXEL_DEPTH-1:0] rgb_from_mode = mode_rgb ? pixel_rgb_in : (pixel_bin_in ? 12'h111 : 12'h000);
-    wire [PIXEL_DEPTH-1:0] cur_rgb = (is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode;
 
-    // Previous rows via line delays with edge replication
-    wire [PIXEL_DEPTH-1:0] y0_col;  // current row color (with padding)
-    wire [PIXEL_DEPTH-1:0] y1_col;  // row-1 color
-    wire [PIXEL_DEPTH-1:0] y2_col;  // row-2 color
-    
-    // Track last valid samples at the end of a real row to support right-edge replication
-    reg [PIXEL_DEPTH-1:0] last_y1_col_row; // one-line delay at last real column
-    reg [PIXEL_DEPTH-1:0] last_y2_col_row; // two-line delay at last real column
-    reg [PIXEL_DEPTH-1:0] last_y0_col_row; // current rgb at last real column
+    // reset/initialization helpers and current/previous row sources (color only)
+    wire [PIXEL_DEPTH-1:0] y0_col;  // current row color (with padding policy)
+    wire [PIXEL_DEPTH-1:0] y1_col;  // row-1 color via line delay (with top-edge replication)
+    wire [PIXEL_DEPTH-1:0] y2_col;  // row-2 color via line delay (with top-edge replication)
 
-    // Signed math widths
-    localparam integer IN_CH_WIDTH = 5; // we extend 4-bit channel to 5 bits with leading 0
-    localparam integer PROD_WIDTH  = COEF_WIDTH + IN_CH_WIDTH;        // product width (signed coeff * zero-extended 4-bit)
-    localparam integer ACC_WIDTH   = PROD_WIDTH + 4;                  // accumulate 9 terms: add ~4 bits headroom
+    wire advance = we || (running && (is_pad_col || is_pad_row));
+
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld1 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din((is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode),
+        .dout(color_ld1_out)
+    );
+
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld2 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din(color_ld1_out),
+        .dout(color_ld2_out)
+    );
+
+    assign y0_col  = (is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode;
+    // Top-edge replication using line delay outputs
+    assign y1_col  = (row == 0) ? y0_col  : color_ld1_out;
+    assign y2_col  = (row == 0) ? y0_col  : (row == 1 ? y1_col  : color_ld2_out);
+
+    // Right-edge replication source selection (color only)
+    reg [PIXEL_DEPTH-1:0] last_cy1_row;  // color one-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_cy2_row;  // color two-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_cy0_row;  // current color at last real column
+    wire [PIXEL_DEPTH-1:0] src0_col  = is_pad_col ? last_cy0_row : y0_col;
+    wire [PIXEL_DEPTH-1:0] src1_col  = is_pad_col ? last_cy1_row : y1_col;
+    wire [PIXEL_DEPTH-1:0] src2_col  = is_pad_col ? last_cy2_row : y2_col;
 
     // Helpers to extract channels from RGB444 packed pixel
     function [3:0] get_r;
@@ -110,20 +132,42 @@ module Convolution_3x3
         input [PIXEL_DEPTH-1:0] px; begin get_b = px[3:0]; end
     endfunction
 
+    // Signed math widths (same as Convolution_3x3)
+    localparam integer IN_CH_WIDTH = 5; // extend 4-bit to 5-bit (unsigned magnitude)
+    localparam integer PROD_WIDTH  = COEF_WIDTH + IN_CH_WIDTH;        // product width
+    localparam integer ACC_WIDTH   = PROD_WIDTH + 4;                  // accumulate 9 terms
+
     // Signed-extend a 4-bit channel to internal signed width
     function automatic signed [IN_CH_WIDTH-1:0] sx_ch;
         input [3:0] c;
     begin
-        // inputs are 0..15; treat as positive magnitude
         sx_ch = {1'b0, c};
     end
     endfunction
 
-    // ------------------------------------------------------------------------
-    // Precompute all 27 products as wires to ensure clean DSP inference.
-    // Vivado may otherwise implement constant-coefficient multiplies in LUTs.
-    // Mark each product with use_dsp to bias mapping to DSP48 slices.
-    // ------------------------------------------------------------------------
+    // Saturate a signed value to 4-bit unsigned [0..15] after optional shift
+    function [3:0] sat4_shift;
+        input signed [ACC_WIDTH-1:0] val_in;
+        reg   signed [ACC_WIDTH+COEF_WIDTH-1:0] biased;
+        reg   signed [ACC_WIDTH+COEF_WIDTH-1:0] shifted;
+    begin
+        biased  = val_in + BIAS;
+        if (SCALE > 0) begin
+            shifted = biased >>> SCALE; // arithmetic shift
+        end else begin
+            shifted = biased;
+        end
+        if (shifted <= 0) begin
+            sat4_shift = 4'd0;
+        end else if (shifted >= 15) begin
+            sat4_shift = 4'd15;
+        end else begin
+            sat4_shift = shifted[3:0];
+        end
+    end
+    endfunction
+
+    // Precompute all 27 products as wires (per Median_Filter timing, these are combinational)
     // Row 0 products
     (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr00_r = $signed(k00) * $signed(sx_ch(get_r(cw0[0])));
     (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr00_g = $signed(k00) * $signed(sx_ch(get_g(cw0[0])));
@@ -178,71 +222,23 @@ module Convolution_3x3
         $signed(pr00_b) + $signed(pr01_b) + $signed(pr02_b) +
         $signed(pr10_b) + $signed(pr11_b) + $signed(pr12_b) +
         $signed(pr20_b) + $signed(pr21_b) + $signed(pr22_b);
-    // Precomputed src selections for middle/top rows with right-edge replication
-    wire [PIXEL_DEPTH-1:0] src1_col = is_pad_col ? last_y1_col_row : y1_col;
-    wire [PIXEL_DEPTH-1:0] src2_col = is_pad_col ? last_y2_col_row : y2_col;
-    // Match Median_Filter behavior: also replicate right-edge for bottom row
-    wire [PIXEL_DEPTH-1:0] src0_col = is_pad_col ? last_y0_col_row : y0_col;
-
-    // Saturate a signed value to 4-bit unsigned [0..15] after optional shift
-    function [3:0] sat4_shift;
-        input signed [ACC_WIDTH-1:0] val_in;
-        reg   signed [ACC_WIDTH+COEF_WIDTH-1:0] biased;
-        reg   signed [ACC_WIDTH+COEF_WIDTH-1:0] shifted;
-    begin
-        biased  = val_in + BIAS;
-        if (SCALE > 0) begin
-            shifted = biased >>> SCALE; // arithmetic shift
-        end else begin
-            shifted = biased;
-        end
-        if (shifted <= 0) begin
-            sat4_shift = 4'd0;
-        end else if (shifted >= 15) begin
-            sat4_shift = 4'd15;
-        end else begin
-            sat4_shift = shifted[3:0];
-        end
-    end
-    endfunction
 
     integer k;
-    // Instantiate line delays
-    wire advance = we || (running && (is_pad_col || is_pad_row));
-    LineDelayBRAM #(
-        .DATA_W(PIXEL_DEPTH),
-        .DEPTH(IMAGE_WIDTH)
-    ) color_ld1 (
-        .clk(clk), .reset(reset || frame_start), .en(advance),
-        .din((is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode),
-        .dout(color_ld1_out)
-    );
-    LineDelayBRAM #(
-        .DATA_W(PIXEL_DEPTH),
-        .DEPTH(IMAGE_WIDTH)
-    ) color_ld2 (
-        .clk(clk), .reset(reset || frame_start), .en(advance),
-        .din(color_ld1_out),
-        .dout(color_ld2_out)
-    );
-
-    // Form per-row sources with top-edge replication
-    assign y0_col = (is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode;
-    assign y1_col = (row == 0) ? y0_col : color_ld1_out;
-    assign y2_col = (row == 0) ? y0_col : (row == 1 ? y1_col : color_ld2_out);
     always @(posedge clk) begin
         if (reset || frame_start) begin
             // Reset counters and state. Clear windows and buffers.
-            running     <= 1'b0;
-            col         <= 10'd0;
-            row         <= 10'd0;
+            running   <= 1'b0;
+            col       <= 10'd0;
+            row       <= 10'd0;
             cw0[0] <= 12'd0; cw0[1] <= 12'd0; cw0[2] <= 12'd0;
             cw1[0] <= 12'd0; cw1[1] <= 12'd0; cw1[2] <= 12'd0;
             cw2[0] <= 12'd0; cw2[1] <= 12'd0; cw2[2] <= 12'd0;
-            pixel_out   <= 12'd0;
-            addr_out    <= 18'd0;
-            pixel_valid <= 1'b0;
-            // No BRAM clear
+            pixel_out <= 12'd0;
+            addr_out  <= 17'd0;
+            pixel_valid <= 1'd0;
+            last_cy1_row  <= 0;
+            last_cy2_row  <= 0;
+            last_cy0_row  <= 0;
         end else begin
             // Determine if we should process this cycle: real input or padding while running
             if (we) begin
@@ -251,48 +247,43 @@ module Convolution_3x3
 
             if (we || (running && (is_pad_col || is_pad_row))) begin
                 // Update sliding window (shift left, insert newest at [*][2])
-                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = src2_col; // top row from row-2
-                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = src1_col; // middle from row-1
-                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = src0_col; // bottom from current (with right-edge replicate)
+                // Right-edge replication for padding column uses module-scope src* wires
+                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = src2_col; // top row color
+                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = src1_col; // mid row color
+                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = src0_col; // bottom color
 
-                // Left-edge handling to prevent cross-row contamination.
-                // At the first column of a new row (col==0), ensure both left neighbors
-                // of the window come from the FIRST PIXEL of THIS ROW (cw*[*2]) rather than
-                // carrying over the previous row's last-column pad.
+                // Left-edge handling: only fill the missing far-left neighbor (match Median_Filter)
                 if (col == 10'd0) begin
-                    // Replicate current first-pixel into both left neighbors
                     cw0[1] = cw0[2]; cw0[0] = cw0[2];
                     cw1[1] = cw1[2]; cw1[0] = cw1[2];
                     cw2[1] = cw2[2]; cw2[0] = cw2[2];
                 end else if (col == 10'd1) begin
-                    // For the second column, keep a single-neighbor fill only for far-left
+                    // keep single-neighbor replacement for the second column
                     cw0[0] = cw0[1];
                     cw1[0] = cw1[1];
                     cw2[0] = cw2[1];
                 end
 
-                // Remember last real column for right-edge replication
+                // Remember last real column values for right-edge replication
                 if (!is_pad_col && (col == (IMAGE_WIDTH-1))) begin
-                    last_y1_col_row <= y1_col;
-                    last_y2_col_row <= y2_col;
-                    last_y0_col_row <= y0_col;
+                    last_cy1_row  <= y1_col;
+                    last_cy2_row  <= y2_col;
+                    last_cy0_row  <= y0_col;
                 end
 
-                // Convolution core in its own block to keep declarations first
-                begin : conv_core
-                    // Clamp each channel to 4-bit after bias/shift
-                    if (center_in_bounds) begin
-                        pixel_out   <= { sat4_shift(sumR_w), sat4_shift(sumG_w), sat4_shift(sumB_w) };
-                        addr_out    <= cen_row * IMAGE_WIDTH + cen_col;
-                        pixel_valid <= 1'b1;
-                    end else begin
-                        pixel_out   <= 12'd0;
-                        addr_out    <= addr_out;
-                        pixel_valid <= 1'b0;
-                    end
-                end // block: conv_core
+                // Output when center coordinate is valid (zero-padding semantics)
+                // Use adjusted address to compensate visual shift when requested
+                if (center_in_bounds_adj) begin
+                    pixel_out   <= { sat4_shift(sumR_w), sat4_shift(sumG_w), sat4_shift(sumB_w) };
+                    addr_out    <= adj_cen_row * IMAGE_WIDTH + adj_cen_col;
+                    pixel_valid <= 1'b1;
+                end else begin
+                    pixel_out   <= 12'd0;
+                    addr_out    <= addr_out;
+                    pixel_valid <= 1'b0;
+                end
 
-                // Advance position counters for next sample or padding
+                // Advance position counters for next sample or padding (identical to Median_Filter)
                 if (!is_pad_col && !is_pad_row) begin
                     // Real input sample
                     if (col == (IMAGE_WIDTH-1)) begin

@@ -77,7 +77,12 @@ module cv_settings_dragdrop (
     output reg  [2:0] front_idx,
     // debug/telemetry (optional): expose dragging and drop reasons
     output wire       dragging_o,
-    output reg  [1:0] drop_reason // 1=fall-edge, 2=sustain-low (bitwise)
+    output reg  [1:0] drop_reason, // 1=fall-edge, 2=sustain-low (bitwise)
+    // One-cycle click pulses for info categories (derived from hover and left_edge)
+    output wire       gauss_click,
+    output wire       median_click,
+    output wire       erode_click,
+    output wire       dilate_click
 );
 
     // --------------- Box definitions ----------------
@@ -134,6 +139,12 @@ module cv_settings_dragdrop (
     wire hov4 = (mouse_x >= x4) && (mouse_x < (x4 + W_MOR)) && (mouse_y >= y4) && (mouse_y < (y4 + H_ALL));
     wire hov5 = (mouse_x >= x5) && (mouse_x < (x5 + W_MOR)) && (mouse_y >= y5) && (mouse_y < (y5 + H_ALL));
     assign hover = {hov5, hov4, hov3, hov2, hov1, hov0};
+
+    // Click pulses per category for info tab module
+    assign gauss_click  = settings_active && mouse_left_edge && hov0;
+    assign median_click = settings_active && mouse_left_edge && hov1;
+    assign erode_click  = settings_active && mouse_left_edge && (hov2 || hov3);
+    assign dilate_click = settings_active && mouse_left_edge && (hov4 || hov5);
 
     // top-left mouse-aligned positions so a box centers under the cursor while dragging
     wire [9:0] mx_pre = (mouse_x <= (W_PRE>>1)) ? 10'd0 : (mouse_x - (W_PRE>>1));

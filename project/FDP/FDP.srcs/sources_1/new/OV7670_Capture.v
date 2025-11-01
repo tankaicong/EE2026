@@ -31,6 +31,7 @@ module OV7670_Capture(
     // Helper wires
     wire pixel_complete = wr_hold[1];       // A full pixel assembled this cycle
     wire end_of_line = (href_d & ~href);    // Falling edge of HREF
+    wire href_rise    = (~href_d & href);   // Rising edge of HREF (start of active line)
 
     always @(posedge pclk) begin
         if (vsync || ext_reset) begin
@@ -41,13 +42,23 @@ module OV7670_Capture(
             addr <= 18'd0;
             we <= 1'b0;
         end else begin
-            if (href) d_latch <= { d_latch[7:0], d };         // shift only during active line
-            wr_hold <= { wr_hold[0], (href & ~wr_hold[0]) };  // pixel complete detection
+            // At the very start of each line, realign the byte pairer so the first
+            // complete pixel of the line is formed strictly from the first two bytes
+            // of this line (and not contaminated by the last byte of the previous line).
+            // Also seed the latch with the very first byte so the next cycle pairs it.
+            if (href_rise) begin
+                wr_hold <= 2'b00;
+                d_latch <= {8'h00, d};
+            end else begin
+                if (href) d_latch <= { d_latch[7:0], d };     // shift only during active line
+                wr_hold <= { wr_hold[0], (href & ~wr_hold[0]) };  // pixel complete detection
+            end
             we <= 1'b0;
             if (pixel_complete && href) begin
                 if (~cam_x[0] && ~cam_y[0] && cam_x >= 20) begin    // keep [10:319] = 310 right-side pixels
-                    // RGB444 input
-                    dout <= { d_latch[3:0], d_latch[7:4], d_latch[11:8] };
+                    // RGB444 output in {R,G,B} nibble order from two captured bytes {b1,b2} = {R?,G/B?}
+                    // Map as: R = b1[7:4], G = b2[7:4], B = b2[3:0]
+                    dout <= { d_latch[11:8], d_latch[7:4], d_latch[3:0] };
                     addr <= (cam_y[8:1]) * 18'd310 + (cam_x[9:1] - 10);
                     we <= 1'b1;
                 end

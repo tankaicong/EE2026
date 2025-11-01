@@ -10,13 +10,16 @@ module Median_Filter
     parameter PIXEL_DEPTH  = 12,      // RGB444
     parameter GRAY_DEPTH   = 4,       // Grayscale
     parameter IMAGE_WIDTH  = 310,
-    parameter IMAGE_HEIGHT = 240)
+    parameter IMAGE_HEIGHT = 240
+)
 (
     input clk,
     input reset,
     input frame_start,                       // assert during VSYNC
     input [PIXEL_DEPTH-1:0] pixel_in,        // RGB444
     input we,                                // 1 = input sample valid this cycle
+    input wire signed [11:0] addr_off_col,
+    input wire signed [11:0] addr_off_row,
     output reg [11:0] pixel_out,             // RGB444 of the pixel whose grayscale is the window median
     output reg [16:0] addr_out,              // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg pixel_valid
@@ -98,6 +101,16 @@ module Median_Filter
 
     // Valid output whenever center is within image bounds and we are running.
     wire center_in_bounds = (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
+
+    // Optional adjusted center used only for address reporting (to correct visual shift)
+    // Keep arithmetic in a signed domain while checking bounds
+    wire signed [11:0] adj_cen_col_s = $signed({1'b0, cen_col}) + addr_off_col;
+    wire signed [11:0] adj_cen_row_s = $signed({1'b0, cen_row}) + addr_off_row;
+    wire                adj_col_in   = (adj_cen_col_s >= 0) && (adj_cen_col_s < $signed(IMAGE_WIDTH));
+    wire                adj_row_in   = (adj_cen_row_s >= 0) && (adj_cen_row_s < $signed(IMAGE_HEIGHT));
+    wire [9:0]          adj_cen_col  = adj_cen_col_s[9:0];
+    wire [9:0]          adj_cen_row  = adj_cen_row_s[9:0];
+    wire                center_in_bounds_adj = center_in_bounds && adj_col_in && adj_row_in;
 
     // Internal running flag: becomes 1 once the frame starts receiving pixels,
     // stays 1 through internal padding flush, then returns to 0 until next frame_start.
@@ -182,7 +195,7 @@ module Median_Filter
             cw1[0] <= 12'd0; cw1[1] <= 12'd0; cw1[2] <= 12'd0;
             cw2[0] <= 12'd0; cw2[1] <= 12'd0; cw2[2] <= 12'd0;
             pixel_out <= 12'd0;
-            addr_out  <= 18'd0;
+            addr_out  <= 17'd0;
             pixel_valid <= 1'd0;
             last_y1_row   <= 0;
             last_y2_row   <= 0;
@@ -208,14 +221,16 @@ module Median_Filter
                 cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = src1_col; // mid row color
                 cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = src0_col; // bottom color
 
-                // Left-edge handling: only fill the missing far-left neighbor
+                // Left-edge handling: flush previous-row last-column from the window
+                // Ensure the first column of a new row doesn't retain pixels from the prior row's right edge
                 if (col == 10'd0) begin
-                    w0[0] = w0[1];
-                    w1[0] = w1[1];
-                    w2[0] = w2[1];
-                    cw0[0] = cw0[1];
-                    cw1[0] = cw1[1];
-                    cw2[0] = cw2[1];
+                    // Duplicate the current column into the two left neighbors
+                    w0[1] = w0[2]; w0[0] = w0[2];
+                    w1[1] = w1[2]; w1[0] = w1[2];
+                    w2[1] = w2[2]; w2[0] = w2[2];
+                    cw0[1] = cw0[2]; cw0[0] = cw0[2];
+                    cw1[1] = cw1[2]; cw1[0] = cw1[2];
+                    cw2[1] = cw2[2]; cw2[0] = cw2[2];
                 end else if (col == 10'd1) begin
                     // keep single-neighbor replacement for the second column
                     w0[0] = w0[1];
@@ -259,7 +274,8 @@ module Median_Filter
                           (max_of_min >= mid_of_mid ? mid_of_mid : (min_of_max >= max_of_min ? min_of_max : max_of_min));
 
                 // Output when center coordinate is valid (zero-padding semantics)
-                if (center_in_bounds) begin
+                // Use adjusted address to compensate visual shift when requested
+                if (center_in_bounds_adj) begin
                     if      (w0[0] == median) pixel_out <= cw0[0];
                     else if (w0[1] == median) pixel_out <= cw0[1];
                     else if (w0[2] == median) pixel_out <= cw0[2];
@@ -270,7 +286,7 @@ module Median_Filter
                     else if (w2[1] == median) pixel_out <= cw2[1];
                     else                      pixel_out <= cw2[2]; // default to newest if all else fails
 
-                    addr_out    <= cen_row * IMAGE_WIDTH + cen_col;
+                    addr_out    <= adj_cen_row * IMAGE_WIDTH + adj_cen_col;
                     pixel_valid <= 1'b1;
                 end else begin
                     pixel_out   <= 12'd0;

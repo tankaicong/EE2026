@@ -32,10 +32,10 @@ module Top(
     wire ov7670_pclk;
     wire ov7670_vsync;
     wire [7:0] ov7670_d;
-    assign ov7670_href = sw[10] ? 1'bz : ov7670_href_pin;
-    assign ov7670_pclk = sw[10] ? 1'bz : ov7670_pclk_pin;
-    assign ov7670_vsync = sw[10] ? 1'bz : ov7670_vsync_pin;
-    assign ov7670_d = sw[10] ? 8'bzzzzzzzz : ov7670_d_pin;
+    assign ov7670_href = sw[14] ? 1'bz : ov7670_href_pin;
+    assign ov7670_pclk = sw[14] ? 1'bz : ov7670_pclk_pin;
+    assign ov7670_vsync = sw[14] ? 1'bz : ov7670_vsync_pin;
+    assign ov7670_d = sw[14] ? 8'bzzzzzzzz : ov7670_d_pin;
 
     localparam [23:0] RGB_THRESHOLD = {
         4'hF, 4'hF, //B_MIN, B_MAX
@@ -133,6 +133,20 @@ module Top(
     reg [1:0] Final_Out_Control;
     reg [3:0] Preprocessing_State = 4'h0;
     reg [7:0] Morphology_State = 8'h00;
+
+    // Runtime-adjustable address offsets for convolutions
+    reg signed [3:0] gaussian_addr_off_col = 4'sd0;
+    reg signed [3:0] gaussian_addr_off_row = 4'sd0;
+    reg signed [3:0] median_addr_off_col = 4'sd0;
+    reg signed [3:0] median_addr_off_row = 4'sd0;
+    reg signed [3:0] erode_1_addr_off_col = 4'sd0;
+    reg signed [3:0] erode_1_addr_off_row = 4'sd0;
+    reg signed [3:0] erode_2_addr_off_col = 4'sd0;
+    reg signed [3:0] erode_2_addr_off_row = 4'sd0;
+    reg signed [3:0] dilate_1_addr_off_col = 4'sd0;
+    reg signed [3:0] dilate_1_addr_off_row = 4'sd0;
+    reg signed [3:0] dilate_2_addr_off_col = 4'sd0;
+    reg signed [3:0] dilate_2_addr_off_row = 4'sd0;
     // Forward declarations for UI-driven control wires (declared again later where produced)
     wire [3:0] pre_order_vector;
     wire [7:0] morph_order_vector;
@@ -145,31 +159,43 @@ module Top(
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b00;
+                gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
+                median_addr_off_col <= 0; median_addr_off_row <= 0;
             end
             4'b0001: begin //Gaussian only
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b01;
+                gaussian_addr_off_col <= -1; gaussian_addr_off_row <= 0;
+                median_addr_off_col <= 0; median_addr_off_row <= 0;
             end
             4'b0010: begin //Median only
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b10;
+                gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
+                median_addr_off_col <= 0; median_addr_off_row <= 0;
             end
             4'b1001: begin //Gaussian --> Median
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b1;
                 RGB_Out_Control <= 2'b10;
+                gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
+                median_addr_off_col <= -2; median_addr_off_row <= -1;
             end
             4'b0110: begin //Median --> Gaussian
                 Gaussian_In_Control <= 1'b1;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b01;
+                gaussian_addr_off_col <= -2; gaussian_addr_off_row <= -1;
+                median_addr_off_col <= 0; median_addr_off_row <= 0;
             end
             default: begin  //invalid states just shows raw camera
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b00;
+                gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
+                median_addr_off_col <= 0; median_addr_off_row <= 0;
             end
         endcase
     end
@@ -283,6 +309,46 @@ module Top(
         Preprocessing_State <= pre_order_vector;
         Morphology_State <= morph_order_vector;
         Final_Out_Control <= final_out; // drive view selection from overlay UI
+        case (sw[4:2])
+            3'b000: erode_1_addr_off_col <= 0;
+            3'b001: erode_1_addr_off_col <= 1;
+            3'b010: erode_1_addr_off_col <= 2;
+            3'b011: erode_1_addr_off_col <= 3;
+            3'b111: erode_1_addr_off_col <= -1;
+            3'b110: erode_1_addr_off_col <= -2;
+            3'b101: erode_1_addr_off_col <= -3;
+            3'b100: erode_1_addr_off_col <= -4;
+        endcase
+        case (sw[7:5])
+            3'b000: erode_1_addr_off_row <= 0;
+            3'b001: erode_1_addr_off_row <= 1;
+            3'b010: erode_1_addr_off_row <= 2;
+            3'b011: erode_1_addr_off_row <= 3;
+            3'b111: erode_1_addr_off_row <= -1;
+            3'b110: erode_1_addr_off_row <= -2;
+            3'b101: erode_1_addr_off_row <= -3;
+            3'b100: erode_1_addr_off_row <= -4;
+        endcase
+        case (sw[10:8])
+            3'b000: dilate_1_addr_off_col <= 0;
+            3'b001: dilate_1_addr_off_col <= 1;
+            3'b010: dilate_1_addr_off_col <= 2;
+            3'b011: dilate_1_addr_off_col <= 3;
+            3'b111: dilate_1_addr_off_col <= -1;
+            3'b110: dilate_1_addr_off_col <= -2;
+            3'b101: dilate_1_addr_off_col <= -3;
+            3'b100: dilate_1_addr_off_col <= -4;
+        endcase
+        case (sw[13:11])
+            3'b000: dilate_1_addr_off_row <= 0;
+            3'b001: dilate_1_addr_off_row <= 1;
+            3'b010: dilate_1_addr_off_row <= 2;
+            3'b011: dilate_1_addr_off_row <= 3;
+            3'b111: dilate_1_addr_off_row <= -1;
+            3'b110: dilate_1_addr_off_row <= -2;
+            3'b101: dilate_1_addr_off_row <= -3;
+            3'b100: dilate_1_addr_off_row <= -4;
+        endcase
     end
 
     // input and output pixels from each convolutional block
@@ -416,6 +482,8 @@ module Top(
         .frame_start(ov7670_vsync),
         .pixel_in(median_pixel_in),
         .we(median_pixel_we),
+        .addr_off_col(median_addr_off_col),
+        .addr_off_row(median_addr_off_row),
         .pixel_out(median_pixel_out),
         .addr_out(median_addr_out),
         .pixel_valid(median_pixel_valid)
@@ -426,7 +494,7 @@ module Top(
     wire                    pixel_valid_gauss_3x3;
     wire [11:0]             filtered_pixel_gauss_3x3;
     wire [16:0]             filtered_addr_gauss_3x3;
-    Convolution_3x3 #(
+    Convolution_3x3_Improved #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240),
         .PIXEL_DEPTH(12),
@@ -444,15 +512,12 @@ module Top(
         .mode_rgb(1'b1),             // camera provides RGB444
         .pixel_rgb_in(gaussian_pixel_in),
         .pixel_bin_in(1'b0),
+        .addr_off_col(gaussian_addr_off_col),
+        .addr_off_row(gaussian_addr_off_row),
         .pixel_out(gaussian_pixel_out),
         .addr_out(gaussian_addr_out),
         .pixel_valid(gaussian_pixel_valid)
     );
-
-    // MUX to send to VGA display
-    // wire [11:0] display_pixel_color = sw[2] ? (sw[3] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
-    // wire [16:0] display_addr_color = sw[2] ? (sw[3] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
-    // wire pixel_valid_display = sw[2] ? (sw[3] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
 
     //----------- MORPHOLOGY (ERODE/DILATE) ----------- //
     // Explicit binary thresholds (reuse for writer and morphology)
@@ -466,6 +531,8 @@ module Top(
         .we(erode_1_pixel_we),
         .pixel_in(erode_1_pixel_in),
         .op_dilate(1'b0),
+        .addr_off_col(erode_1_addr_off_col),
+        .addr_off_row(erode_1_addr_off_row),
         .pixel_out(erode_1_pixel_out),
         .addr_out(erode_1_addr_out),
         .pixel_valid(erode_1_pixel_valid)
@@ -480,6 +547,8 @@ module Top(
         .we(erode_2_pixel_we),
         .pixel_in(erode_2_pixel_in),
         .op_dilate(1'b0),
+        .addr_off_col(erode_2_addr_off_col),
+        .addr_off_row(erode_2_addr_off_row),
         .pixel_out(erode_2_pixel_out),
         .addr_out(erode_2_addr_out),
         .pixel_valid(erode_2_pixel_valid)
@@ -495,6 +564,8 @@ module Top(
         .we(dilate_1_pixel_we),
         .pixel_in(dilate_1_pixel_in),
         .op_dilate(1'b1),
+        .addr_off_col(dilate_1_addr_off_col),
+        .addr_off_row(dilate_1_addr_off_row),
         .pixel_out(dilate_1_pixel_out),
         .addr_out(dilate_1_addr_out),
         .pixel_valid(dilate_1_pixel_valid)
@@ -509,6 +580,8 @@ module Top(
         .we(dilate_2_pixel_we),
         .pixel_in(dilate_2_pixel_in),
         .op_dilate(1'b1),
+        .addr_off_col(dilate_2_addr_off_col),
+        .addr_off_row(dilate_2_addr_off_row),
         .pixel_out(dilate_2_pixel_out),
         .addr_out(dilate_2_addr_out),
         .pixel_valid(dilate_2_pixel_valid)
@@ -728,7 +801,7 @@ module Top(
     // Decimate the VGA-doubled raster (640x480) to source grid (320x240):
     // take only even hCounter/vCounter pixels so each source pixel is enqueued once
     wire decim_hv = (~frame_x[0]) && (~frame_y[0]);
-    wire ufds_pixel_in = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : 12'h000;
+    wire ufds_pixel_in = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : 1'b0;
     UFDS_Bridge ufds_bridge (
         .pclk(clk25),
         .p_rst(cap_reset),
@@ -1500,7 +1573,7 @@ module Top(
 
                         // === Top vertical arm ===
                         else if (frame_x[9:1]-10 == 155 &&
-                                frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
+                                 frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
 
                             // Mirror the same cooldown progress upward
                             // if (frame_y[9:1] <= (120 - CROSSHAIR_HEIGHT + fill_height))
@@ -1511,7 +1584,7 @@ module Top(
 
                         // === Left horizontal arm ===
                         else if (frame_y[9:1] == 120 &&
-                                frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
+                                 frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
 
                             // Turn green once cooldown crosses midpoint
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
@@ -1522,7 +1595,7 @@ module Top(
 
                         // === Right horizontal arm ===
                         else if (frame_y[9:1] == 120 &&
-                            frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
+                                 frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
 
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
                                 frame_pixel <= crosshair_rgb;

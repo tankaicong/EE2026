@@ -58,7 +58,7 @@ module Top(
     // ----------- VGA CONTROLLER ----------- //
     // Wire for BRAM address from VGA controller
     wire [16:0] frame_addr;             // logical 0..(310*240-1)
-    wire [11:0] image_pixel;            // 12-bit RGB444 from BRAM
+    wire [11:0] bram_pixel_out;            // 12-bit RGB444 from BRAM
     reg [11:0] frame_pixel;            // RGB444 to VGA
     wire [9:0] frame_x;  // current x coord in frame (0..639)
     wire [9:0] frame_y;  // current y coord in frame (0..479)
@@ -120,11 +120,286 @@ module Top(
         .we(we)
     );
 
+    // ----------- FILTER SELECTION MUX CONTROLS ----------- //
+    // Wires driven by switches: do not give them constant drivers as well
+    reg Gaussian_In_Control;
+    reg Median_In_Control;
+    reg [1:0] RGB_Out_Control;
+    reg [1:0] Erode_1_In_Control = 2'b00;
+    reg [1:0] Erode_2_In_Control = 2'b00;
+    reg [1:0] Dilate_1_In_Control = 2'b00;
+    reg [1:0] Dilate_2_In_Control = 2'b00;
+    reg [2:0] BMP_Out_Control = 3'b000;
+    reg [1:0] Final_Out_Control;
+    reg [3:0] Preprocessing_State = 4'h0;
+    reg [7:0] Morphology_State = 8'h00;
+
+    always @(*) begin
+        //state machine for preprocessing control
+        case (Preprocessing_State)
+            4'b0000: begin //Raw camera
+                Gaussian_In_Control <= 1'bx;
+                Median_In_Control <= 1'bx;
+                RGB_Out_Control <= 2'b00;
+            end
+            4'b0001: begin //Gaussian only
+                Gaussian_In_Control <= 1'b0;
+                Median_In_Control <= 1'bx;
+                RGB_Out_Control <= 2'b01;
+            end
+            4'b0010: begin //Median only
+                Gaussian_In_Control <= 1'bx;
+                Median_In_Control <= 1'b0;
+                RGB_Out_Control <= 2'b10;
+            end
+            4'b1001: begin //Gaussian --> Median
+                Gaussian_In_Control <= 1'b0;
+                Median_In_Control <= 1'b1;
+                RGB_Out_Control <= 2'b10;
+            end
+            4'b0110: begin //Median --> Gaussian
+                Gaussian_In_Control <= 1'b1;
+                Median_In_Control <= 1'b0;
+                RGB_Out_Control <= 2'b01;
+            end
+            default: begin  //invalid states just shows raw camera
+                Gaussian_In_Control <= 1'b0;
+                Median_In_Control <= 1'b0;
+                RGB_Out_Control <= 2'b00;
+            end
+        endcase
+    end
+
+    always @(*) begin
+        case(Morphology_State)
+            8'b00000000: begin //no morphology ops
+                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b000;
+            end
+            8'b00000001: begin //Erode
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b001;
+            end
+            8'b00000010: begin //Dilate
+                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b011;
+            end
+            8'b00000101: begin //Erode -> Erode
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b010;
+            end
+            8'b00001010: begin //Dilate -> Dilate
+                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b00001001: begin //Erode -> Dilate
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b011;
+            end
+            8'b00000110: begin //Dilate -> Erode
+                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b001;
+            end
+            8'b00100101: begin //Erode -> Erode -> Dilate
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b011;
+            end
+            8'b00011001: begin //Erode -> Dilate -> Erode
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
+                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b010;
+            end
+            8'b00010110: begin //Dilate -> Erode -> Erode
+                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
+                BMP_Out_Control <= 3'b010;
+            end
+            8'b00011010: begin //Dilate -> Dilate -> Erode
+                Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b001;
+            end
+            8'b00100110: begin //Dilate -> Erode -> Dilate
+                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b00101001: begin //Erode -> Dilate -> Dilate
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
+                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b10100101: begin //Erode -> Erode -> Dilate -> Dilate
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b01101001: begin //Erode -> Dilate -> Dilate -> Erode
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
+                BMP_Out_Control <= 3'b010;
+            end
+            8'b01011010: begin //Dilate -> Dilate -> Erode -> Erode
+                Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b010;
+            end
+            8'b10010110: begin //Dilate -> Erode -> Erode -> Dilate
+                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b10011001: begin //Erode -> Dilate -> Erode -> Dilate
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
+                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b10;
+                BMP_Out_Control <= 3'b100;
+            end
+            8'b01100110: begin //Dilate -> Erode -> Dilate -> Erode
+                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b10;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
+                BMP_Out_Control <= 3'b010;
+            end
+            default: begin  //invalid states just shows no morphology ops
+                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
+                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
+                BMP_Out_Control <= 3'b000;
+            end
+        endcase
+    end
+
+    always @(posedge clk) begin
+        Preprocessing_State <= sw[3:0];
+        Morphology_State <= sw[11:4];
+        Final_Out_Control <= sw[13:12];
+    end
+
+    // input and output pixels from each convolutional block
+    wire [11:0] median_pixel_in, median_pixel_out;
+    wire [11:0] gaussian_pixel_in, gaussian_pixel_out;
+    wire [11:0] rgb_pixel_out;
+    wire threshold_pixel;
+    wire erode_1_pixel_in, erode_1_pixel_out;
+    wire erode_2_pixel_in, erode_2_pixel_out;
+    wire dilate_1_pixel_in, dilate_1_pixel_out;
+    wire dilate_2_pixel_in, dilate_2_pixel_out;
+    wire bmp_pixel_out;
+    wire [11:0] final_pixel_out;
+
+    // write enables piping in pixel_valid outputs from previous convolutional blocks or camera capture block
+    wire median_pixel_we, gaussian_pixel_we;
+    wire rgb_pixel_we;
+    wire erode_1_pixel_we, erode_2_pixel_we;
+    wire dilate_1_pixel_we, dilate_2_pixel_we;
+
+    // output address wires from each convolutional block / mux
+    wire [16:0] median_addr_out, gaussian_addr_out;
+    wire [16:0] rgb_addr_out;
+    wire [16:0] erode_1_addr_out, erode_2_addr_out;
+    wire [16:0] dilate_1_addr_out, dilate_2_addr_out;
+    wire [16:0] bmp_addr_out;
+    wire [16:0] final_addr_out;
+
+    // output flags from the convolutional blocks / mux indicating when pixel_out is valid
+    wire median_pixel_valid, gaussian_pixel_valid;
+    wire rgb_pixel_valid;
+    wire erode_1_pixel_valid, erode_2_pixel_valid;
+    wire dilate_1_pixel_valid, dilate_2_pixel_valid;
+    wire bmp_pixel_valid;
+    wire final_pixel_valid;
+
+    // preprocessing operations path control
+    assign gaussian_pixel_in = Gaussian_In_Control ? median_pixel_out : dout;
+    assign gaussian_pixel_we = Gaussian_In_Control ? median_pixel_valid : we;
+
+    assign median_pixel_in = Median_In_Control ? gaussian_pixel_out : dout;
+    assign median_pixel_we = Median_In_Control ? gaussian_pixel_valid : we;
+
+    assign rgb_pixel_out = (RGB_Out_Control == 2'b00) ? dout :
+                           (RGB_Out_Control == 2'b01) ? gaussian_pixel_out :
+                           (RGB_Out_Control == 2'b10) ? median_pixel_out : 12'd0;
+    assign rgb_addr_out = (RGB_Out_Control == 2'b00) ? addr :
+                          (RGB_Out_Control == 2'b01) ? gaussian_addr_out :
+                          (RGB_Out_Control == 2'b10) ? median_addr_out : 17'd0;
+    assign rgb_pixel_valid = (RGB_Out_Control == 2'b00) ? we :
+                             (RGB_Out_Control == 2'b01) ? gaussian_pixel_valid :
+                             (RGB_Out_Control == 2'b10) ? median_pixel_valid : 1'b0;
+
+    assign threshold_pixel = (((rgb_pixel_out[3:0] >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0] <= RGB_THRESHOLD[19:16]) &&
+                             (rgb_pixel_out[7:4] >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4] <= RGB_THRESHOLD[11:8]) &&
+                             (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4]) && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+    wire threshold_pixel_dout = (((dout[3:0] >= RGB_THRESHOLD[23:20]) && (dout[3:0] <= RGB_THRESHOLD[19:16]) &&
+                             (dout[7:4] >= RGB_THRESHOLD[15:12]) && (dout[7:4] <= RGB_THRESHOLD[11:8]) &&
+                             (dout[11:8] >= RGB_THRESHOLD[7:4]) && (dout[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+
+    // morphological operations path control
+    assign erode_1_pixel_in = (Erode_1_In_Control == 2'b00) ? threshold_pixel :
+                              (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_out :
+                              (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
+    assign erode_1_pixel_we = (Erode_1_In_Control == 2'b00) ? rgb_pixel_valid :
+                              (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_valid :
+                              (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;    
+
+    assign erode_2_pixel_in = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_out :
+                              (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_out :
+                              (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
+    assign erode_2_pixel_we = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_valid :
+                              (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_valid :
+                              (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;
+
+    assign dilate_1_pixel_in = (Dilate_1_In_Control == 2'b00) ? threshold_pixel :
+                               (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_out :
+                               (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
+    assign dilate_1_pixel_we = (Dilate_1_In_Control == 2'b00) ? rgb_pixel_valid :
+                               (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_valid :
+                               (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
+
+    assign dilate_2_pixel_in = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_out :
+                               (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_out :
+                               (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
+    assign dilate_2_pixel_we = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_valid :
+                               (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_valid :
+                               (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
+
+    assign bmp_pixel_out = (BMP_Out_Control == 3'b000) ? threshold_pixel :
+                           (BMP_Out_Control == 3'b001) ? erode_1_pixel_out :
+                           (BMP_Out_Control == 3'b010) ? erode_2_pixel_out :
+                           (BMP_Out_Control == 3'b011) ? dilate_1_pixel_out :
+                           (BMP_Out_Control == 3'b100) ? dilate_2_pixel_out : 1'b0;
+    assign bmp_addr_out = (BMP_Out_Control == 3'b000) ? rgb_addr_out :
+                          (BMP_Out_Control == 3'b001) ? erode_1_addr_out :
+                          (BMP_Out_Control == 3'b010) ? erode_2_addr_out :
+                          (BMP_Out_Control == 3'b011) ? dilate_1_addr_out :
+                          (BMP_Out_Control == 3'b100) ? dilate_2_addr_out : 17'd0;
+    assign bmp_pixel_valid = (BMP_Out_Control == 3'b000) ? rgb_pixel_valid :
+                             (BMP_Out_Control == 3'b001) ? erode_1_pixel_valid :
+                             (BMP_Out_Control == 3'b010) ? erode_2_pixel_valid :
+                             (BMP_Out_Control == 3'b011) ? dilate_1_pixel_valid :
+                             (BMP_Out_Control == 3'b100) ? dilate_2_pixel_valid : 1'b0;
+
+    assign final_pixel_out = (Final_Out_Control == 2'b00) ? dout :
+                             (Final_Out_Control == 2'b01) ? rgb_pixel_out :
+                             (Final_Out_Control == 2'b10) ? (threshold_pixel ? 12'hFFF : 12'h000) :
+                             (Final_Out_Control == 2'b11) ? (bmp_pixel_out ? 12'hFFF : 12'h000) : 12'd0;
+    assign final_pixel_we = (Final_Out_Control == 2'b00) ? we :
+                            (Final_Out_Control == 2'b01) ? rgb_pixel_valid :
+                            (Final_Out_Control == 2'b10) ? rgb_pixel_valid :
+                            (Final_Out_Control == 2'b11) ? bmp_pixel_valid : 1'b0; 
+    assign final_addr_out = (Final_Out_Control == 2'b00) ? addr :
+                            (Final_Out_Control == 2'b01) ? rgb_addr_out :
+                            (Final_Out_Control == 2'b10) ? rgb_addr_out :
+                            (Final_Out_Control == 2'b11) ? bmp_addr_out : 17'd0;
+
+    
     //----------- MEDIAN FILTERS (3x3 and 5x5) ----------- //
     // // 3x3 instance
-    wire pixel_valid_median_3x3;
-    wire [11:0] filtered_pixel_median_3x3;
-    wire [16:0] filtered_addr_median_3x3;
     Median_Filter #(
         .KERNEL_SIZE(3),
         .PIXEL_DEPTH(12),
@@ -135,32 +410,12 @@ module Top(
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .pixel_in(dout),
-        .we(we),
-        .pixel_out(filtered_pixel_median_3x3),
-        .addr_out(filtered_addr_median_3x3),
-        .pixel_valid(pixel_valid_median_3x3)
+        .pixel_in(median_pixel_in),
+        .we(median_pixel_we),
+        .pixel_out(median_pixel_out),
+        .addr_out(median_addr_out),
+        .pixel_valid(median_pixel_valid)
     );
-    
-    // 5x5 instance (stub for A/B testing)
-    // wire pixel_valid_5x5;
-    // wire [11:0] filtered_pixel_5x5;
-    // wire [17:0] filtered_addr_5x5;
-    // Median_Filter_5x5 #(
-    //     .PIXEL_DEPTH(12),
-    //     .IMAGE_WIDTH(310),
-    //     .IMAGE_HEIGHT(240)
-    // )
-    // median_filter_5x5(
-    //     .clk(ov7670_pclk),
-    //     .reset(cap_reset),
-    //     .frame_start(ov7670_vsync),
-    //     .pixel_in(dout),
-    //     .we(we),
-    //     .pixel_out(filtered_pixel_5x5),
-    //     .addr_out(filtered_addr_5x5),
-    //     .pixel_valid(pixel_valid_5x5)
-    // );
 
     //----------- GAUSSIAN 3x3 via Convolution3x3 ----------- //
     // Kernel: [1 2 1; 2 4 2; 1 2 1] with SCALE=4 (divide by 16)
@@ -181,86 +436,96 @@ module Top(
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(we),
+        .we(gaussian_pixel_we),
         .mode_rgb(1'b1),             // camera provides RGB444
-        .pixel_rgb_in(dout),
+        .pixel_rgb_in(gaussian_pixel_in),
         .pixel_bin_in(1'b0),
-        .pixel_out(filtered_pixel_gauss_3x3),
-        .addr_out(filtered_addr_gauss_3x3),
-        .pixel_valid(pixel_valid_gauss_3x3)
+        .pixel_out(gaussian_pixel_out),
+        .addr_out(gaussian_addr_out),
+        .pixel_valid(gaussian_pixel_valid)
     );
 
-    // MUX to send to bitmap section
-    wire [11:0] filtered_pixel_color = sw[0] ? (sw[1] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
-    wire [16:0] filtered_addr_color = sw[0] ? (sw[1] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
-    wire pixel_valid_color = sw[0] ? (sw[1] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
-    wire threshold_pixel_raw = (((filtered_pixel_color[3:0] >= RGB_THRESHOLD[23:20]) && (filtered_pixel_color[3:0] <= RGB_THRESHOLD[19:16]) &&
-                                 (filtered_pixel_color[7:4] >= RGB_THRESHOLD[15:12]) && (filtered_pixel_color[7:4] <= RGB_THRESHOLD[11:8]) &&
-                                 (filtered_pixel_color[11:8] >= RGB_THRESHOLD[7:4]) && (filtered_pixel_color[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
-    // Threshold directly on the RAW captured pixel (dout), for immediate bitmap writes on we cycles when sw[6]=1
-    wire threshold_pixel_dout = (
-        (dout[3:0]  >= RGB_THRESHOLD[23:20]) && (dout[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
-        (dout[7:4]  >= RGB_THRESHOLD[15:12]) && (dout[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
-        (dout[11:8] >= RGB_THRESHOLD[7:4])   && (dout[11:8] <= RGB_THRESHOLD[3:0])     // R in range
-    ) ? 1'b1 : 1'b0;
     // MUX to send to VGA display
-    wire [11:0] display_pixel_color = sw[2] ? (sw[3] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
-    wire [16:0] display_addr_color = sw[2] ? (sw[3] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
-    wire pixel_valid_display = sw[2] ? (sw[3] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
+    // wire [11:0] display_pixel_color = sw[2] ? (sw[3] ? filtered_pixel_median_3x3 : filtered_pixel_gauss_3x3) : dout;
+    // wire [16:0] display_addr_color = sw[2] ? (sw[3] ? filtered_addr_median_3x3 : filtered_addr_gauss_3x3) : addr;
+    // wire pixel_valid_display = sw[2] ? (sw[3] ? pixel_valid_median_3x3 : pixel_valid_gauss_3x3) : we;
 
     //----------- MORPHOLOGY (ERODE/DILATE) ----------- //
     // Explicit binary thresholds (reuse for writer and morphology)
-    wire pixel_valid_erode_3x3;
-    wire threshold_pixel_erode_3x3;
-    wire [17:0] threshold_addr_erode_3x3;
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) erode3x3 (
+    ) erode3x3_1 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(pixel_valid_color),
+        .we(erode_1_pixel_we),
         // morphology operates on gaussian-thresholded pixels
-        .pixel_in(threshold_pixel_raw),
+        .pixel_in(erode_1_pixel_in),
         .op_dilate(1'b0),
-        .pixel_out(threshold_pixel_erode_3x3),
-        .addr_out(threshold_addr_erode_3x3),
-        .pixel_valid(pixel_valid_erode_3x3)
+        .pixel_out(erode_1_pixel_out),
+        .addr_out(erode_1_addr_out),
+        .pixel_valid(erode_1_pixel_valid)
+    );
+    Morphology_3x3 #(
+        .IMAGE_WIDTH(310),
+        .IMAGE_HEIGHT(240)
+    ) erode3x3_2 (
+        .clk(ov7670_pclk),
+        .reset(cap_reset),
+        .frame_start(ov7670_vsync),
+        .we(erode_2_pixel_we),
+        // morphology operates on gaussian-thresholded pixels
+        .pixel_in(erode_2_pixel_in),
+        .op_dilate(1'b0),
+        .pixel_out(erode_2_pixel_out),
+        .addr_out(erode_2_addr_out),
+        .pixel_valid(erode_2_pixel_valid)
     );
 
-    wire pixel_valid_dilate_3x3;
-    wire threshold_pixel_dilate_3x3;
-    wire [17:0] threshold_addr_dilate_3x3;
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) dilate3x3 (
+    ) dilate3x3_1 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(pixel_valid_erode_3x3),
-        .pixel_in(threshold_pixel_erode_3x3),
+        .we(dilate_1_pixel_we),
+        .pixel_in(dilate_1_pixel_in),
         .op_dilate(1'b1),
-        .pixel_out(threshold_pixel_dilate_3x3),
-        .addr_out(threshold_addr_dilate_3x3),
-        .pixel_valid(pixel_valid_dilate_3x3)
+        .pixel_out(dilate_1_pixel_out),
+        .addr_out(dilate_1_addr_out),
+        .pixel_valid(dilate_1_pixel_valid)
+    );
+    Morphology_3x3 #(
+        .IMAGE_WIDTH(310),
+        .IMAGE_HEIGHT(240)
+    ) dilate3x3_2 (
+        .clk(ov7670_pclk),
+        .reset(cap_reset),
+        .frame_start(ov7670_vsync),
+        .we(dilate_2_pixel_we),
+        .pixel_in(dilate_2_pixel_in),
+        .op_dilate(1'b1),
+        .pixel_out(dilate_2_pixel_out),
+        .addr_out(dilate_2_addr_out),
+        .pixel_valid(dilate_2_pixel_valid)
     );
 
     // Select which binary pipeline to write into the buffer:
-    wire threshold_pixel_bin = sw[4] ? (sw[5] ? threshold_pixel_dilate_3x3 : threshold_pixel_erode_3x3)
-                                      : threshold_pixel_raw;
+    // wire threshold_pixel_bin = sw[4] ? (sw[5] ? threshold_pixel_dilate_3x3 : threshold_pixel_erode_3x3)
+    //                                   : threshold_pixel;
     // Pixel valid for bitmap path must align with the address source used for bitmap writes:
     // - If morphology is enabled (sw[4]=1), use the corresponding morphology valid
     // - Else, use gaussian valid (provides padding flush so right/bottom borders are covered)
-    wire pixel_valid_bin = sw[4] ? (sw[5] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
-                                      : pixel_valid_color;
+    // wire pixel_valid_bin = sw[4] ? (sw[5] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
+    //                                   : pixel_valid_color;
     // centered write address (defined below after FRAME_PIXELS parameter)
-    wire [17:0] threshold_addr_bin;
+    // wire [17:0] threshold_addr_bin;
 
-    wire pixel_valid_final = sw[6] ? pixel_valid_bin : pixel_valid_display;
-    wire [11:0] final_pixel = sw[6] ? (threshold_pixel_bin ? 12'hFFF : 12'h000) : display_pixel_color;
-    wire [17:0] final_addr = sw[6] ? threshold_addr_bin : display_addr_color;
+    // wire pixel_valid_final = sw[6] ? pixel_valid_bin : pixel_valid_display;
+    // wire [11:0] final_pixel = sw[6] ? (threshold_pixel_bin ? 12'hFFF : 12'h000) : display_pixel_color;
+    // wire [17:0] final_addr = sw[6] ? threshold_addr_bin : display_addr_color;
 
     //----------- PING PONG BUFFERS ----------- //
     //No hard guards or syncs now, both just triggering the BRAM upper/lower swap on Vsync
@@ -315,9 +580,9 @@ module Top(
     // Use the filter modules' reported center addresses directly. They already
     // correspond to the window center (aligned in the source coordinate space).
     // Widen to 18 bits when mixing with frame bases.
-    assign threshold_addr_bin = sw[4]
-                                ? (sw[5] ? threshold_addr_dilate_3x3 : threshold_addr_erode_3x3)
-                                : {1'b0, filtered_addr_color};
+    // assign threshold_addr_bin = sw[4]
+    //                             ? (sw[5] ? threshold_addr_dilate_3x3 : threshold_addr_erode_3x3)
+    //                             : {1'b0, filtered_addr_color};
 
     // Latch the write-base per frame so all writes for a frame (including padding flush)
     // target the same half. Arm on VSYNC rise, capture on the first incoming pixel (we==1)
@@ -370,11 +635,11 @@ module Top(
             we_w <= 1'b0; // default no write; assert exactly once per cycle below
 
             // Latch a pending filtered write only when we==1 (raw write occupies the port).
-            if (we && pixel_valid_final && !pend) begin
+            if (we && final_pixel_we && !pend) begin
                 pend <= 1'b1;
-                pend_addr_q <= final_addr + wr_base_frame; // absolute address in the latched frame half
+                pend_addr_q <= final_addr_out + wr_base_frame; // absolute address in the latched frame half
                 // bitmap bit from selected filtered pipeline (same address as RGB)
-                fpix_q <= final_pixel;
+                fpix_q <= final_pixel_out;
                 // bdin_q <= threshold_pixel_mux;
             end
 
@@ -389,9 +654,9 @@ module Top(
                     we_w <= 1'b1;
                     pend <= 1'b0;
                 end
-                else if (pixel_valid_final) begin
-                    waddr18_r  <= final_addr + wr_base_frame;
-                    rgb_dina_r <= final_pixel;
+                else if (final_pixel_we) begin
+                    waddr18_r  <= final_addr_out + wr_base_frame;
+                    rgb_dina_r <= final_pixel_out;
                     // bmp_dina_r <= threshold_pixel_bin;
                     we_w <= 1'b1;
                 end
@@ -402,8 +667,8 @@ module Top(
             //  - Else, write RAW RGB as usual
             if (we) begin
                 waddr18_r  <= {1'b0, addr} + wr_base_frame;
-                rgb_dina_r <= sw[6] ? (threshold_pixel_dout ? 12'hFFF : 12'h000) : dout;
-                // bmp_dina_r <= threshold_pixel_raw;
+                rgb_dina_r <= Final_Out_Control[1] ? (threshold_pixel_dout ? 12'hFFF : 12'h000) : dout;
+                // bmp_dina_r <= threshold_pixel;
                 we_w <= 1'b1;
             end
         end
@@ -416,7 +681,7 @@ module Top(
         .dina(rgb_dina_r),          // write RGB444 (raw on we cycles, filtered on alt cycles)
         .clkb(clk25),
         .addrb(addrb18),
-        .doutb(image_pixel)   // read RGB444
+        .doutb(bram_pixel_out)   // read RGB444
     );
     // Dual_Port_Buffer frame_buffer(
     //     .clka(ov7670_pclk),
@@ -425,20 +690,19 @@ module Top(
     //     .dina(rgb_dina_r),          // write RGB444 (raw on we cycles, filtered on alt cycles)
     //     .clkb(clk25),
     //     .addrb(addrb18),
-    //     .doutb(image_pixel)   // read RGB444
+    //     .doutb(bram_pixel_out)   // read RGB444
     // );
 
     //----------- BITMAP STREAM (1-bit, synced to VGA read) ----------- //
     // Eliminate the dedicated bitmap BRAM; derive the bitmap bit on-the-fly
-    // by thresholding the RGB pixel read from the frame buffer (image_pixel).
+    // by thresholding the RGB pixel read from the frame buffer (bram_pixel_out).
     // This keeps p_px aligned with addrb18/clk25 and removes the large 1-bit double buffer.
-    wire bitmap_pixel;
-    assign bitmap_pixel = (
-        (image_pixel[3:0]  >= RGB_THRESHOLD[23:20]) && (image_pixel[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
-        (image_pixel[7:4]  >= RGB_THRESHOLD[15:12]) && (image_pixel[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
-        (image_pixel[11:8] >= RGB_THRESHOLD[7:4])   && (image_pixel[11:8] <= RGB_THRESHOLD[3:0])     // R in range
-    ) ? 1'b1 : 1'b0;
-
+    // wire raw_bitmap_pixel = (
+    //     (bram_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (bram_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
+    //     (bram_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (bram_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
+    //     (bram_pixel_out[11:8] >= RGB_THRESHOLD[7:4])   && (bram_pixel_out[11:8] <= RGB_THRESHOLD[3:0])     // R in range
+    // ) ? 1'b1 : 1'b0;
+    // assign bitmap_pixel = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : raw_bitmap_pixel;
     // Dual_Port_Buffer bitmap_buffer(
     //     .clka(ov7670_pclk),
     //     .we(we_w),
@@ -462,14 +726,15 @@ module Top(
     // Decimate the VGA-doubled raster (640x480) to source grid (320x240):
     // take only even hCounter/vCounter pixels so each source pixel is enqueued once
     wire decim_hv = (~frame_x[0]) && (~frame_y[0]);
+    wire ufds_pixel_in = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : 12'h000;
     UFDS_Bridge ufds_bridge (
         .pclk(clk25),
         .p_rst(cap_reset),
-    // Gate valid to ROI AND decimate by 2x2 so UFDS sees exactly 310x240 unique pixels per frame
-    .p_valid(in_roi && decim_hv),
+        // Gate valid to ROI AND decimate by 2x2 so UFDS sees exactly 310x240 unique pixels per frame
+        .p_valid(in_roi && decim_hv),
         .p_x(frame_x[9:1] - 10),
         .p_y(frame_y[9:1]),
-        .p_px(bitmap_pixel), // use same bitmap data as vga pixel
+        .p_px(ufds_pixel_in), // use same bitmap data as vga pixel
         .clk(clk50),
         .ext_reset(cap_reset),
         .comp3210_left(comp3210_left),
@@ -533,13 +798,13 @@ module Top(
     end
 
     // 7-seg display selection: choose 16-bit window from either TX or RX payload
-    wire [79:0] uart_dbg = sw[15] ? rx_fifo_payload_buf : tx_fifo_payload;
-    wire [15:0] ss_output =
-        (sw[11]) ? uart_dbg[79:64] :
-        (sw[12]) ? uart_dbg[63:48] :
-        (sw[13]) ? uart_dbg[47:32] :
-        (sw[14]) ? uart_dbg[31:16] :
-                   uart_dbg[15:0];
+    // wire [79:0] uart_dbg = sw[15] ? rx_fifo_payload_buf : tx_fifo_payload;
+    // wire [15:0] ss_output =
+    //     (sw[11]) ? uart_dbg[79:64] :
+    //     (sw[12]) ? uart_dbg[63:48] :
+    //     (sw[13]) ? uart_dbg[47:32] :
+    //     (sw[14]) ? uart_dbg[31:16] :
+    //                uart_dbg[15:0];
 
     // Optional LEDs for quick UART debug
     assign led[0] = tx_fifo_wr_en;     // TX trigger
@@ -548,7 +813,7 @@ module Top(
     // Show middle pixel value on LEDs for debugging
     // always @(posedge clk25) begin
     //     if (active_area && (frame_addr == 36567)) begin
-    //         ss_output[11:0] <= image_pixel;
+    //         ss_output[11:0] <= bram_pixel_out;
     //     end else begin
     //         ss_output[11:0] <= ss_output[11:0];
     //     end
@@ -619,7 +884,7 @@ module Top(
     reg [8:0] top2_l, bottom2_l, cy2_l;
     reg [8:0] top3_l, bottom3_l, cy3_l;
 
-    // Randomised canvas module instance (mosaic + shapes). Used with sw[7] ON.
+    // Randomised canvas module instance (mosaic + shapes). Used with sw[15] ON.
     wire [11:0] canvas_pixel;
     Randomised_Canvas canvas_inst (
         .clk(clk25),
@@ -957,8 +1222,8 @@ module Top(
     wire cursor_on_auto_box   = (mouse_x_px >= BOX_X1 && mouse_x_px < BOX_X1 + WIDTH1 && mouse_y_px >= BOX_Y1 && mouse_y_px < BOX_Y1 + HEIGHT1);
 
 
-    // Overlays pixel with other graphics based on program state (background = image_pixel when sw[7] is off)
-    // current flow should be: S_MENU -> S_CV_SETTINGS (CV) or S_USER_SETTINGS -> back -> GAME modes
+    // Overlays pixel with other graphics based on program state (background = bram_pixel_out when sw[15] is off)
+    // current flow should be: S_MENU -> S_USER_SETTINGS -> S_MENU -> S_GAME_(MANUAL/AUTO)_MODE
     reg[2:0] state = 0;
     reg[2:0] prev_state = 0; // remember previous state
     localparam S_MENU = 0;
@@ -1016,8 +1281,8 @@ module Top(
         if (vga_reset) begin
             state <= S_MENU;
             prev_state <= S_MENU;
-        end else if (sw[7]) begin
-            // Output random canvas of colours by separate FPGA using sw[7]
+        end else if (sw[15]) begin
+            // Output random canvas of colours by separate FPGA using sw[15]
             frame_pixel <= canvas_pixel;
         end else begin 
             // debouncing for right click / btnC
@@ -1035,7 +1300,7 @@ module Top(
             end
 
             // every pixel that is not overwritten should be the camera's output
-            frame_pixel <= image_pixel;
+            frame_pixel <= bram_pixel_out;
             
             // if (right_click) begin
             //     prev_state <= state;

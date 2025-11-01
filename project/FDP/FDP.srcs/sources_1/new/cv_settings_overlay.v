@@ -66,6 +66,8 @@ module cv_settings_overlay (
     // Colors (BGR444)
     localparam [11:0] BLACK   = 12'h000; // 0
     localparam [11:0] WHITE   = 12'hFFF; // 1
+    localparam [11:0] RED     = 12'hF00; // 2
+    localparam [11:0] GREEN   = 12'h1C1; // 3
     localparam [11:0] GREY    = 12'h888; 
     localparam [11:0] CYAN    = 12'hFF0; // 5
     localparam [11:0] MAGENTA = 12'hF0F; // 6
@@ -76,6 +78,7 @@ module cv_settings_overlay (
     localparam [11:0] OFFWHITE  = 12'hBEE; // 11
     localparam [11:0] BORDERBLUE = 12'hC70; // 12
     localparam [11:0] BRIGHTBLUE = 12'hFB0; // 13
+    localparam [11:0] BUMBLEBEE   = 12'hFC0; // 14
   
 
 
@@ -85,7 +88,7 @@ module cv_settings_overlay (
     localparam [8:0] H_ALL = 9'd34;
     // Change-view toggle sizes and gap
     localparam [9:0] TOG_W = 10'd15;
-    localparam [8:0] TOG_H = 9'd14;
+    localparam [8:0] TOG_H = 9'd12;
     localparam [9:0] GAP_X = 10'd5;
 
     // Drop zones geometry
@@ -141,7 +144,7 @@ module cv_settings_overlay (
     wire in_ufds_rect   = (mouse_x >= UFDS_X)  && (mouse_x < (UFDS_X + UFDS_W))  && (mouse_y >= UFDS_Y) && (mouse_y < (UFDS_Y + H_ALL));
 
     // Change-view toggle positions (centered vertically in bottom-row height)
-    localparam [8:0] TOG_Y  = ROW_Y + ((H_ALL - TOG_H) >> 1);
+    localparam [8:0] TOG_Y  = ROW_Y;
     localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X; // after CAM
     localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X; // after PRE
     localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X; // after BITMAP
@@ -230,21 +233,21 @@ module cv_settings_overlay (
                 end
             end
             // Vertical bisecting line (floor(89/2) = 44 px from left)
-            if ((px == (10'd30 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+            if ((px == (10'd33 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
 
             // Borders first (drop zones, bottom boxes, and change-view toggles)
             if (in_pre_border) begin
-                overlay_en  = 1'b1; overlay_rgb = GREY;
+                overlay_en  = 1'b1; overlay_rgb = CYAN;
             end else if (in_morph_border) begin
-                overlay_en  = 1'b1; overlay_rgb = GREY;
+                overlay_en  = 1'b1; overlay_rgb = MAGENTA;
             end else if (in_cam_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end else if (in_bmp_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end else if (in_ufds_border) begin
-                overlay_en  = 1'b1; overlay_rgb = GREY;
+                overlay_en  = 1'b1; overlay_rgb = GREEN;
             end else if (in_tog0_border || in_tog1_border || in_tog2_border || in_tog3_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end

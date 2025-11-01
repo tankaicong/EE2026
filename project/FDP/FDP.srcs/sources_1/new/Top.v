@@ -910,15 +910,22 @@ module Top(
     // Overlay pixel from settings UI (drag/drop) in VGA coordinates
     wire cv_sett_overlay_en;
     wire [11:0] cv_sett_overlay;
+    // Click pulses from CV settings overlay selection boxes
+    wire cam_box_clicked;
+    wire bitmap_box_clicked;
+    wire ufds_box_clicked;
     cv_settings_overlay settings_cv_overlay (
         .settings_active(cv_settings_mode),
         .px(frame_x), .py(frame_y),
+        .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
-        .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay)
+        .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
+        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked)
     );
+
 
     // Display Settings UI instance
     wire        user_overlay_en;

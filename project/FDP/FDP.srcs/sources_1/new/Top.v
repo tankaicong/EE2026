@@ -1281,14 +1281,15 @@ module Top(
             else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
             else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
             else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
-            else if (overlay_pixel == 4'h8) frame_pixel <= 12'h57B;
-            else if (overlay_pixel == 4'h9) frame_pixel <= 12'hACE;
-            else if (overlay_pixel == 4'hA) frame_pixel <= 12'hBDE;
-            else if (overlay_pixel == 4'hB) frame_pixel <= 12'hEEB;
-            // else if (overlay_pixel == 4'hC) frame_pixel <= 12'h555;
-            // else if (overlay_pixel == 4'hD) frame_pixel <= 12'hDDD;
-            // else if (overlay_pixel == 4'hE) frame_pixel <= 12'h777;
-            else if (overlay_pixel == 4'hF) frame_pixel <= 12'h000;
+            else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
+            else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
+            else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
+            else if (overlay_pixel == 4'hB) frame_pixel <= 12'hBEE;
+            else if (overlay_pixel == 4'hC) frame_pixel <= 12'hC70;
+            else if (overlay_pixel == 4'hD) frame_pixel <= 12'hFB0;
+            else if (overlay_pixel == 4'hE) frame_pixel <= 12'hABC;     // Undefined
+            // else if (overlay_pixel == 4'hF) frame_pixel <= 12'hBCD;     // Undefined
+            else frame_pixel <= frame_pixel;                            // retain previous pixel
         end
     end
 

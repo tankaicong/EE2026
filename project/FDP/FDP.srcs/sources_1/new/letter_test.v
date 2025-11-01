@@ -1,7 +1,7 @@
 module letter_top (
     input clk,
-    input [59:0] x,
-    input [53:0] y,
+    // input [59:0] x,
+    // input [53:0] y,
     // input [15:0] sw,
     // input [18:0] gauss,
     // input [18:0] med,
@@ -80,34 +80,64 @@ module letter_top (
         .dout(image_pixel)
     );
 
-    localparam integer NUM = 17;        // Number of things to generate
-    localparam integer NUM_ACTL = 23;   // + 6 moving, just to store address of moving parts
+    // Localparams for pixels
+    localparam integer NUM = 23;        // Number of things to generate
+    localparam integer NUM_ACTL = 29;   // + 6 moving, just to store address of moving parts
     localparam integer ATTRS = 5;       // Number of attributes per thing
     localparam integer lookup [0 : (NUM_ACTL * ATTRS) - 1] = {
         // X, Y, x-size, y-size, bram_offset            // Index, desc, start-end row in csv, start addr, num rows (= numpixels), next addr (start + rows)
-        111, 348, 12, 12, 0,           // 0 Red square, 0, 144, 144
-        111, 363, 12, 12, 144,         // 1 Green square, 144, 144, 288
-        111, 378, 12, 12, 288,         // 2 Blue square, 288, 144, 432
-         13, 330, 81, 12, 432,         // 3 Text "Threshold", 432, 972, 1404
-         12, 410, 71, 12, 1404,        // 4 Text "Raw Feed", 49-60, 1404, 852, 2256
-         11, 435, 72, 34, 2256,        // 5 Text "Camera", 61-94, 2256, 2448, 4704
-        124, 410, 112, 18, 4704,       // 6  Text "Preprocessing", 95-112, 4686, 2016, 6720
-        104, 435, 148, 1, 6720,        // 7 Blue horizontal preprocessing, 113, 6720, 148, 6868
-        104, 468, 148, 1, 6720,        // 8 Blue horizontal preprocessing, (no additional)
-        104, 436,  1, 32, 6868,        // 9 Blue vertical preprocessing, 114-145, 6868, 32, 6900
-        251, 436,  1, 32, 6868,        // 10 Red vertical preprocessing, (no additional)
-        268, 410, 105, 18, 6900,       // 11 Text "Thresholding" 146-163, 6900, 1890, 8790
-        285, 435, 72,  34, 8790,       // 12 Text "BITMAP" + square, 164-197, 8790, 2448, 11238
-        416, 410, 95, 18, 11238,       // 13 Text "Morphology", 198-215, 11238, 1710, 12948
-        558, 400, 77, 30, 12948,       // 14 Text "Operations", 216-245, 12948, 2310, 15258
-        558, 435, 72, 34, 15258,       // 15 Text "UFDS"  + square, 246-279, 15258, 2448, 17706
-        320, 330, 196, 18, 17706,      // 16 Text "Image Processing Blocks", 280-297, 17706, 3528, 21234
-        320, 352, 72, 34, 21234,       // 17 Text "Gaussian" + square, 298-331, 21234, 2448, 23682
-        394, 352, 72, 34, 23682,       // 18 Text "Median" + square, 332-365, 23682, 2448, 26130      NOTE: ONLY USING BRAM ADDR
-        468, 352, 40, 34, 26130,       // 19 Text "Erode 1" + square, 366-399, 26130, 1360, 27490     NOTE: ONLY USING BRAM ADDR
-        510, 352, 40, 34, 26130,       // 20 Text "Erode 2" + square, reuse                           NOTE: ONLY USING BRAM ADDR
-        552, 352, 40, 34, 27490,       // 21 Text "Dilate 1" + square, 400-433, 27490, 1360, 28850    NOTE: ONLY USING BRAM ADDR
-        594, 352, 40, 34, 27490        // 22 Text "Dilate 2" + square, reuse                          NOTE: ONLY USING BRAM ADDR
+        // 128, 348, 12, 12, 0,           // 0 Red square, 1-12, 0, 144, 144
+        // 128, 363, 12, 12, 144,         // 1 Green square, 13-24, 144, 144, 288
+        // 128, 378, 12, 12, 288,         // 2 Blue square, 25-36, 288, 144, 432
+        //  33, 330, 81, 12, 432,         // 3 Text "Threshold", 37-48, 432, 972, 1404
+        //  39, 401, 71, 12, 1404,        // 4 Text "Raw Feed", 49-77, 1404, 1044, 2448
+        //  33, 435, 47, 34, 2448,        // 5 Text "Camera", 78-111, 2256, 1598, 3854
+        // 120, 410, 112, 18, 3854,       // 6  Text "Preprocessing", 112-129, 3854, 2016, 5870
+        // 105, 435, 148, 1, 5870,        // 7 Blue horizontal preprocessing, 130, 5870, 148, 6018
+        // 105, 468, 148, 1, 5870,        // 8 Blue horizontal preprocessing, (no additional)
+        // 105, 436,  1, 32, 6018,        // 9 Blue vertical preprocessing, 131-162, 6018, 32, 6050
+        // 251, 436,  1, 32, 6018,        // 10 Red vertical preprocessing, (no additional)
+        // 262, 410, 105, 18, 6050,       // 11 Text "Thresholding" 163-180, 6050, 1890, 7940
+        // 278, 435, 72,  34, 7940,       // 12 Text "BITMAP" + square, 181-214, 7940, 2448, 10388
+        // 410, 410, 95, 18, 10388,       // 13 Text "Morphology", 215-232, 10388, 1710, 12098
+        // 558, 400, 77, 30, 12948,       // 14 Text "Operations", 216-245, 12948, 2310, 15258
+        // 558, 435, 72, 34, 15258,       // 15 Text "UFDS"  + square, 246-279, 15258, 2448, 17706
+        // 320, 330, 196, 18, 17706,      // 16 Text "Image Processing Blocks", 280-297, 17706, 3528, 21234
+        // 320, 352, 72, 34, 21234,       // 17 Text "Gaussian" + square, 298-331, 21234, 2448, 23682
+        // 394, 352, 72, 34, 23682,       // 18 Text "Median" + square, 332-365, 23682, 2448, 26130      NOTE: ONLY USING BRAM ADDR
+        // 468, 352, 40, 34, 26130,       // 19 Text "Erode 1" + square, 366-399, 26130, 1360, 27490     NOTE: ONLY USING BRAM ADDR
+        // 510, 352, 40, 34, 26130,       // 20 Text "Erode 2" + square, reuse                           NOTE: ONLY USING BRAM ADDR
+        // 552, 352, 40, 34, 27490,       // 21 Text "Dilate 1" + square, 400-433, 27490, 1360, 28850    NOTE: ONLY USING BRAM ADDR
+        // 594, 352, 40, 34, 27490        // 22 Text "Dilate 2" + square, reuse                          NOTE: ONLY USING BRAM ADDR
+        128, 348, 12, 12, 0,            // 0 Red square
+        128, 363, 12, 12, 144,          // 1 Green square
+        128, 378, 12, 12, 288,          // 2 Blue square
+        33, 330, 81, 12, 432,           // 3 Text "Threshold"
+        39, 401, 36, 29, 1404,          // 4 Text "Raw Feed"
+        33, 435, 47, 34, 2448,          // 5 Text "Camera"
+        124, 410, 112, 18, 4046,        // 6 Text "Preprocessing"
+        80, 448, 25, 8, 6062,           // 7 Yellow arrow
+        253, 448, 25, 8, 6062,          // 8 Yellow arrow
+        350, 448, 25, 8, 6062,          // 9 Yellow arrow
+        539, 448, 25, 8, 6062,          // 10 Yellow arrow
+        106, 451, 146, 2, 6262,         // 11 Yellow short rectangle
+        376, 451, 162, 2, 6262,         // 12 Yellow long rectangle
+        85, 435, 15, 12, 6586,          // 13 Eye 1
+        258, 435, 15, 12, 6586,         // 14 Eye 2
+        355, 435, 15, 12, 6586,         // 15 Eye 3
+        544, 435, 15, 12, 6586,         // 16 Eye 4
+        262, 410, 105, 18, 6766,        // 17 Text "Thresholding"
+        278, 435, 72, 34, 8656,         // 18 Text "BITMAP" + square
+        410, 410, 95, 18, 11104,        // 19 Text "Morphology"
+        558, 401, 77, 29, 12814,        // 20 Text "Object Detection"
+        564, 435, 66, 34, 15047,        // 21 Text "UFDS"  + square
+        320, 330, 196, 18, 17291,       // 22 Text "Image Processing Blocks"
+        320, 352, 72, 34, 20819,        // 23 Text "Gaussian" + square
+        394, 352, 72, 34, 23267,        // 24 Text "Median" + square
+        468, 352, 40, 34, 25715,        // 25 Text "Erode 1" + square
+        510, 352, 40, 34, 25715,        // 26 Text "Erode 2" + square
+        552, 352, 40, 34, 27075,        // 27 Text "Dilate 1" + square
+        594, 352, 40, 34, 27075         // 28 Text "Dilate 2" + square
     };
 
     wire [0 : (NUM - 1)] gen;
@@ -127,18 +157,18 @@ module letter_top (
     wire dilate_1_sq, dilate_1_sq_1;
     wire dilate_2_sq, dilate_2_sq_1;
 
-    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
-    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
-    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
-    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
-    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
-    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
-    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
-    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
-    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
-    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
-    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
-    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
+    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
+    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
+    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + lookup[(NUM_ACTL - 5)*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[(NUM_ACTL - 5)*ATTRS + 3]));
+    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + lookup[(NUM_ACTL - 5)*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[(NUM_ACTL - 5)*ATTRS + 3]));
+    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + lookup[(NUM_ACTL - 4)*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[(NUM_ACTL - 4)*ATTRS + 3]));
+    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + lookup[(NUM_ACTL - 4)*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[(NUM_ACTL - 4)*ATTRS + 3]));
+    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + lookup[(NUM_ACTL - 3)*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[(NUM_ACTL - 3)*ATTRS + 3]));
+    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + lookup[(NUM_ACTL - 3)*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[(NUM_ACTL - 3)*ATTRS + 3]));
+    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + lookup[(NUM_ACTL - 2)*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[(NUM_ACTL - 2)*ATTRS + 3]));
+    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + lookup[(NUM_ACTL - 2)*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[(NUM_ACTL - 2)*ATTRS + 3]));
+    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
+    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
 
     reg [9:0] gauss_x = 10'd320;
     reg [9:0] gauss_y = 10'd352;
@@ -180,28 +210,28 @@ module letter_top (
             if (gen[i]) begin
                 overlay_addr = ((frame_y - lookup[i*ATTRS + 1]) * lookup[i*ATTRS + 2]) + (frame_x - lookup[i*ATTRS]) + lookup[i*ATTRS + 4];
             end
-            // else begin
-            //     overlay_addr = 18'd76805;
-            // end
         end
         if (gauss_sq) begin
-            overlay_addr = ((frame_y - gauss_y) * lookup[17*ATTRS + 2]) + (frame_x - gauss_x) + lookup[17*ATTRS + 4];
+            overlay_addr = ((frame_y - gauss_y) * lookup[(NUM_ACTL - 6)*ATTRS + 2]) + (frame_x - gauss_x) + lookup[(NUM_ACTL - 6)*ATTRS + 4];
         end
         else if (med_sq) begin
-            overlay_addr = ((frame_y - med_y) * lookup[18*ATTRS + 2]) + (frame_x - med_x) + lookup[18*ATTRS + 4];
+            overlay_addr = ((frame_y - med_y) * lookup[(NUM_ACTL - 5)*ATTRS + 2]) + (frame_x - med_x) + lookup[(NUM_ACTL - 5)*ATTRS + 4];
         end
         else if (erode_1_sq) begin
-            overlay_addr = ((frame_y - erode_1_y) * lookup[19*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[19*ATTRS + 4];
+            overlay_addr = ((frame_y - erode_1_y) * lookup[(NUM_ACTL - 4)*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[(NUM_ACTL - 4)*ATTRS + 4];
         end
         else if (erode_2_sq) begin
-            overlay_addr = ((frame_y - erode_2_y) * lookup[20*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[20*ATTRS + 4];
+            overlay_addr = ((frame_y - erode_2_y) * lookup[(NUM_ACTL - 3)*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[(NUM_ACTL - 3)*ATTRS + 4];
         end
         else if (dilate_1_sq) begin
-            overlay_addr = ((frame_y - dilate_1_y) * lookup[21*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[21*ATTRS + 4];
+            overlay_addr = ((frame_y - dilate_1_y) * lookup[(NUM_ACTL - 2)*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[(NUM_ACTL - 2)*ATTRS + 4];
         end
         else if (dilate_2_sq) begin
-            overlay_addr = ((frame_y - dilate_2_y) * lookup[22*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[22*ATTRS + 4];
+            overlay_addr = ((frame_y - dilate_2_y) * lookup[(NUM_ACTL - 1)*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[(NUM_ACTL - 1)*ATTRS + 4];
         end
+        // else begin
+        //     overlay_addr = 18'd0;
+        // end
     end
     // wire [17:0] overlay_addr = (frame_x >= 111 && frame_x <= (111 + 12) && frame_y >= 264 && frame_y < (264 + 12)) ?
     //     (frame_y - 264) * 12 + (frame_x - 111) : 18'd200;

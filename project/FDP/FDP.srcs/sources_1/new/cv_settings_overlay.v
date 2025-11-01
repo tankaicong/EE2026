@@ -80,6 +80,16 @@ module cv_settings_overlay (
         overlay_rgb = 12'h000;
 
         if (settings_active) begin
+            // --- Guide lines ---
+            // Horizontal black lines at y = 324 and y = 395 (full width)
+            if ((py == 9'd324) || (py == 9'd395)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            end
+            // Vertical black lines downwards from (93,395), (262,395), (378,395), (548,395)
+            if ((py >= 9'd395) && (px == 10'd93 || px == 10'd262 || px == 10'd378 || px == 10'd548)) begin
+                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            end
+
             // Borders first
             if (in_pre_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;

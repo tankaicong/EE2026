@@ -828,7 +828,7 @@ module Top(
     );
 
     // ----------- DISPLAY OUTPUTS ----------- //
-    localparam GREEN = 12'h0F0;
+    localparam GREEN = 12'h1C1;
     localparam RED = 12'h00F;
     localparam BLUE = 12'hF00;
     localparam WHITE = 12'hFFF;
@@ -1154,6 +1154,8 @@ module Top(
     wire [1:0]  morph_order0, morph_order1, morph_order2, morph_order3;
     wire [1:0]  pre_count;
     wire [1:0]  pre_order0, pre_order1;
+    // Click pulses from drag/drop for info categories
+    wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
 
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
@@ -1174,7 +1176,8 @@ module Top(
         .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector),
         .front_idx(front_idx),
         .dragging_o(led[2]),
-        .drop_reason(led[4:3])
+        .drop_reason(led[4:3]),
+        .gauss_click(gauss_click_mv), .median_click(median_click_mv), .erode_click(erode_click_mv), .dilate_click(dilate_click_mv)
     );
 
     // Overlay pixel from settings UI (drag/drop) in VGA coordinates
@@ -1197,6 +1200,19 @@ module Top(
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
         .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
         .final_out(final_out)
+    );
+
+    // === Info tab animation: moving pixel (x,y) and color ===
+    wire [9:0] info_pix_x;
+    wire [8:0] info_pix_y;
+    wire [2:0] info_idx;
+    wire [11:0] info_pix_rgb;
+    cv_settings_info_tab info_tab (
+        .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
+        .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
+        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        .gauss_click(gauss_click_mv), .median_click(median_click_mv), .erode_click(erode_click_mv), .dilate_click(dilate_click_mv),
+        .pix_x(info_pix_x), .pix_y(info_pix_y), .info_idx(info_idx), .pix_rgb(info_pix_rgb)
     );
 
     // expose selection on LEDs for quick debug
@@ -1311,6 +1327,56 @@ module Top(
 
             // every pixel that is not overwritten should be the camera's output
             frame_pixel <= bram_pixel_out;
+
+            if (frame_addr == 74399) begin
+                        // snapshot UFDS results once per VGA frame
+                        left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
+                        left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
+                        left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
+                        left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
+                    end
+
+            if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
+                            // Comp 0
+                            (
+                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
+                            ) ||
+                            // Comp 1
+                            (
+                                (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
+                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
+                            ) ||
+                            // Comp 2
+                            (
+                                (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
+                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
+                            ) ||
+                            // Comp 3
+                            (
+                                (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
+                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
+                            )
+                        )) begin
+                            frame_pixel <= GREEN;
+                        end
+        end
             
             // if (right_click) begin
             //     prev_state <= state;
@@ -1371,8 +1437,10 @@ module Top(
                         frame_pixel <= bram_pixel_out;
                     end
 
-                    // draw CV settings overlay, then draw cursor on top
+                    // draw CV settings overlay, then the info pixel, then draw cursor on top
                     if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
+                    // Info pixel on top of overlay
+                    if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
                     // Use VGA-space cursor here (overlay also uses VGA coords)
                     if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
                 end
@@ -1389,13 +1457,6 @@ module Top(
                 end
 
                 S_GAME_MANUAL_MODE: begin
-                    if (frame_addr == 74399) begin
-                        // snapshot UFDS results once per VGA frame
-                        left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
-                        left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
-                        left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
-                        left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
-                    end else begin
                         // --- Crosshair drawing with user-selected color ---
                         // === Bottom vertical arm ===
                         if (frame_x[9:1]-10 == 155 &&
@@ -1409,7 +1470,7 @@ module Top(
                         end
 
                         // === Top vertical arm ===
-            else if (frame_x[9:1]-10 == 155 &&
+                        else if (frame_x[9:1]-10 == 155 &&
                                 frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
 
                             // Mirror the same cooldown progress upward
@@ -1420,8 +1481,8 @@ module Top(
                         end
 
                         // === Left horizontal arm ===
-            else if (frame_y[9:1] == 120 &&
-                frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
+                        else if (frame_y[9:1] == 120 &&
+                                frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
 
                             // Turn green once cooldown crosses midpoint
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
@@ -1431,55 +1492,14 @@ module Top(
                         end
 
                         // === Right horizontal arm ===
-            else if (frame_y[9:1] == 120 &&
-                frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
+                        else if (frame_y[9:1] == 120 &&
+                            frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
 
                             // if (fill_height >= CROSSHAIR_HEIGHT / 2)
                                 frame_pixel <= crosshair_rgb;
                             // else
                             //     frame_pixel <= RED;
                         end
-                        else if (in_roi && (
-                            // Comp 0
-                            (
-                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
-                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
-                            ) ||
-                            // Comp 1
-                            (
-                                (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
-                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
-                                (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
-                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
-                            ) ||
-                            // Comp 2
-                            (
-                                (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
-                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
-                                (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
-                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
-                            ) ||
-                            // Comp 3
-                            (
-                                (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
-                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
-                                (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
-                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
-                            )
-                        )) begin
-                            frame_pixel <= 12'h00F;
-                        end
-                    end
                 end
 
                 S_GAME_AUTO_MODE: begin
@@ -1492,7 +1512,7 @@ module Top(
             endcase
             
         end
-    end
+
 
     // Sets timer
     // Time_Countdown timer_inst (

@@ -29,11 +29,51 @@ module Median_Filter
     wire [GRAY_DEPTH+2:0] sum_w = {2'b00, r4} + {1'b0, g4, 1'b0} + {2'b00, b4}; // r + 2*g + b
     wire [GRAY_DEPTH-1:0] gray4_in = sum_w >> 2;
 
-    // grayscale and color line buffers (past 2 rows)
-    reg [GRAY_DEPTH-1:0] linebuf1 [0:IMAGE_WIDTH-1];  // row-1
-    reg [GRAY_DEPTH-1:0] linebuf2 [0:IMAGE_WIDTH-1];  // row-2
-    reg [PIXEL_DEPTH-1:0] clinebuf1 [0:IMAGE_WIDTH-1];  // row-1 color
-    reg [PIXEL_DEPTH-1:0] clinebuf2 [0:IMAGE_WIDTH-1];  // row-2 color
+    // --------------------
+    // Row delays via BRAM
+    // Two cascaded line delays (depth = IMAGE_WIDTH) for grayscale and color.
+    // This eliminates large LUT-based arrays and async reads.
+    // --------------------
+    wire [GRAY_DEPTH-1:0] gray_ld1_out, gray_ld2_out;
+    wire [PIXEL_DEPTH-1:0] color_ld1_out, color_ld2_out;
+
+    wire advance = we || (running && (is_pad_col || is_pad_row));
+
+    LineDelayBRAM #(
+        .DATA_W(GRAY_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) gray_ld1 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din((is_pad_col || is_pad_row) ? 4'd0 : gray4_in),
+        .dout(gray_ld1_out)
+    );
+
+    LineDelayBRAM #(
+        .DATA_W(GRAY_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) gray_ld2 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din(gray_ld1_out),
+        .dout(gray_ld2_out)
+    );
+
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld1 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din((is_pad_col || is_pad_row) ? 12'd0 : pixel_in),
+        .dout(color_ld1_out)
+    );
+
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld2 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din(color_ld1_out),
+        .dout(color_ld2_out)
+    );
 
     // 3x3 sliding window shift registers per row (oldest at index 0)
     reg [GRAY_DEPTH-1:0] w0 [0:2]; // top row (row-2)
@@ -98,21 +138,39 @@ module Median_Filter
     reg [GRAY_DEPTH-1:0] min_of_max, mid_of_mid, max_of_min, median;
 
     // Track last valid samples at the end of a real row to support right-edge replication
-    reg [GRAY_DEPTH-1:0] last_prev1_row; // grayscale linebuf1 at last real column
-    reg [GRAY_DEPTH-1:0] last_prev2_row; // grayscale linebuf2 at last real column
-    reg [GRAY_DEPTH-1:0] last_cur_gray_row; // current grayscale at last real column
-    reg [PIXEL_DEPTH-1:0] last_cprev1_row;  // color linebuf1 at last real column
-    reg [PIXEL_DEPTH-1:0] last_cprev2_row;  // color linebuf2 at last real column
-    reg [PIXEL_DEPTH-1:0] last_cur_rgb_row; // current rgb at last real column
+    reg [GRAY_DEPTH-1:0] last_y1_row; // grayscale one-line delay at last real column
+    reg [GRAY_DEPTH-1:0] last_y2_row; // grayscale two-line delay at last real column
+    reg [GRAY_DEPTH-1:0] last_y0_row; // current grayscale at last real column
+    reg [PIXEL_DEPTH-1:0] last_cy1_row;  // color one-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_cy2_row;  // color two-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_cy0_row;  // current color at last real column
 
     // reset/initialization
     integer k;
-    reg [GRAY_DEPTH-1:0] prev1; // row-1, same col (gray)
-    reg [GRAY_DEPTH-1:0] prev2; // row-2, same col (gray)
-    reg [PIXEL_DEPTH-1:0] cprev1; // row-1, same col (color)
-    reg [PIXEL_DEPTH-1:0] cprev2; // row-2, same col (color)
+    wire [GRAY_DEPTH-1:0] y0_gray; // current row gray (with padding policy)
+    wire [GRAY_DEPTH-1:0] y1_gray; // row-1 gray via line delay (with top-edge replication)
+    wire [GRAY_DEPTH-1:0] y2_gray; // row-2 gray via line delay (with top-edge replication)
+    wire [PIXEL_DEPTH-1:0] y0_col;  // current row color
+    wire [PIXEL_DEPTH-1:0] y1_col;  // row-1 color via line delay
+    wire [PIXEL_DEPTH-1:0] y2_col;  // row-2 color via line delay
+
+    assign y0_gray = (is_pad_col || is_pad_row) ? 4'd0 : gray4_in;
+    assign y0_col  = (is_pad_col || is_pad_row) ? 12'd0 : pixel_in;
+    // Top-edge replication using line delay outputs
+    assign y1_gray = (row == 0) ? y0_gray : gray_ld1_out;
+    assign y2_gray = (row == 0) ? y0_gray : (row == 1 ? y1_gray : gray_ld2_out);
+    assign y1_col  = (row == 0) ? y0_col  : color_ld1_out;
+    assign y2_col  = (row == 0) ? y0_col  : (row == 1 ? y1_col  : color_ld2_out);
+
+    // Right-edge replication source selection (module scope)
+    wire [GRAY_DEPTH-1:0] src0_gray = is_pad_col ? last_y0_row : y0_gray;
+    wire [GRAY_DEPTH-1:0] src1_gray = is_pad_col ? last_y1_row : y1_gray;
+    wire [GRAY_DEPTH-1:0] src2_gray = is_pad_col ? last_y2_row : y2_gray;
+    wire [PIXEL_DEPTH-1:0] src0_col  = is_pad_col ? last_cy0_row : y0_col;
+    wire [PIXEL_DEPTH-1:0] src1_col  = is_pad_col ? last_cy1_row : y1_col;
+    wire [PIXEL_DEPTH-1:0] src2_col  = is_pad_col ? last_cy2_row : y2_col;
     always @(posedge clk) begin
-        if (reset || frame_start) begin
+    if (reset || frame_start) begin
             // Reset counters and state. Clear windows and buffers.
             running   <= 1'b0;
             col       <= 10'd0;
@@ -126,18 +184,12 @@ module Median_Filter
             pixel_out <= 12'd0;
             addr_out  <= 18'd0;
             pixel_valid <= 1'd0;
-            for (k = 0; k < IMAGE_WIDTH; k = k + 1) begin
-                linebuf1[k] <= 4'd0;
-                linebuf2[k] <= 4'd0;
-                clinebuf1[k] <= 12'd0;
-                clinebuf2[k] <= 12'd0;
-            end
-            last_prev1_row   <= 0;
-            last_prev2_row   <= 0;
-            last_cur_gray_row<= 0;
-            last_cprev1_row  <= 0;
-            last_cprev2_row  <= 0;
-            last_cur_rgb_row <= 0;
+            last_y1_row   <= 0;
+            last_y2_row   <= 0;
+            last_y0_row   <= 0;
+            last_cy1_row  <= 0;
+            last_cy2_row  <= 0;
+            last_cy0_row  <= 0;
         end else begin
             // Determine if we should process this cycle: real input or padding while running
             if (we) begin
@@ -145,42 +197,27 @@ module Median_Filter
             end
 
             if (we || (running && (is_pad_col || is_pad_row))) begin
-                // Safe reads from line buffers and edge replication
-                if (is_pad_col) begin
-                    // Replicate the last real column for right-edge padding
-                    prev1  = last_prev1_row;
-                    prev2  = last_prev2_row;
-                    cprev1 = last_cprev1_row;
-                    cprev2 = last_cprev2_row;
-                end else begin
-                    // Top-edge replication: when row==0, there is no prior row; use current
-                    // When row==1, row-2 is out of range; replicate row-1 into row-2
-                    prev1  = (row == 0) ? gray4_in : linebuf1[col];
-                    prev2  = (row == 0) ? gray4_in : (row == 1 ? linebuf1[col] : linebuf2[col]);
-                    cprev1 = (row == 0) ? pixel_in : clinebuf1[col];
-                    cprev2 = (row == 0) ? pixel_in : (row == 1 ? clinebuf1[col] : clinebuf2[col]);
-                end
+                // Right-edge replication for padding column uses module-scope src* wires
 
                 // Update sliding window (shift left, insert newest at [*][2])
-                w0[0] = w0[1]; w0[1] = w0[2]; w0[2] = prev2;        // top row (gray)
-                w1[0] = w1[1]; w1[1] = w1[2]; w1[2] = prev1;        // mid row (gray)
-                w2[0] = w2[1]; w2[1] = w2[2]; w2[2] = (is_pad_col || is_pad_row) ? 4'd0 : gray4_in; // bottom (gray)
+                w0[0] = w0[1]; w0[1] = w0[2]; w0[2] = src2_gray;    // top row (gray)
+                w1[0] = w1[1]; w1[1] = w1[2]; w1[2] = src1_gray;    // mid row (gray)
+                w2[0] = w2[1]; w2[1] = w2[2]; w2[2] = src0_gray;    // bottom (gray)
                 // Color window mirrors grayscale sources
-                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = cprev2;   // top row color
-                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = cprev1;   // mid row color
-                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = (is_pad_col || is_pad_row) ? 12'd0 : pixel_in; // bottom color
+                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = src2_col; // top row color
+                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = src1_col; // mid row color
+                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = src0_col; // bottom color
 
-                // Left-edge replication similar to Convolution_3x3
+                // Left-edge handling: only fill the missing far-left neighbor
                 if (col == 10'd0) begin
-                    // replicate current/nearest values into missing neighbors
-                    w0[0] = prev2; w0[1] = prev2;
-                    w1[0] = prev1; w1[1] = prev1;
-                    w2[0] = w2[2]; w2[1] = w2[2];
-                    cw0[0] = cprev2; cw0[1] = cprev2;
-                    cw1[0] = cprev1; cw1[1] = cprev1;
-                    cw2[0] = cw2[2]; cw2[1] = cw2[2];
+                    w0[0] = w0[1];
+                    w1[0] = w1[1];
+                    w2[0] = w2[1];
+                    cw0[0] = cw0[1];
+                    cw1[0] = cw1[1];
+                    cw2[0] = cw2[1];
                 end else if (col == 10'd1) begin
-                    // far-left neighbor equals the previous column (already in [1])
+                    // keep single-neighbor replacement for the second column
                     w0[0] = w0[1];
                     w1[0] = w1[1];
                     w2[0] = w2[1];
@@ -189,22 +226,14 @@ module Median_Filter
                     cw2[0] = cw2[1];
                 end
 
-                // update line buffers for next rows (gray and color) when within real column range
-                if (!is_pad_col) begin
-                    linebuf2[col]   <= (row == 0) ? gray4_in : linebuf1[col];
-                    linebuf1[col]   <= gray4_in;
-                    clinebuf2[col]  <= (row == 0) ? pixel_in : clinebuf1[col];
-                    clinebuf1[col]  <= pixel_in;
-
-                    // Remember last real column values for right-edge replication
-                    if (col == (IMAGE_WIDTH-1)) begin
-                        last_prev1_row    <= (row == 0) ? gray4_in : linebuf1[col];
-                        last_prev2_row    <= (row == 0) ? gray4_in : (row == 1 ? linebuf1[col] : linebuf2[col]);
-                        last_cur_gray_row <= gray4_in;
-                        last_cprev1_row   <= (row == 0) ? pixel_in : clinebuf1[col];
-                        last_cprev2_row   <= (row == 0) ? pixel_in : (row == 1 ? clinebuf1[col] : clinebuf2[col]);
-                        last_cur_rgb_row  <= pixel_in;
-                    end
+                // Remember last real column values for right-edge replication
+                if (!is_pad_col && (col == (IMAGE_WIDTH-1))) begin
+                    last_y1_row   <= y1_gray;
+                    last_y2_row   <= y2_gray;
+                    last_y0_row   <= y0_gray;
+                    last_cy1_row  <= y1_col;
+                    last_cy2_row  <= y2_col;
+                    last_cy0_row  <= y0_col;
                 end
 
                 // Compute row-wise max, mid, min

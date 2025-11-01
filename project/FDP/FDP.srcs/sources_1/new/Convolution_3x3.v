@@ -19,6 +19,8 @@
 //   (zero-padding) after each line and at the end of the frame, respectively.
 //////////////////////////////////////////////////////////////////////////////////
 
+// Force arithmetic to use DSPs where possible to drastically reduce LUT usage
+(* use_dsp = "yes" *)
 module Convolution_3x3
 #(
     parameter IMAGE_WIDTH   = 310,
@@ -52,9 +54,8 @@ module Convolution_3x3
     // stays 1 through internal padding flush, then returns to 0 until next frame_start.
     reg running;
 
-    // Color line buffers (past 2 rows) - store RGB444 for each pixel column
-    reg [PIXEL_DEPTH-1:0] clinebuf1 [0:IMAGE_WIDTH-1];  // row-1 color
-    reg [PIXEL_DEPTH-1:0] clinebuf2 [0:IMAGE_WIDTH-1];  // row-2 color
+    // Row delays via BRAM for color: two cascaded line delays (depth = IMAGE_WIDTH)
+    wire [PIXEL_DEPTH-1:0] color_ld1_out, color_ld2_out;
 
     // 3x3 sliding window shift registers per row (oldest at index 0)
     reg [PIXEL_DEPTH-1:0] cw0 [0:2]; // top row color (row-2)
@@ -83,14 +84,15 @@ module Convolution_3x3
     wire [PIXEL_DEPTH-1:0] rgb_from_mode = mode_rgb ? pixel_rgb_in : (pixel_bin_in ? 12'h111 : 12'h000);
     wire [PIXEL_DEPTH-1:0] cur_rgb = (is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode;
 
-    // Previous rows at current column (guard reads during pad column)
-    reg [PIXEL_DEPTH-1:0] cprev1; // row-1, same col
-    reg [PIXEL_DEPTH-1:0] cprev2; // row-2, same col
+    // Previous rows via line delays with edge replication
+    wire [PIXEL_DEPTH-1:0] y0_col;  // current row color (with padding)
+    wire [PIXEL_DEPTH-1:0] y1_col;  // row-1 color
+    wire [PIXEL_DEPTH-1:0] y2_col;  // row-2 color
     
     // Track last valid samples at the end of a real row to support right-edge replication
-    reg [PIXEL_DEPTH-1:0] last_cprev1_row; // linebuf1 at last real column
-    reg [PIXEL_DEPTH-1:0] last_cprev2_row; // linebuf2 at last real column
-    reg [PIXEL_DEPTH-1:0] last_cur_rgb_row; // current rgb at last real column
+    reg [PIXEL_DEPTH-1:0] last_y1_col_row; // one-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_y2_col_row; // two-line delay at last real column
+    reg [PIXEL_DEPTH-1:0] last_y0_col_row; // current rgb at last real column
 
     // Signed math widths
     localparam integer IN_CH_WIDTH = 5; // we extend 4-bit channel to 5 bits with leading 0
@@ -107,6 +109,78 @@ module Convolution_3x3
     function [3:0] get_b;
         input [PIXEL_DEPTH-1:0] px; begin get_b = px[3:0]; end
     endfunction
+
+    // Signed-extend a 4-bit channel to internal signed width
+    function automatic signed [IN_CH_WIDTH-1:0] sx_ch;
+        input [3:0] c;
+    begin
+        // inputs are 0..15; treat as positive magnitude
+        sx_ch = {1'b0, c};
+    end
+    endfunction
+
+    // ------------------------------------------------------------------------
+    // Precompute all 27 products as wires to ensure clean DSP inference.
+    // Vivado may otherwise implement constant-coefficient multiplies in LUTs.
+    // Mark each product with use_dsp to bias mapping to DSP48 slices.
+    // ------------------------------------------------------------------------
+    // Row 0 products
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr00_r = $signed(k00) * $signed(sx_ch(get_r(cw0[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr00_g = $signed(k00) * $signed(sx_ch(get_g(cw0[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr00_b = $signed(k00) * $signed(sx_ch(get_b(cw0[0])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr01_r = $signed(k01) * $signed(sx_ch(get_r(cw0[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr01_g = $signed(k01) * $signed(sx_ch(get_g(cw0[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr01_b = $signed(k01) * $signed(sx_ch(get_b(cw0[1])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr02_r = $signed(k02) * $signed(sx_ch(get_r(cw0[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr02_g = $signed(k02) * $signed(sx_ch(get_g(cw0[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr02_b = $signed(k02) * $signed(sx_ch(get_b(cw0[2])));
+
+    // Row 1 products
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr10_r = $signed(k10) * $signed(sx_ch(get_r(cw1[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr10_g = $signed(k10) * $signed(sx_ch(get_g(cw1[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr10_b = $signed(k10) * $signed(sx_ch(get_b(cw1[0])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr11_r = $signed(k11) * $signed(sx_ch(get_r(cw1[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr11_g = $signed(k11) * $signed(sx_ch(get_g(cw1[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr11_b = $signed(k11) * $signed(sx_ch(get_b(cw1[1])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr12_r = $signed(k12) * $signed(sx_ch(get_r(cw1[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr12_g = $signed(k12) * $signed(sx_ch(get_g(cw1[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr12_b = $signed(k12) * $signed(sx_ch(get_b(cw1[2])));
+
+    // Row 2 products
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr20_r = $signed(k20) * $signed(sx_ch(get_r(cw2[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr20_g = $signed(k20) * $signed(sx_ch(get_g(cw2[0])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr20_b = $signed(k20) * $signed(sx_ch(get_b(cw2[0])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr21_r = $signed(k21) * $signed(sx_ch(get_r(cw2[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr21_g = $signed(k21) * $signed(sx_ch(get_g(cw2[1])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr21_b = $signed(k21) * $signed(sx_ch(get_b(cw2[1])));
+
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr22_r = $signed(k22) * $signed(sx_ch(get_r(cw2[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr22_g = $signed(k22) * $signed(sx_ch(get_g(cw2[2])));
+    (* use_dsp = "yes" *) wire signed [PROD_WIDTH-1:0] pr22_b = $signed(k22) * $signed(sx_ch(get_b(cw2[2])));
+
+    // Per-channel adder trees
+    wire signed [ACC_WIDTH-1:0] sumR_w =
+        $signed(pr00_r) + $signed(pr01_r) + $signed(pr02_r) +
+        $signed(pr10_r) + $signed(pr11_r) + $signed(pr12_r) +
+        $signed(pr20_r) + $signed(pr21_r) + $signed(pr22_r);
+
+    wire signed [ACC_WIDTH-1:0] sumG_w =
+        $signed(pr00_g) + $signed(pr01_g) + $signed(pr02_g) +
+        $signed(pr10_g) + $signed(pr11_g) + $signed(pr12_g) +
+        $signed(pr20_g) + $signed(pr21_g) + $signed(pr22_g);
+
+    wire signed [ACC_WIDTH-1:0] sumB_w =
+        $signed(pr00_b) + $signed(pr01_b) + $signed(pr02_b) +
+        $signed(pr10_b) + $signed(pr11_b) + $signed(pr12_b) +
+        $signed(pr20_b) + $signed(pr21_b) + $signed(pr22_b);
+    // Precomputed src selections for middle/top rows with right-edge replication
+    wire [PIXEL_DEPTH-1:0] src1_col = is_pad_col ? last_y1_col_row : y1_col;
+    wire [PIXEL_DEPTH-1:0] src2_col = is_pad_col ? last_y2_col_row : y2_col;
 
     // Saturate a signed value to 4-bit unsigned [0..15] after optional shift
     function [3:0] sat4_shift;
@@ -131,6 +205,29 @@ module Convolution_3x3
     endfunction
 
     integer k;
+    // Instantiate line delays
+    wire advance = we || (running && (is_pad_col || is_pad_row));
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld1 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din((is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode),
+        .dout(color_ld1_out)
+    );
+    LineDelayBRAM #(
+        .DATA_W(PIXEL_DEPTH),
+        .DEPTH(IMAGE_WIDTH)
+    ) color_ld2 (
+        .clk(clk), .reset(reset || frame_start), .en(advance),
+        .din(color_ld1_out),
+        .dout(color_ld2_out)
+    );
+
+    // Form per-row sources with top-edge replication
+    assign y0_col = (is_pad_col || is_pad_row) ? 12'd0 : rgb_from_mode;
+    assign y1_col = (row == 0) ? y0_col : color_ld1_out;
+    assign y2_col = (row == 0) ? y0_col : (row == 1 ? y1_col : color_ld2_out);
     always @(posedge clk) begin
         if (reset || frame_start) begin
             // Reset counters and state. Clear windows and buffers.
@@ -143,10 +240,7 @@ module Convolution_3x3
             pixel_out   <= 12'd0;
             addr_out    <= 18'd0;
             pixel_valid <= 1'b0;
-            for (k = 0; k < IMAGE_WIDTH; k = k + 1) begin
-                clinebuf1[k] <= 12'd0;
-                clinebuf2[k] <= 12'd0;
-            end
+            // No BRAM clear
         end else begin
             // Determine if we should process this cycle: real input or padding while running
             if (we) begin
@@ -154,29 +248,17 @@ module Convolution_3x3
             end
 
             if (we || (running && (is_pad_col || is_pad_row))) begin
-                // Safe reads from line buffers
-                if (is_pad_col) begin
-                    // Replicate the last real column for right-edge padding
-                    cprev1 = last_cprev1_row;
-                    cprev2 = last_cprev2_row;
-                end else begin
-                    // Top-edge replication: when row==0, there is no prior row; use current
-                    // When row==1, row-2 is out of range; replicate row-1 into row-2
-                    cprev1 = (row == 0) ? cur_rgb : clinebuf1[col];
-                    cprev2 = (row == 0) ? cur_rgb : (row == 1 ? clinebuf1[col] : clinebuf2[col]);
-                end
-
                 // Update sliding window (shift left, insert newest at [*][2])
-                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = cprev2; // top row from row-2
-                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = cprev1; // middle from row-1
-                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = cur_rgb; // bottom inserts current
+                cw0[0] = cw0[1]; cw0[1] = cw0[2]; cw0[2] = src2_col; // top row from row-2
+                cw1[0] = cw1[1]; cw1[1] = cw1[2]; cw1[2] = src1_col; // middle from row-1
+                cw2[0] = cw2[1]; cw2[1] = cw2[2]; cw2[2] = y0_col;   // bottom inserts current
 
                 // Left-edge replication to avoid dim left column due to zeros
                 if (col == 10'd0) begin
                     // replicate current/nearest values into missing neighbors
-                    cw0[0] = cprev2; cw0[1] = cprev2;
-                    cw1[0] = cprev1; cw1[1] = cprev1;
-                    cw2[0] = cur_rgb; cw2[1] = cur_rgb;
+                    cw0[0] = cw0[2]; cw0[1] = cw0[2];
+                    cw1[0] = cw1[2]; cw1[1] = cw1[2];
+                    cw2[0] = cw2[2]; cw2[1] = cw2[2];
                 end else if (col == 10'd1) begin
                     // far-left neighbor equals the previous column (already in [1])
                     cw0[0] = cw0[1];
@@ -184,66 +266,18 @@ module Convolution_3x3
                     cw2[0] = cw2[1];
                 end
 
-                // Update line buffers for next rows (color) when within real column range
-                if (!is_pad_col) begin
-                    clinebuf2[col] <= cprev1;
-                    clinebuf1[col] <= cur_rgb;
-                    // Remember last real column values for right-edge replication
-                    if (col == (IMAGE_WIDTH-1)) begin
-                        last_cprev1_row <= cprev1;
-                        last_cprev2_row <= cprev2;
-                        last_cur_rgb_row <= cur_rgb;
-                    end
+                // Remember last real column for right-edge replication
+                if (!is_pad_col && (col == (IMAGE_WIDTH-1))) begin
+                    last_y1_col_row <= y1_col;
+                    last_y2_col_row <= y2_col;
+                    last_y0_col_row <= y0_col;
                 end
 
                 // Convolution core in its own block to keep declarations first
                 begin : conv_core
-                    reg signed [ACC_WIDTH-1:0] sumR, sumG, sumB;
-                    reg signed [PROD_WIDTH-1:0] p;
-                    sumR = 0; sumG = 0; sumB = 0;
-
-                    // Row 0
-                    p = $signed(k00) * $signed({1'b0, get_r(cw0[0])}); sumR = sumR + p;
-                    p = $signed(k00) * $signed({1'b0, get_g(cw0[0])}); sumG = sumG + p;
-                    p = $signed(k00) * $signed({1'b0, get_b(cw0[0])}); sumB = sumB + p;
-
-                    p = $signed(k01) * $signed({1'b0, get_r(cw0[1])}); sumR = sumR + p;
-                    p = $signed(k01) * $signed({1'b0, get_g(cw0[1])}); sumG = sumG + p;
-                    p = $signed(k01) * $signed({1'b0, get_b(cw0[1])}); sumB = sumB + p;
-
-                    p = $signed(k02) * $signed({1'b0, get_r(cw0[2])}); sumR = sumR + p;
-                    p = $signed(k02) * $signed({1'b0, get_g(cw0[2])}); sumG = sumG + p;
-                    p = $signed(k02) * $signed({1'b0, get_b(cw0[2])}); sumB = sumB + p;
-
-                    // Row 1
-                    p = $signed(k10) * $signed({1'b0, get_r(cw1[0])}); sumR = sumR + p;
-                    p = $signed(k10) * $signed({1'b0, get_g(cw1[0])}); sumG = sumG + p;
-                    p = $signed(k10) * $signed({1'b0, get_b(cw1[0])}); sumB = sumB + p;
-
-                    p = $signed(k11) * $signed({1'b0, get_r(cw1[1])}); sumR = sumR + p;
-                    p = $signed(k11) * $signed({1'b0, get_g(cw1[1])}); sumG = sumG + p;
-                    p = $signed(k11) * $signed({1'b0, get_b(cw1[1])}); sumB = sumB + p;
-
-                    p = $signed(k12) * $signed({1'b0, get_r(cw1[2])}); sumR = sumR + p;
-                    p = $signed(k12) * $signed({1'b0, get_g(cw1[2])}); sumG = sumG + p;
-                    p = $signed(k12) * $signed({1'b0, get_b(cw1[2])}); sumB = sumB + p;
-
-                    // Row 2
-                    p = $signed(k20) * $signed({1'b0, get_r(cw2[0])}); sumR = sumR + p;
-                    p = $signed(k20) * $signed({1'b0, get_g(cw2[0])}); sumG = sumG + p;
-                    p = $signed(k20) * $signed({1'b0, get_b(cw2[0])}); sumB = sumB + p;
-
-                    p = $signed(k21) * $signed({1'b0, get_r(cw2[1])}); sumR = sumR + p;
-                    p = $signed(k21) * $signed({1'b0, get_g(cw2[1])}); sumG = sumG + p;
-                    p = $signed(k21) * $signed({1'b0, get_b(cw2[1])}); sumB = sumB + p;
-
-                    p = $signed(k22) * $signed({1'b0, get_r(cw2[2])}); sumR = sumR + p;
-                    p = $signed(k22) * $signed({1'b0, get_g(cw2[2])}); sumG = sumG + p;
-                    p = $signed(k22) * $signed({1'b0, get_b(cw2[2])}); sumB = sumB + p;
-
                     // Clamp each channel to 4-bit after bias/shift
                     if (center_in_bounds) begin
-                        pixel_out   <= { sat4_shift(sumR), sat4_shift(sumG), sat4_shift(sumB) };
+                        pixel_out   <= { sat4_shift(sumR_w), sat4_shift(sumG_w), sat4_shift(sumB_w) };
                         addr_out    <= cen_row * IMAGE_WIDTH + cen_col;
                         pixel_valid <= 1'b1;
                     end else begin

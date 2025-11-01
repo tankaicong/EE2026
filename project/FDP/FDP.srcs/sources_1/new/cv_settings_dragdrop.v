@@ -404,6 +404,6 @@ module cv_settings_dragdrop (
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
     assign pre_order_vector = {pre_order1, pre_order0};
-        assign dragging_o = dragging;
+    assign dragging_o = dragging;
 
 endmodule

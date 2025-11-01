@@ -1132,16 +1132,15 @@ module Top(
     wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
 
     // ------------- CV Settings: Drag & Drop for Preprocessing/Morphology --------------
-    // Drop boxes: define both VGA (for overlay drawing) and SRC (for drag-drop logic)
-    // VGA placement: Pre @ (104,435,148x34), Morph @ (272,435,166x34)
-    localparam [9:0] PRE_X_VGA = 10'd104;
-    localparam [8:0] PRE_Y_VGA = 9'd435;
-    localparam [9:0] PRE_W_VGA = 10'd148;
-    localparam [8:0] PRE_H_VGA = 9'd34;
-    localparam [9:0] MORPH_X_VGA = 10'd381;
-    localparam [8:0] MORPH_Y_VGA = 9'd435;
-    localparam [9:0] MORPH_W_VGA = 10'd166;
-    localparam [8:0] MORPH_H_VGA = 9'd34;
+    // Overlay is single source of truth for drop-zone geometry; receive from overlay and feed drag/drop
+    wire [9:0] PRE_X_VGA;
+    wire [8:0] PRE_Y_VGA;
+    wire [9:0] PRE_W_VGA;
+    wire [8:0] PRE_H_VGA;
+    wire [9:0] MORPH_X_VGA;
+    wire [8:0] MORPH_Y_VGA;
+    wire [9:0] MORPH_W_VGA;
+    wire [8:0] MORPH_H_VGA;
 
     // Wires from drag-drop module
     wire [59:0] boxes_x_vector;
@@ -1189,12 +1188,12 @@ module Top(
         .settings_active(cv_settings_mode),
         .px(frame_x), .py(frame_y),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
-        .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
-        .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
-        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked)
+        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
+        .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA)
     );
 
 

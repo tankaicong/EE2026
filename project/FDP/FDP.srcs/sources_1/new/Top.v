@@ -147,6 +147,10 @@ module Top(
     reg signed [3:0] dilate_1_addr_off_row = 4'sd0;
     reg signed [3:0] dilate_2_addr_off_col = 4'sd0;
     reg signed [3:0] dilate_2_addr_off_row = 4'sd0;
+    // Forward declarations for UI-driven control wires (declared again later where produced)
+    wire [3:0] pre_order_vector;
+    wire [7:0] morph_order_vector;
+    wire [1:0] final_out; // 00 CAM, 01 PRE, 10 MORPH, 11 BITMAP
 
     always @(*) begin
         //state machine for preprocessing control
@@ -304,7 +308,7 @@ module Top(
     always @(posedge clk) begin
         Preprocessing_State <= pre_order_vector;
         Morphology_State <= morph_order_vector;
-        Final_Out_Control <= sw[1:0];
+        Final_Out_Control <= final_out; // drive view selection from overlay UI
         case (sw[4:2])
             3'b000: erode_1_addr_off_col <= 0;
             3'b001: erode_1_addr_off_col <= 1;
@@ -1219,8 +1223,7 @@ module Top(
     wire [59:0] boxes_x_vector;
     wire [53:0] boxes_y_vector;
     // Concatenated order (leftmost in LSB)
-    wire [7:0]  morph_order_vector;
-    wire [3:0]  pre_order_vector;
+    // morph_order_vector and pre_order_vector are forward-declared above
     wire [5:0]  box_hover;
     wire [2:0]  front_idx;
     wire [2:0]  morph_count;
@@ -1261,7 +1264,6 @@ module Top(
     wire bitmap_box_clicked;
     wire ufds_box_clicked;
     // Change-view selection code from overlay (00 CAM, 01 PRE, 11 BITMAP, 10 MORPH)
-    wire [1:0] final_out;
     cv_settings_overlay settings_cv_overlay (
         .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
         .px(frame_x), .py(frame_y),
@@ -1502,10 +1504,18 @@ module Top(
                         state <= prev_state;
                     end
 
+                    // this is the layer order:
+                    // bram_pixel_out (camera frame)
+                    // dim if frame_y >= 324
+                    // cv_settings overlay (borders, toggles, guidelines; no GB/MF/EA/EB/DA/DB fills now)
+                    // BRAM overlay (skips if overlay_pixel == F, so transparency works)
+                    // cursor
+
+
                     // Dim camera feed under the settings region (rows >= 324), keep normal feed above
                     if (frame_y >= 9'd324) begin
-                        // Per-channel dimming (RGB444 -> halve brightness)
-                        frame_pixel <= { (bram_pixel_out[11:8] >> 1), (bram_pixel_out[7:4] >> 1), (bram_pixel_out[3:0] >> 1) };
+                        // Per-channel dimming (RGB444 -> quarter brightness)
+                        frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
                     end else begin
                         frame_pixel <= bram_pixel_out;
                     end
@@ -1514,6 +1524,25 @@ module Top(
                     if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
                     // Info pixel on top of overlay
                     if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
+                    // For BRAM overlay (paint only when not transparent)
+                    if (write_high && (overlay_pixel != 4'hF)) begin
+                        if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
+                        else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
+                        else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
+                        else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                        else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
+                        else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
+                        else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
+                        else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                        else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
+                        else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
+                        else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
+                        else if (overlay_pixel == 4'hB) frame_pixel <= 12'hBEE;
+                        else if (overlay_pixel == 4'hC) frame_pixel <= 12'hC70;
+                        else if (overlay_pixel == 4'hD) frame_pixel <= 12'hFB0;
+                        else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
+                        // 4'hF is transparent (ignored), anything else unmapped: do nothing
+                    end
                     // Use VGA-space cursor here (overlay also uses VGA coords)
                     if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
                 end
@@ -1583,8 +1612,27 @@ module Top(
                     state <= state;
                 end
             endcase
-            
-        end
+
+    end
+
+
+    /* --- Overlay --- */
+    // reg [59:0] move_x = 60'h5018A751FE8A252;
+    // reg [53:0] move_y = 54'h2C160B0582C160;
+    wire write_high;
+    wire [3:0] overlay_pixel;
+    generate_bram_overlay gen_ovrly (
+        .clk(clk),        // 100MHz clock (used for position updates)
+        .clk25(clk25),    // 25MHz VGA clock for BRAM reads
+        .en(1'b1),          // Always enabled
+        .x(boxes_x_vector),
+        .y(boxes_y_vector),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .front_idx(front_idx),
+        .to_write(write_high),
+        .image_pixel(overlay_pixel)
+    );
 
 
     // Sets timer

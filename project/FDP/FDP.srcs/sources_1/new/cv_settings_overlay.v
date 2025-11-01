@@ -11,6 +11,8 @@
 // UFDS box: Start at x = 564, width = 66 px
 
 module cv_settings_overlay (
+    input  wire        clk,
+    input  wire        reset,
     input  wire        settings_active,
     input  wire [9:0]  px,        // VGA x (0..639)
     input  wire [8:0]  py,        // VGA y (0..479)
@@ -41,7 +43,10 @@ module cv_settings_overlay (
     output wire [9:0]  morph_x_o,
     output wire [8:0]  morph_y_o,
     output wire [9:0]  morph_w_o,
-    output wire [8:0]  morph_h_o
+    output wire [8:0]  morph_h_o,
+    // Change-view selection outputs
+    output wire [1:0]  final_out
+
 );
 
     // Unpack for overlay drawing
@@ -59,24 +64,29 @@ module cv_settings_overlay (
     wire [8:0] y5 = boxes_y[53:45];
 
     // Colors (BGR444)
-    localparam [11:0] BLACK   = 12'h000;
-    localparam [11:0] WHITE   = 12'hFFF;
-    localparam [11:0] GREY    = 12'h888;
-    localparam [11:0] CYAN    = 12'hFF0;
-    localparam [11:0] MAGENTA = 12'hF0F;
-    localparam [11:0] YELLOW  = 12'h0FF;
-    localparam [11:0] DARKBLUE = 12'hB75;
-    localparam [11:0] BLUE    = 12'hECA;
-    localparam [11:0] LIGHTBLUE = 12'hEDB;
-    localparam [11:0] OFFWHITE  = 12'hBEE;
-    localparam [11:0] BRIGHTBLUE = 12'hFB0;
-    localparam [11:0] BORDERBLUE    = 12'hC70;
+    localparam [11:0] BLACK   = 12'h000; // 0
+    localparam [11:0] WHITE   = 12'hFFF; // 1
+    localparam [11:0] GREY    = 12'h888; 
+    localparam [11:0] CYAN    = 12'hFF0; // 5
+    localparam [11:0] MAGENTA = 12'hF0F; // 6
+    localparam [11:0] YELLOW  = 12'h0FF; // 7
+    localparam [11:0] DARKBLUE = 12'hB75; // 8
+    localparam [11:0] BLUE    = 12'hECA; // 9
+    localparam [11:0] LIGHTBLUE = 12'hEDB; // 10
+    localparam [11:0] OFFWHITE  = 12'hBEE; // 11
+    localparam [11:0] BORDERBLUE = 12'hC70; // 12
+    localparam [11:0] BRIGHTBLUE = 12'hFB0; // 13
+  
 
 
     // Box sizes in VGA
     localparam [9:0] W_PRE = 10'd72;
     localparam [9:0] W_MOR = 10'd40;
     localparam [8:0] H_ALL = 9'd34;
+    // Change-view toggle sizes and gap
+    localparam [9:0] TOG_W = 10'd15;
+    localparam [8:0] TOG_H = 9'd14;
+    localparam [9:0] GAP_X = 10'd5;
 
     // Drop zones geometry
     localparam [9:0] PRE_X  = 10'd105;
@@ -115,7 +125,7 @@ module cv_settings_overlay (
 
     // Bottom row selection boxes (y = 435), custom widths
     localparam [8:0] ROW_Y  = 9'd435;
-    localparam [9:0] CAM_X  = 10'd30;  localparam [9:0] CAM_W  = 10'd47;  localparam [8:0] CAM_Y  = ROW_Y;
+    localparam [9:0] CAM_X  = 10'd33;  localparam [9:0] CAM_W  = 10'd47;  localparam [8:0] CAM_Y  = ROW_Y;
     localparam [9:0] BMP_X  = 10'd278; localparam [9:0] BMP_W  = 10'd72;  localparam [8:0] BMP_Y  = ROW_Y;
     localparam [9:0] UFDS_X = 10'd564; localparam [9:0] UFDS_W = 10'd66;  localparam [8:0] UFDS_Y = ROW_Y;
     // Borders like drop zones, using per-box widths
@@ -129,6 +139,36 @@ module cv_settings_overlay (
     wire in_cam_rect    = (mouse_x >= CAM_X)   && (mouse_x < (CAM_X  + CAM_W))   && (mouse_y >= CAM_Y)  && (mouse_y < (CAM_Y  + H_ALL));
     wire in_bitmap_rect = (mouse_x >= BMP_X)   && (mouse_x < (BMP_X  + BMP_W))   && (mouse_y >= BMP_Y)  && (mouse_y < (BMP_Y  + H_ALL));
     wire in_ufds_rect   = (mouse_x >= UFDS_X)  && (mouse_x < (UFDS_X + UFDS_W))  && (mouse_y >= UFDS_Y) && (mouse_y < (UFDS_Y + H_ALL));
+
+    // Change-view toggle positions (centered vertically in bottom-row height)
+    localparam [8:0] TOG_Y  = ROW_Y + ((H_ALL - TOG_H) >> 1);
+    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X; // after CAM
+    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X; // after PRE
+    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X; // after BITMAP
+    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X; // after MORPH
+
+    // Toggle borders (1px)
+    wire in_tog0_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG0_X) && (px < (TOG0_X + TOG_W))) :
+                          ((px == TOG0_X) || (px == (TOG0_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog1_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG1_X) && (px < (TOG1_X + TOG_W))) :
+                          ((px == TOG1_X) || (px == (TOG1_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog2_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG2_X) && (px < (TOG2_X + TOG_W))) :
+                          ((px == TOG2_X) || (px == (TOG2_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog3_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG3_X) && (px < (TOG3_X + TOG_W))) :
+                          ((px == TOG3_X) || (px == (TOG3_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+
+    // Instantiate change-view controller
+    wire [3:0] cv_flags;
+    cv_settings_change_view u_cv_view (
+        .clk(clk), .reset(reset), .settings_active(settings_active),
+        .mouse_x(mouse_x), .mouse_y(mouse_y), .left_edge(left_edge),
+        .x0(TOG0_X), .y0(TOG_Y), .w0(TOG_W), .h0(TOG_H),
+        .x1(TOG1_X), .y1(TOG_Y), .w1(TOG_W), .h1(TOG_H),
+        .x2(TOG2_X), .y2(TOG_Y), .w2(TOG_W), .h2(TOG_H),
+        .x3(TOG3_X), .y3(TOG_Y), .w3(TOG_W), .h3(TOG_H),
+        .toggled_flags(cv_flags),
+        .final_out(final_out)
+    );
 
     always @(*) begin
         overlay_en  = 1'b0;
@@ -194,7 +234,7 @@ module cv_settings_overlay (
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
 
-            // Borders first (drop zones and new selection boxes)
+            // Borders first (drop zones, bottom boxes, and change-view toggles)
             if (in_pre_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end else if (in_morph_border) begin
@@ -204,6 +244,8 @@ module cv_settings_overlay (
             end else if (in_bmp_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end else if (in_ufds_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_tog0_border || in_tog1_border || in_tog2_border || in_tog3_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end
 
@@ -229,6 +271,20 @@ module cv_settings_overlay (
                 else if ((front_idx != 3'd3) && in3) begin overlay_en = 1'b1; overlay_rgb = GREY; end
                 else if ((front_idx != 3'd4) && in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
                 else if ((front_idx != 3'd5) && in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
+            end
+
+            // Draw toggled box fill last so it sits on top of everything
+            if (cv_flags[0] && (px >= TOG0_X) && (px < (TOG0_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[1] && (px >= TOG1_X) && (px < (TOG1_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[2] && (px >= TOG2_X) && (px < (TOG2_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[3] && (px >= TOG3_X) && (px < (TOG3_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
             end
         end
     end

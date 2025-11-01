@@ -1,12 +1,14 @@
 module letter_top (
     input clk,
-    input [15:0] sw,
-    input [18:0] gauss,
-    input [18:0] med,
-    input [18:0] erode_1,
-    input [18:0] erode_2,
-    input [18:0] dilate_1,
-    input [18:0] dilate_2,
+    input [59:0] x,
+    input [53:0] y,
+    // input [15:0] sw,
+    // input [18:0] gauss,
+    // input [18:0] med,
+    // input [18:0] erode_1,
+    // input [18:0] erode_2,
+    // input [18:0] dilate_1,
+    // input [18:0] dilate_2,
     output vga_Hsync,
     output vga_Vsync,
     output [11:0] vga_RGB,    //4-bit red, 4-bit green, 4-bit blue
@@ -104,10 +106,9 @@ module letter_top (
         394, 352, 72, 34, 23682,       // 18 Text "Median" + square, 332-365, 23682, 2448, 26130      NOTE: ONLY USING BRAM ADDR
         468, 352, 40, 34, 26130,       // 19 Text "Erode 1" + square, 366-399, 26130, 1360, 27490     NOTE: ONLY USING BRAM ADDR
         510, 352, 40, 34, 26130,       // 20 Text "Erode 2" + square, reuse                           NOTE: ONLY USING BRAM ADDR
-        552, 352, 40, 34, 27490,       // 21 Text "Dilate 1" + square, 400-433, 27387, 1360, 28850    NOTE: ONLY USING BRAM ADDR
+        552, 352, 40, 34, 27490,       // 21 Text "Dilate 1" + square, 400-433, 27490, 1360, 28850    NOTE: ONLY USING BRAM ADDR
         594, 352, 40, 34, 27490        // 22 Text "Dilate 2" + square, reuse                          NOTE: ONLY USING BRAM ADDR
     };
-
 
     wire [0 : (NUM - 1)] gen;
     wire [0 : (NUM - 1)] gen_1;
@@ -126,18 +127,18 @@ module letter_top (
     wire dilate_1_sq, dilate_1_sq_1;
     wire dilate_2_sq, dilate_2_sq_1;
 
-    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + 10'd72)) && (frame_y >= gauss_y && frame_y < (gauss_y + 10'd34));
-    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + 10'd72)) && (frame_y >= gauss_y && frame_y < (gauss_y + 10'd34));
-    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + 10'd72)) && (frame_y >= med_y && frame_y < (med_y + 10'd34));
-    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + 10'd72)) && (frame_y >= med_y && frame_y < (med_y + 10'd34));
-    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + 10'd40)) && (frame_y >= erode_1_y && frame_y < (erode_1_y + 10'd34));
-    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + 10'd40)) && (frame_y >= erode_1_y && frame_y < (erode_1_y + 10'd34));
-    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + 10'd40)) && (frame_y >= erode_2_y && frame_y < (erode_2_y + 10'd34));
-    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + 10'd40)) && (frame_y >= erode_2_y && frame_y < (erode_2_y + 10'd34));
-    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + 10'd40)) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + 10'd34));
-    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + 10'd40)) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + 10'd34));
-    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + 10'd40)) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + 10'd34));
-    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + 10'd40)) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + 10'd34));
+    assign gauss_sq = (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
+    assign gauss_sq_1 = (frame_x > gauss_x && frame_x <= (gauss_x + lookup[17*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[17*ATTRS + 3]));
+    assign med_sq = (frame_x >= med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
+    assign med_sq_1 = (frame_x > med_x && frame_x <= (med_x + lookup[18*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[18*ATTRS + 3]));
+    assign erode_1_sq = (frame_x >= erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
+    assign erode_1_sq_1 = (frame_x > erode_1_x && frame_x <= (erode_1_x + lookup[19*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[19*ATTRS + 3]));
+    assign erode_2_sq = (frame_x >= erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
+    assign erode_2_sq_1 = (frame_x > erode_2_x && frame_x <= (erode_2_x + lookup[20*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[20*ATTRS + 3]));
+    assign dilate_1_sq = (frame_x >= dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
+    assign dilate_1_sq_1 = (frame_x > dilate_1_x && frame_x <= (dilate_1_x + lookup[21*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[21*ATTRS + 3]));
+    assign dilate_2_sq = (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
+    assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[22*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[22*ATTRS + 3]));
 
     reg [9:0] gauss_x = 10'd320;
     reg [9:0] gauss_y = 10'd352;
@@ -152,25 +153,25 @@ module letter_top (
     reg [9:0] dilate_2_x = 10'd594;
     reg [9:0] dilate_2_y = 10'd352;
 
+    // reg [9:0] gauss_x, gauss_y, med_x, med_y,
+    //           erode_1_x, erode_1_y, erode_2_x, erode_2_y,
+    //           dilate_1_x, dilate_1_y, dilate_2_x, dilate_2_y;
     
-    always @ (posedge clk) begin
-        if (sw == 0) gauss_x <= 10'd320;
-        else gauss_x <= sw[9:0];
-    end
-    
-    // always @ posedge(clk) begin
-    //     gauss_x_in <= gauss[18:10];
-    //     gauss_y_in <= gauss[9:0];
-    //     med_x <= med[18:10];
-    //     med_y <= med[9:0];
-    //     erode_1_x <= erode_1[18:10];
-    //     erode_1_y <= erode_1[9:0];
-    //     erode_2_x <= erode_2[18:10];
-    //     erode_2_y <= erode_2[9:0];
-    //     dilate_1_x <= dilate_1[18:10];
-    //     dilate_1_y <= dilate_1[9:0];
-    //     dilate_2_x <= dilate_2[18:10];
-    //     dilate_2_y <= dilate_2[9:0];
+    // always @ (posedge clk) begin
+    //     // if (sw == 0) gauss_x <= 10'd320;
+    //     // else gauss_x <= sw[9:0];
+    //     gauss_x <= x[59:50];
+    //     med_x <= x[49:40];
+    //     erode_1_x <= x[39:30];
+    //     erode_2_x <= x[29:20];
+    //     dilate_1_x <= x[19:10];
+    //     dilate_2_x <= x[9:0];
+    //     gauss_y <= y[53:45];
+    //     med_y <= y[44:36];
+    //     erode_1_y <= y[35:27];
+    //     erode_2_y <= y[26:18];
+    //     dilate_1_y <= y[17:9];
+    //     dilate_2_y <= y[8:0];
     // end
 
     integer i;
@@ -184,22 +185,22 @@ module letter_top (
             // end
         end
         if (gauss_sq) begin
-            overlay_addr = ((frame_y - gauss_y) * 10'd72) + (frame_x - gauss_x) + lookup[17*ATTRS + 4];
+            overlay_addr = ((frame_y - gauss_y) * lookup[17*ATTRS + 2]) + (frame_x - gauss_x) + lookup[17*ATTRS + 4];
         end
         else if (med_sq) begin
-            overlay_addr = ((frame_y - med_y) * 10'd72) + (frame_x - med_x) + lookup[18*ATTRS + 4];
+            overlay_addr = ((frame_y - med_y) * lookup[18*ATTRS + 2]) + (frame_x - med_x) + lookup[18*ATTRS + 4];
         end
         else if (erode_1_sq) begin
-            overlay_addr = ((frame_y - erode_1_y) * 10'd40) + (frame_x - erode_1_x) + lookup[19*ATTRS + 4];
+            overlay_addr = ((frame_y - erode_1_y) * lookup[19*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[19*ATTRS + 4];
         end
         else if (erode_2_sq) begin
-            overlay_addr = ((frame_y - erode_2_y) * 10'd40) + (frame_x - erode_2_x) + lookup[20*ATTRS + 4];
+            overlay_addr = ((frame_y - erode_2_y) * lookup[20*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[20*ATTRS + 4];
         end
         else if (dilate_1_sq) begin
-            overlay_addr = ((frame_y - dilate_1_y) * 10'd40) + (frame_x - dilate_1_x) + lookup[21*ATTRS + 4];
+            overlay_addr = ((frame_y - dilate_1_y) * lookup[21*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[21*ATTRS + 4];
         end
         else if (dilate_2_sq) begin
-            overlay_addr = ((frame_y - dilate_2_y) * 10'd40) + (frame_x - dilate_2_x) + lookup[22*ATTRS + 4];
+            overlay_addr = ((frame_y - dilate_2_y) * lookup[22*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[22*ATTRS + 4];
         end
     end
     // wire [17:0] overlay_addr = (frame_x >= 111 && frame_x <= (111 + 12) && frame_y >= 264 && frame_y < (264 + 12)) ?

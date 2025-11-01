@@ -4,23 +4,24 @@
 // Draws two drop zones (borders) and six filled boxes:
 //  - Preprocessing: GAUSS, MEDIAN (cyan), size 72x34
 //  - Morphology: ERODE, DILATE (magenta), size 40x34
+// CAM box: Start at x = 30, width = 47 px
+// Preprocessing drop box: Start at x = 105, width = 148px
+// BITMAP box: Start at x = 278, width = 72 px
+// Morphology drop box: Start at x = 375, width = 164px
+// UFDS box: Start at x = 564, width = 66 px
 
 module cv_settings_overlay (
+    input  wire        clk,
+    input  wire        reset,
     input  wire        settings_active,
     input  wire [9:0]  px,        // VGA x (0..639)
     input  wire [8:0]  py,        // VGA y (0..479)
+    // Mouse (VGA coords) and click edge for hit-testing inside overlay
+    input  wire [9:0]  mouse_x,
+    input  wire [8:0]  mouse_y,
+    input  wire        left_edge,
 
-    // Drop zones in VGA coords
-    input  wire [9:0]  pre_x,
-    input  wire [8:0]  pre_y,
-    input  wire [9:0]  pre_w,     // typically 148
-    input  wire [8:0]  pre_h,     // typically 34
-    input  wire [9:0]  morph_x,
-    input  wire [8:0]  morph_y,
-    input  wire [9:0]  morph_w,   // typically 166
-    input  wire [8:0]  morph_h,   // typically 34
-
-    // Box top-left positions in VGA coords
+    // Box top-left positions in VGA coords (from drag/drop)
     input  wire [59:0] boxes_x,  // 6 x 10-bit
     input  wire [53:0] boxes_y,  // 6 x 9-bit
 
@@ -29,7 +30,23 @@ module cv_settings_overlay (
 
     // Outputs
     output reg         overlay_en,
-    output reg [11:0]  overlay_rgb
+    output reg [11:0]  overlay_rgb,
+    // One-cycle click pulses when left_edge occurs inside these boxes (VGA coords)
+    output wire        cam_box_click,
+    output wire        bitmap_box_click,
+    output wire        ufds_box_click,
+    // Drop zones (overlay is the single source of truth)
+    output wire [9:0]  pre_x_o,
+    output wire [8:0]  pre_y_o,
+    output wire [9:0]  pre_w_o,
+    output wire [8:0]  pre_h_o,
+    output wire [9:0]  morph_x_o,
+    output wire [8:0]  morph_y_o,
+    output wire [9:0]  morph_w_o,
+    output wire [8:0]  morph_h_o,
+    // Change-view selection outputs
+    output wire [1:0]  final_out
+
 );
 
     // Unpack for overlay drawing
@@ -46,27 +63,61 @@ module cv_settings_overlay (
     wire [8:0] y4 = boxes_y[44:36];
     wire [8:0] y5 = boxes_y[53:45];
 
-    // Colors (RGB444)
-    localparam [11:0] BLACK   = 12'h000;
-    localparam [11:0] WHITE   = 12'hFFF;
-    localparam [11:0] GREY    = 12'h888;
-    localparam [11:0] CYAN    = 12'hFF0;
-    localparam [11:0] MAGENTA = 12'hF0F;
-    localparam [11:0] YELLOW  = 12'h0FF;
+    // Colors (BGR444)
+    localparam [11:0] BLACK   = 12'h000; // 0
+    localparam [11:0] WHITE   = 12'hFFF; // 1
+    localparam [11:0] RED     = 12'hF00; // 2
+    localparam [11:0] GREEN   = 12'h1C1; // 3
+    localparam [11:0] GREY    = 12'h888; 
+    localparam [11:0] CYAN    = 12'hFF0; // 5
+    localparam [11:0] MAGENTA = 12'hF0F; // 6
+    localparam [11:0] YELLOW  = 12'h0FF; // 7
+    localparam [11:0] DARKBLUE = 12'hB75; // 8
+    localparam [11:0] BLUE    = 12'hECA; // 9
+    localparam [11:0] LIGHTBLUE = 12'hEDB; // 10
+    localparam [11:0] OFFWHITE  = 12'hBEE; // 11
+    localparam [11:0] BORDERBLUE = 12'hC70; // 12
+    localparam [11:0] BRIGHTBLUE = 12'hFB0; // 13
+    localparam [11:0] BUMBLEBEE   = 12'hFC0; // 14
+  
+
 
     // Box sizes in VGA
     localparam [9:0] W_PRE = 10'd72;
     localparam [9:0] W_MOR = 10'd40;
     localparam [8:0] H_ALL = 9'd34;
+    // Change-view toggle sizes and gap
+    localparam [9:0] TOG_W = 10'd15;
+    localparam [8:0] TOG_H = 9'd12;
+    localparam [9:0] GAP_X = 10'd5;
+
+    // Drop zones geometry
+    localparam [9:0] PRE_X  = 10'd105;
+    localparam [8:0] PRE_Y  = 9'd435;
+    localparam [9:0] PRE_W  = 10'd148;
+    localparam [8:0] PRE_H  = 9'd34;
+    localparam [9:0] MORPH_X = 10'd375;
+    localparam [8:0] MORPH_Y = 9'd435;
+    localparam [9:0] MORPH_W = 10'd164;
+    localparam [8:0] MORPH_H = 9'd34;
+
+    // Export constants to Top/drag-drop
+    assign pre_x_o   = PRE_X;
+    assign pre_y_o   = PRE_Y;
+    assign pre_w_o   = PRE_W;
+    assign pre_h_o   = PRE_H;
+    assign morph_x_o = MORPH_X;
+    assign morph_y_o = MORPH_Y;
+    assign morph_w_o = MORPH_W;
+    assign morph_h_o = MORPH_H;
 
     // Drop zone borders (1px)
     wire in_pre_border;
     wire in_morph_border;
-    assign in_pre_border   = ((py == pre_y) || (py == (pre_y + pre_h - 1))) ? ((px >= pre_x) && (px < (pre_x + pre_w))) :
-                             ((px == pre_x) || (px == (pre_x + pre_w - 1))) ? ((py >= pre_y) && (py < (pre_y + pre_h))) : 1'b0;
-    assign in_morph_border = ((py == morph_y) || (py == (morph_y + morph_h - 1))) ? ((px >= morph_x) && (px < (morph_x + morph_w))) :
-                             ((px == morph_x) || (px == (morph_x + morph_w - 1))) ? ((py >= morph_y) && (py < (morph_y + morph_h))) : 1'b0;
-
+    assign in_pre_border   = ((py == PRE_Y) || (py == (PRE_Y + PRE_H - 1))) ? ((px >= PRE_X) && (px < (PRE_X + PRE_W))) :
+                             ((px == PRE_X) || (px == (PRE_X + PRE_W - 1))) ? ((py >= PRE_Y) && (py < (PRE_Y + PRE_H))) : 1'b0;
+    assign in_morph_border = ((py == MORPH_Y) || (py == (MORPH_Y + MORPH_H - 1))) ? ((px >= MORPH_X) && (px < (MORPH_X + MORPH_W))) :
+                             ((px == MORPH_X) || (px == (MORPH_X + MORPH_W - 1))) ? ((py >= MORPH_Y) && (py < (MORPH_Y + MORPH_H))) : 1'b0;
     // Box interior checks
     wire in0 = (px >= x0) && (px < (x0 + W_PRE)) && (py >= y0) && (py < (y0 + H_ALL)); // GAUSS
     wire in1 = (px >= x1) && (px < (x1 + W_PRE)) && (py >= y1) && (py < (y1 + H_ALL)); // MEDIAN
@@ -75,25 +126,129 @@ module cv_settings_overlay (
     wire in4 = (px >= x4) && (px < (x4 + W_MOR)) && (py >= y4) && (py < (y4 + H_ALL)); // DILATE A
     wire in5 = (px >= x5) && (px < (x5 + W_MOR)) && (py >= y5) && (py < (y5 + H_ALL)); // DILATE B
 
+    // Bottom row selection boxes (y = 435), custom widths
+    localparam [8:0] ROW_Y  = 9'd435;
+    localparam [9:0] CAM_X  = 10'd33;  localparam [9:0] CAM_W  = 10'd47;  localparam [8:0] CAM_Y  = ROW_Y;
+    localparam [9:0] BMP_X  = 10'd278; localparam [9:0] BMP_W  = 10'd72;  localparam [8:0] BMP_Y  = ROW_Y;
+    localparam [9:0] UFDS_X = 10'd564; localparam [9:0] UFDS_W = 10'd66;  localparam [8:0] UFDS_Y = ROW_Y;
+    // Borders like drop zones, using per-box widths
+    wire in_cam_border  = ((py == CAM_Y) || (py == (CAM_Y + H_ALL - 1))) ? ((px >= CAM_X) && (px < (CAM_X + CAM_W))) :
+                     ((px == CAM_X) || (px == (CAM_X + CAM_W - 1))) ? ((py >= CAM_Y) && (py < (CAM_Y + H_ALL))) : 1'b0;
+    wire in_bmp_border  = ((py == BMP_Y) || (py == (BMP_Y + H_ALL - 1))) ? ((px >= BMP_X) && (px < (BMP_X + BMP_W))) :
+                     ((px == BMP_X) || (px == (BMP_X + BMP_W - 1))) ? ((py >= BMP_Y) && (py < (BMP_Y + H_ALL))) : 1'b0;
+    wire in_ufds_border = ((py == UFDS_Y)|| (py == (UFDS_Y+ H_ALL - 1))) ? ((px >= UFDS_X) && (px < (UFDS_X+ UFDS_W))) :
+                     ((px == UFDS_X)|| (px == (UFDS_X+ UFDS_W - 1))) ? ((py >= UFDS_Y) && (py < (UFDS_Y+ H_ALL))) : 1'b0;
+    // In-rect checks for clicks (include border and interior)
+    wire in_cam_rect    = (mouse_x >= CAM_X)   && (mouse_x < (CAM_X  + CAM_W))   && (mouse_y >= CAM_Y)  && (mouse_y < (CAM_Y  + H_ALL));
+    wire in_bitmap_rect = (mouse_x >= BMP_X)   && (mouse_x < (BMP_X  + BMP_W))   && (mouse_y >= BMP_Y)  && (mouse_y < (BMP_Y  + H_ALL));
+    wire in_ufds_rect   = (mouse_x >= UFDS_X)  && (mouse_x < (UFDS_X + UFDS_W))  && (mouse_y >= UFDS_Y) && (mouse_y < (UFDS_Y + H_ALL));
+
+    // Change-view toggle positions (centered vertically in bottom-row height)
+    localparam [8:0] TOG_Y  = ROW_Y;
+    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X; // after CAM
+    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X; // after PRE
+    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X; // after BITMAP
+    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X; // after MORPH
+
+    // Toggle borders (1px)
+    wire in_tog0_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG0_X) && (px < (TOG0_X + TOG_W))) :
+                          ((px == TOG0_X) || (px == (TOG0_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog1_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG1_X) && (px < (TOG1_X + TOG_W))) :
+                          ((px == TOG1_X) || (px == (TOG1_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog2_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG2_X) && (px < (TOG2_X + TOG_W))) :
+                          ((px == TOG2_X) || (px == (TOG2_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog3_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG3_X) && (px < (TOG3_X + TOG_W))) :
+                          ((px == TOG3_X) || (px == (TOG3_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+
+    // Instantiate change-view controller
+    wire [3:0] cv_flags;
+    cv_settings_change_view u_cv_view (
+        .clk(clk), .reset(reset), .settings_active(settings_active),
+        .mouse_x(mouse_x), .mouse_y(mouse_y), .left_edge(left_edge),
+        .x0(TOG0_X), .y0(TOG_Y), .w0(TOG_W), .h0(TOG_H),
+        .x1(TOG1_X), .y1(TOG_Y), .w1(TOG_W), .h1(TOG_H),
+        .x2(TOG2_X), .y2(TOG_Y), .w2(TOG_W), .h2(TOG_H),
+        .x3(TOG3_X), .y3(TOG_Y), .w3(TOG_W), .h3(TOG_H),
+        .toggled_flags(cv_flags),
+        .final_out(final_out)
+    );
+
     always @(*) begin
         overlay_en  = 1'b0;
         overlay_rgb = 12'h000;
 
         if (settings_active) begin
-            // --- Guide lines ---
-            // Horizontal black lines at y = 324 and y = 395 (full width)
-            if ((py == 9'd324) || (py == 9'd395)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            // Separating lines at y = 322 and y = 396 (full width)
+            if ((py == 9'd322) || (py == 9'd396)) begin
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
             end
-            // Vertical black lines downwards from (93,395), (262,395), (378,395), (548,395)
-            if ((py >= 9'd395) && (px == 10'd93 || px == 10'd262 || px == 10'd378 || px == 10'd548)) begin
-                overlay_en  = 1'b1; overlay_rgb = BLACK;
+            if ((py == 9'd323) || (py == 9'd321) || (py == 9'd323) || (py == 9'd395) || (py == 9'd397)) begin
+                overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
+            end
+            if ((py == 9'd324) || (py == 9'd320) || (py == 9'd324) || (py == 9'd394) || (py == 9'd398)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
             end
 
-            // Borders first
+
+            // Upper vertical line from (313,322) to (313,395)
+            if ((py >= 9'd322) && (py <= 9'd396) && (px == 10'd313)) begin
+                overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            end
+            if ((py >= 9'd323) && (py <= 9'd394) && (px == 10'd312)) begin
+                overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
+            end
+            if ((py >= 9'd324) && (py <= 9'd393) && (px == 10'd311)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+            if ((py >= 9'd323) && (py <= 9'd394) && (px == 10'd314)) begin
+                overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
+            end
+            if ((py >= 9'd324) && (py <= 9'd393) && (px == 10'd315)) begin
+                overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+            
+            // // Vertical black lines downwards from (93,395), (262,395), (373,395), (548,395)
+            // if (((py >= 9'd396 && py <= 9'd441) || py >= 470) && 
+            //         (px == 10'd93 || px == 10'd262 || px == 10'd373 || px == 10'd548)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
+            // end
+            // if (((py >= 9'd397 && py <= 9'd441) || py >= 470) && 
+            //         (px == 10'd92 || px == 10'd94 || px == 10'd261 || px == 10'd263 || px == 10'd372 || px == 10'd374 || px == 10'd547 ||  px == 10'd549)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
+            // end
+            // if (((py >= 9'd398 && py <= 9'd441) || py >= 470) && 
+            //         (px == 10'd91 || px == 10'd95 || px == 10'd260 || px == 10'd264 || px == 10'd371 || px == 10'd375 || px == 10'd546 ||  px == 10'd550)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            // end
+
+            // --- Rectangle at (33,348) size 89x42 with vertical bisector ---
+            if ((py == 9'd348) || (py == (9'd348 + 9'd42 - 1))) begin
+                if ((px >= 10'd33) && (px < (10'd33 + 10'd89))) begin
+                    overlay_en = 1'b1; overlay_rgb = BLACK;
+                end
+            end
+            if ((px == 10'd33) || (px == (10'd33 + 10'd89 - 1))) begin
+                if ((py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+                    overlay_en = 1'b1; overlay_rgb = BLACK;
+                end
+            end
+            // Vertical bisecting line (floor(89/2) = 44 px from left)
+            if ((px == (10'd33 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+
+            // Borders first (drop zones, bottom boxes, and change-view toggles)
             if (in_pre_border) begin
-                overlay_en  = 1'b1; overlay_rgb = GREY;
+                overlay_en  = 1'b1; overlay_rgb = CYAN;
             end else if (in_morph_border) begin
+                overlay_en  = 1'b1; overlay_rgb = MAGENTA;
+            end else if (in_cam_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_bmp_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREY;
+            end else if (in_ufds_border) begin
+                overlay_en  = 1'b1; overlay_rgb = GREEN;
+            end else if (in_tog0_border || in_tog1_border || in_tog2_border || in_tog3_border) begin
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end
 
@@ -120,7 +275,26 @@ module cv_settings_overlay (
                 else if ((front_idx != 3'd4) && in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
                 else if ((front_idx != 3'd5) && in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
             end
+
+            // Draw toggled box fill last so it sits on top of everything
+            if (cv_flags[0] && (px >= TOG0_X) && (px < (TOG0_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[1] && (px >= TOG1_X) && (px < (TOG1_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[2] && (px >= TOG2_X) && (px < (TOG2_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
+            if (cv_flags[3] && (px >= TOG3_X) && (px < (TOG3_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+                overlay_en = 1'b1; overlay_rgb = BLACK;
+            end
         end
     end
+
+    // Click pulses exported to Top: generated from left_edge in VGA coords
+    assign cam_box_click    = settings_active && left_edge && in_cam_rect;
+    assign bitmap_box_click = settings_active && left_edge && in_bitmap_rect;
+    assign ufds_box_click   = settings_active && left_edge && in_ufds_rect;
 
 endmodule

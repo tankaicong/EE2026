@@ -36,7 +36,9 @@ module cv_settings_dragdrop (
 
     input wire [9:0] mouse_x, // 0..639
     input wire [8:0] mouse_y, // 0..479
-    input wire mouse_left,
+    input wire mouse_left,           // debounced level
+    input wire mouse_left_edge,      // debounced rising edge (press)
+    input wire mouse_left_fall,      // debounced falling edge (release)
 
     // drop boxes
     input wire [9:0] pre_x, // top-left X
@@ -72,7 +74,15 @@ module cv_settings_dragdrop (
     output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
     // z-order control: index of box to render on top (foreground)
-    output reg  [2:0] front_idx
+    output reg  [2:0] front_idx,
+    // debug/telemetry (optional): expose dragging and drop reasons
+    output wire       dragging_o,
+    output reg  [1:0] drop_reason, // 1=fall-edge, 2=sustain-low (bitwise)
+    // One-cycle click pulses for info categories (derived from hover and left_edge)
+    output wire       gauss_click,
+    output wire       median_click,
+    output wire       erode_click,
+    output wire       dilate_click
 );
 
     // --------------- Box definitions ----------------
@@ -111,7 +121,10 @@ module cv_settings_dragdrop (
     // Dragging state
     reg dragging;
     reg [2:0] drag_idx; // for dragging of each state FSM
-    reg left_q; // for edge detection
+    reg left_q; // retained for compatibility (not primary trigger anymore)
+    // Drag release filter: require continuous low for a short window before treating as a drop
+    reg [21:0] drag_rel_cnt; // ~ up to 80ms at 25MHz for 2_000_000
+    localparam [21:0] DRAG_RELEASE_TH = 22'd2000000; // 80 ms sustained-low required to drop
 
     // Local helpers for left-to-right ordering
     reg [9:0] ax, bx, cx, dx; // sortable x positions for morph boxes 2..5
@@ -126,6 +139,12 @@ module cv_settings_dragdrop (
     wire hov4 = (mouse_x >= x4) && (mouse_x < (x4 + W_MOR)) && (mouse_y >= y4) && (mouse_y < (y4 + H_ALL));
     wire hov5 = (mouse_x >= x5) && (mouse_x < (x5 + W_MOR)) && (mouse_y >= y5) && (mouse_y < (y5 + H_ALL));
     assign hover = {hov5, hov4, hov3, hov2, hov1, hov0};
+
+    // Click pulses per category for info tab module
+    assign gauss_click  = settings_active && mouse_left_edge && hov0;
+    assign median_click = settings_active && mouse_left_edge && hov1;
+    assign erode_click  = settings_active && mouse_left_edge && (hov2 || hov3);
+    assign dilate_click = settings_active && mouse_left_edge && (hov4 || hov5);
 
     // top-left mouse-aligned positions so a box centers under the cursor while dragging
     wire [9:0] mx_pre = (mouse_x <= (W_PRE>>1)) ? 10'd0 : (mouse_x - (W_PRE>>1));
@@ -175,6 +194,7 @@ module cv_settings_dragdrop (
             placed0_pre <= 1'b0; placed1_pre <= 1'b0;
             placed2_morph <= 1'b0; placed3_morph <= 1'b0; placed4_morph <= 1'b0; placed5_morph <= 1'b0;
             dragging <= 1'b0; drag_idx <= 3'd0; left_q <= 1'b0;
+            drag_rel_cnt <= 20'd0;
 
             pre_count <= 2'd0; pre_order0 <= 2'b00; pre_order1 <= 2'b00;
             morph_count <= 3'd0; morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
@@ -183,12 +203,24 @@ module cv_settings_dragdrop (
             // sample left button
             left_q <= mouse_left;
 
+            // update release filter only while dragging
+            if (dragging) begin
+                if (mouse_left) begin
+                    drag_rel_cnt <= 22'd0;
+                end else if (drag_rel_cnt < DRAG_RELEASE_TH) begin
+                    drag_rel_cnt <= drag_rel_cnt + 1'b1;
+                end
+            end else begin
+                drag_rel_cnt <= 22'd0;
+            end
+
             // default: if settings not active, ignore interactions but keep positions
             if (!settings_active) begin
                 dragging <= 1'b0;
+                drop_reason <= 2'b00;
             end else begin
-                // rising edge: start dragging one hovered box (priority 0..5)
-                if (!left_q && mouse_left && !dragging) begin
+                // Start dragging on clean debounced press edge
+                if (mouse_left_edge && !dragging) begin
                     if (hov0) begin dragging <= 1'b1; drag_idx <= 3'd0; front_idx <= 3'd0; end
                     else if (hov1) begin dragging <= 1'b1; drag_idx <= 3'd1; front_idx <= 3'd1; end
                     else if (hov2) begin dragging <= 1'b1; drag_idx <= 3'd2; front_idx <= 3'd2; end
@@ -209,8 +241,10 @@ module cv_settings_dragdrop (
                     endcase
                 end
 
-                // falling edge: drop logic
-                if (left_q && !mouse_left && dragging) begin
+                // Drop only on sustained-low (ignore brief dips/falling edges to avoid false releases)
+                if (dragging && (drag_rel_cnt >= DRAG_RELEASE_TH)) begin
+                    drop_reason[0] <= 1'b0;                 // bit0: falling-edge release disabled
+                    drop_reason[1] <= 1'b1;                 // bit1: released by sustained low
                     case (drag_idx)
                         // GAUSS (0)
                         3'd0: begin
@@ -381,5 +415,6 @@ module cv_settings_dragdrop (
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
     assign pre_order_vector = {pre_order1, pre_order0};
+    assign dragging_o = dragging;
 
 endmodule

@@ -49,8 +49,8 @@ module cv_settings_change_view (
         case (sel_idx)
             2'd0: begin toggled_flags = 4'b0001; final_out = 2'b00; end // after CAM
             2'd1: begin toggled_flags = 4'b0010; final_out = 2'b01; end // after PRE
-            2'd2: begin toggled_flags = 4'b0100; final_out = 2'b11; end // after BITMAP
-            default: begin toggled_flags = 4'b1000; final_out = 2'b10; end // after MORPH
+            2'd2: begin toggled_flags = 4'b0100; final_out = 2'b10; end // after BITMAP
+            default: begin toggled_flags = 4'b1000; final_out = 2'b11; end // after MORPH
         endcase
     end
 

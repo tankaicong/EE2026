@@ -61,7 +61,7 @@ module Morphology_3x3
     wire [9:0] cen_col = (col == 0) ? 10'd0 : (col - 10'd1);
 
     // Valid output whenever center is within image bounds; allow runtime offset for address reporting
-    wire center_in_bounds = (row != 0) && (col != 0) &&
+    wire center_in_bounds = //(row != 0) && (col != 0) &&
                             (cen_row < IMAGE_HEIGHT) && (cen_col < IMAGE_WIDTH);
     // Adjusted center coordinate used only for address reporting
     wire signed [11:0] adj_cen_col_s = $signed({1'b0, cen_col}) + addr_off_col;

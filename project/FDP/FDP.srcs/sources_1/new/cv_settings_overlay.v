@@ -252,31 +252,9 @@ module cv_settings_overlay (
                 overlay_en  = 1'b1; overlay_rgb = GREY;
             end
 
-            // Filled movable boxes override border. Draw the selected front_idx last for foreground.
-            // First, if current pixel lies in the front_idx box, draw it immediately.
-            if ((front_idx == 3'd0 && in0) || (front_idx == 3'd1 && in1) || (front_idx == 3'd2 && in2)
-                || (front_idx == 3'd3 && in3) || (front_idx == 3'd4 && in4) || (front_idx == 3'd5 && in5)) begin
-                overlay_en  = 1'b1;
-                case (front_idx)
-                    3'd0: overlay_rgb = BLACK;
-                    3'd1: overlay_rgb = CYAN;
-                    3'd2: overlay_rgb = MAGENTA;
-                    3'd3: overlay_rgb = GREY;
-                    3'd4: overlay_rgb = WHITE;
-                    3'd5: overlay_rgb = YELLOW;
-                    default: overlay_rgb = WHITE;
-                endcase
-            end else begin
-                // Otherwise, draw in default priority order skipping the front_idx
-                if ((front_idx != 3'd0) && in0) begin overlay_en = 1'b1; overlay_rgb = BLACK; end
-                else if ((front_idx != 3'd1) && in1) begin overlay_en = 1'b1; overlay_rgb = CYAN; end
-                else if ((front_idx != 3'd2) && in2) begin overlay_en = 1'b1; overlay_rgb = MAGENTA; end
-                else if ((front_idx != 3'd3) && in3) begin overlay_en = 1'b1; overlay_rgb = GREY; end
-                else if ((front_idx != 3'd4) && in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
-                else if ((front_idx != 3'd5) && in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
-            end
+            // Do NOT fill movable boxes here anymore (GB/MF/EA/EB/DA/DB).
+            // Their visuals are now drawn by the BRAM overlay layer in Top, with front_idx used for z-order.
 
-            // Draw toggled box fill last so it sits on top of everything
             if (cv_flags[0] && (px >= TOG0_X) && (px < (TOG0_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
@@ -289,6 +267,42 @@ module cv_settings_overlay (
             if (cv_flags[3] && (px >= TOG3_X) && (px < (TOG3_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
+
+            //        if ((front_idx == 3'd0 && in0) || (front_idx == 3'd1 && in1) || (front_idx == 3'd2 && in2)
+            //     || (front_idx == 3'd3 && in3) || (front_idx == 3'd4 && in4) || (front_idx == 3'd5 && in5)) begin
+            //     overlay_en  = 1'b1;
+            //     case (front_idx)
+            //         3'd0: overlay_rgb = BLACK;
+            //         3'd1: overlay_rgb = CYAN;
+            //         3'd2: overlay_rgb = MAGENTA;
+            //         3'd3: overlay_rgb = GREY;
+            //         3'd4: overlay_rgb = WHITE;
+            //         3'd5: overlay_rgb = YELLOW;
+            //         default: overlay_rgb = WHITE;
+            //     endcase
+            // end else begin
+            //     // Otherwise, draw in default priority order skipping the front_idx
+            //     if ((front_idx != 3'd0) && in0) begin overlay_en = 1'b1; overlay_rgb = BLACK; end
+            //     else if ((front_idx != 3'd1) && in1) begin overlay_en = 1'b1; overlay_rgb = CYAN; end
+            //     else if ((front_idx != 3'd2) && in2) begin overlay_en = 1'b1; overlay_rgb = MAGENTA; end
+            //     else if ((front_idx != 3'd3) && in3) begin overlay_en = 1'b1; overlay_rgb = GREY; end
+            //     else if ((front_idx != 3'd4) && in4) begin overlay_en = 1'b1; overlay_rgb = WHITE; end
+            //     else if ((front_idx != 3'd5) && in5) begin overlay_en = 1'b1; overlay_rgb = YELLOW; end
+            // end
+
+            // // Draw toggled box fill last so it sits on top of everything
+            // if (cv_flags[0] && (px >= TOG0_X) && (px < (TOG0_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+            //     overlay_en = 1'b1; overlay_rgb = BLACK;
+            // end
+            // if (cv_flags[1] && (px >= TOG1_X) && (px < (TOG1_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+            //     overlay_en = 1'b1; overlay_rgb = BLACK;
+            // end
+            // if (cv_flags[2] && (px >= TOG2_X) && (px < (TOG2_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+            //     overlay_en = 1'b1; overlay_rgb = BLACK;
+            // end
+            // if (cv_flags[3] && (px >= TOG3_X) && (px < (TOG3_X + TOG_W)) && (py >= TOG_Y) && (py < (TOG_Y + TOG_H))) begin
+            //     overlay_en = 1'b1; overlay_rgb = BLACK;
+            // end
         end
     end
 

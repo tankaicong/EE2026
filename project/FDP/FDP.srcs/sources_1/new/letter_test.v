@@ -171,17 +171,17 @@ module letter_top (
     assign dilate_2_sq_1 = (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
 
     reg [9:0] gauss_x = 10'd320;
-    reg [9:0] gauss_y = 10'd352;
+    reg [8:0] gauss_y = 9'd352;
     reg [9:0] med_x = 10'd394;
-    reg [9:0] med_y = 10'd352;
+    reg [8:0] med_y = 9'd352;
     reg [9:0] erode_1_x = 10'd468;
-    reg [9:0] erode_1_y = 10'd352;
+    reg [8:0] erode_1_y = 9'd352;
     reg [9:0] erode_2_x = 10'd510;
-    reg [9:0] erode_2_y = 10'd352;
+    reg [8:0] erode_2_y = 9'd352;
     reg [9:0] dilate_1_x = 10'd552;
-    reg [9:0] dilate_1_y = 10'd352;
+    reg [8:0] dilate_1_y = 9'd352;
     reg [9:0] dilate_2_x = 10'd594;
-    reg [9:0] dilate_2_y = 10'd352;
+    reg [8:0] dilate_2_y = 9'd352;
 
     // reg [9:0] gauss_x, gauss_y, med_x, med_y,
     //           erode_1_x, erode_1_y, erode_2_x, erode_2_y,

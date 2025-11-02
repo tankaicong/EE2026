@@ -6,7 +6,8 @@ module generate_overlay(
     input [53:0] y,                 // y input for all 6 boxes (9 bits)
     input [9:0] frame_x,            // current x coord in frame (0..639) from VGA
     input [9:0] frame_y,            // current y coord in frame (0..479) from VGA
-    output reg to_write,                // HIGH for write to VGA, LOW for no write
+    // output reg to_write,                // HIGH for write to VGA, LOW for no write
+    output to_write,
     output [3:0] image_pixel        // BRAM color output (encoded, decode in Top.v)
 );
     /* Takes in X and Y coordinate for movable boxes in order:
@@ -64,10 +65,10 @@ module generate_overlay(
         539, 448, 25, 8, 6062,          // 10 Yellow arrow
         106, 451, 146, 2, 6262,         // 11 Yellow short rectangle
         376, 451, 162, 2, 6262,         // 12 Yellow long rectangle
-        85, 435, 15, 12, 6585,          // 13 Eye 1
-        258, 435, 15, 12, 6585,         // 14 Eye 2
-        355, 435, 15, 12, 6585,         // 15 Eye 3
-        544, 435, 15, 12, 6585,         // 16 Eye 4
+        85, 435, 15, 12, 6586,          // 13 Eye 1
+        258, 435, 15, 12, 6586,         // 14 Eye 2
+        355, 435, 15, 12, 6586,         // 15 Eye 3
+        544, 435, 15, 12, 6586,         // 16 Eye 4
         262, 410, 105, 18, 6766,        // 17 Text "Thresholding"
         278, 435, 72, 34, 8656,         // 18 Text "BITMAP" + square
         410, 410, 95, 18, 11104,        // 19 Text "Morphology"
@@ -161,10 +162,12 @@ module generate_overlay(
     end
 
     // to_write goes high when overlay enabled and current x/y count is within range
-    wire to_write_int;
-    assign to_write_int = en ? ((|gen) || gauss_sq || med_sq || erode_1_sq || erode_2_sq || dilate_1_sq || dilate_2_sq) : 1'b0;
+    // wire to_write_int;
+    // assign to_write_int = en ? ((|gen) || gauss_sq || med_sq || erode_1_sq || erode_2_sq || dilate_1_sq || dilate_2_sq) : 1'b0;
+    // assign to_write_int = en ? ((|gen_1) || gauss_sq_1 || med_sq_1 || erode_1_sq_1 || erode_2_sq_1 || dilate_1_sq_1 || dilate_2_sq_1) : 1'b0;
 
-    always @ (posedge clk25) begin
-        to_write <= to_write_int;
-    end
+    // always @ (posedge clk25) begin
+    //     to_write <= to_write_int;
+    // end
+    assign to_write = en ? ((|gen_1) || gauss_sq_1 || med_sq_1 || erode_1_sq_1 || erode_2_sq_1 || dilate_1_sq_1 || dilate_2_sq_1) : 1'b0;
 endmodule

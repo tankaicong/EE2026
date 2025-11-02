@@ -224,152 +224,153 @@ module Top(
         endcase
 
         //state machine for morphology control
+        //only allow morphology operations to affect offset if display output is from them
         case(Morphology_State)
             8'b00000000: begin //no morphology ops
                 Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b000;
                 bmp_addr_off_col = 0; bmp_addr_off_row = 0;
-                Last_Stage = Last_Stage;
+                if (Final_Out_Control == 2'b11) Last_Stage = Last_Stage;
             end
             8'b00000001: begin //Erode
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b001;
                 bmp_addr_off_col = -1; bmp_addr_off_row = -1;
-                Last_Stage = 3'd3;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
             end
             8'b00000010: begin //Dilate
                 Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b011;
                 bmp_addr_off_col = -1; bmp_addr_off_row = -1;
-                Last_Stage = 3'd4;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
             end
             8'b00000101: begin //Erode -> Erode
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             8'b00001010: begin //Dilate -> Dilate
                 Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b00001001: begin //Erode -> Dilate
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b011;
                 bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                Last_Stage = 3'd4;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
             end
             8'b00000110: begin //Dilate -> Erode
                 Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b001;
                 bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                Last_Stage = 3'd3;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
             end
             8'b00100101: begin //Erode -> Erode -> Dilate
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b011;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd4;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
             end
             8'b00011001: begin //Erode -> Dilate -> Erode
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
                 Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             8'b00010110: begin //Dilate -> Erode -> Erode
                 Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             8'b00011010: begin //Dilate -> Dilate -> Erode
                 Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b001;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd3;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
             end
             8'b00100110: begin //Dilate -> Erode -> Dilate
                 Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b00101001: begin //Erode -> Dilate -> Dilate
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
                 Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b10100101: begin //Erode -> Erode -> Dilate -> Dilate
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b01101001: begin //Erode -> Dilate -> Dilate -> Erode
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             8'b01011010: begin //Dilate -> Dilate -> Erode -> Erode
                 Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             8'b10010110: begin //Dilate -> Erode -> Erode -> Dilate
                 Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b10011001: begin //Erode -> Dilate -> Erode -> Dilate
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
                 Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b10;
                 BMP_Out_Control <= 3'b100;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd6;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
             end
             8'b01100110: begin //Dilate -> Erode -> Dilate -> Erode
                 Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b10;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
                 BMP_Out_Control <= 3'b010;
                 bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                Last_Stage = 3'd5;
+                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
             end
             default: begin  //invalid states just shows no morphology ops
                 Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
                 Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
                 BMP_Out_Control <= 3'b000;
                 bmp_addr_off_col = 0; bmp_addr_off_row = 0;
-                Last_Stage = Last_Stage;
+                if (Final_Out_Control == 2'b11) Last_Stage = Last_Stage;
             end
         endcase
 
         // state machine for offsets due to convolutions
-        total_addr_off_col = rgb_addr_off_col + bmp_addr_off_col;
-        total_addr_off_row = rgb_addr_off_row + bmp_addr_off_row;
+        total_addr_off_col = (Final_Out_Control == 2'b11) ? rgb_addr_off_col + bmp_addr_off_col : rgb_addr_off_col;
+        total_addr_off_row = (Final_Out_Control == 2'b11) ? rgb_addr_off_row + bmp_addr_off_row : rgb_addr_off_row;
 
         // zero out all offsets first
         gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
@@ -416,9 +417,6 @@ module Top(
         Preprocessing_State <= pre_order_vector;
         Morphology_State <= morph_order_vector;
         Final_Out_Control <= final_out;
-        Convolution_Stages <= { |morph_order_vector[7:6], |morph_order_vector[5:4],
-                                |morph_order_vector[3:2], |morph_order_vector[1:0],
-                                |pre_order_vector[3:2], |pre_order_vector[1:0]};
     end
 
     // input and output pixels from each convolutional block
@@ -657,21 +655,6 @@ module Top(
         .pixel_valid(dilate_2_pixel_valid)
     );
 
-    // Select which binary pipeline to write into the buffer:
-    // wire threshold_pixel_bin = sw[4] ? (sw[5] ? threshold_pixel_dilate_3x3 : threshold_pixel_erode_3x3)
-    //                                   : threshold_pixel;
-    // Pixel valid for bitmap path must align with the address source used for bitmap writes:
-    // - If morphology is enabled (sw[4]=1), use the corresponding morphology valid
-    // - Else, use gaussian valid (provides padding flush so right/bottom borders are covered)
-    // wire pixel_valid_bin = sw[4] ? (sw[5] ? pixel_valid_dilate_3x3 : pixel_valid_erode_3x3)
-    //                                   : pixel_valid_color;
-    // centered write address (defined below after FRAME_PIXELS parameter)
-    // wire [17:0] threshold_addr_bin;
-
-    // wire pixel_valid_final = sw[6] ? pixel_valid_bin : pixel_valid_display;
-    // wire [11:0] final_pixel = sw[6] ? (threshold_pixel_bin ? 12'hFFF : 12'h000) : display_pixel_color;
-    // wire [17:0] final_addr = sw[6] ? threshold_addr_bin : display_addr_color;
-
     //----------- PING PONG BUFFERS ----------- //
     //No hard guards or syncs now, both just triggering the BRAM upper/lower swap on Vsync
     //Seems to be working fine and no tears for now so f it we ball I guess
@@ -811,10 +794,11 @@ module Top(
             //  - If sw[6]=1 (bitmap mode), write immediate threshold(dout) so the frame never shows RGB
             //  - Else, write RAW RGB as usual
             if (we) begin
-                waddr18_r  <= {1'b0, addr} + wr_base_frame;
-                rgb_dina_r <= Final_Out_Control[1] ? (threshold_pixel_dout ? 12'hFFF : 12'h000) : dout;
-                // bmp_dina_r <= threshold_pixel;
-                we_w <= 1'b1;
+                //actually no need to write raw rgb with the path control setup above
+                // waddr18_r  <= {1'b0, addr} + wr_base_frame;
+                // rgb_dina_r <= Final_Out_Control[1] ? 12'h000 : rgb_dina_r;  //prevent old pixels from remaining on screen in bitmap mode
+                // // bmp_dina_r <= threshold_pixel;
+                // we_w <= 1'b1;
             end
         end
     end

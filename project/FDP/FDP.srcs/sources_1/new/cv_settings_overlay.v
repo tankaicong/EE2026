@@ -28,6 +28,14 @@ module cv_settings_overlay (
     // Index of the box to draw on top (foreground). 0..5; if out-of-range, default order applies.
     input  wire [2:0]  front_idx,
 
+    // values from slider threshold settings
+    input wire [3:0]  start_red_val, // 0..15
+    input wire [3:0]  end_red_val,        
+    input wire [3:0]  start_green_val,      
+    input wire [3:0]  end_green_val,        
+    input wire [3:0]  start_blue_val,
+    input wire [3:0]  end_blue_val,
+
     // Outputs
     output reg         overlay_en,
     output reg [11:0]  overlay_rgb,
@@ -224,7 +232,8 @@ module cv_settings_overlay (
             // --- Rectangle at (33,348) size 89x42 with vertical bisector ---
             if ((py == 9'd348) || (py == (9'd348 + 9'd42 - 1))) begin
                 if ((px >= 10'd33) && (px < (10'd33 + 10'd89))) begin
-                    overlay_en = 1'b1; overlay_rgb = BLACK;
+                    overlay_en = 1'b1; 
+                    overlay_rgb = BLACK;
                 end
             end
             if ((px == 10'd33) || (px == (10'd33 + 10'd89 - 1))) begin
@@ -236,6 +245,19 @@ module cv_settings_overlay (
             if ((px == (10'd33 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
+            // Filled rectangles inside the left box
+            if ((px >= 10'd33) && (px < (10'd33 + 10'd44)) &&          // 0…43 px wide
+                (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin        // full height
+                overlay_en  = 1'b1;
+                overlay_rgb = {start_blue_val, start_green_val, start_red_val};
+            end
+            if ((px >= (10'd33 + 10'd44 + 1'b1)) &&                     // 45…88 px wide
+                (px < (10'd33 + 10'd89)) &&
+                (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+                overlay_en  = 1'b1;
+                overlay_rgb = {end_blue_val, end_green_val, end_red_val};
+            end
+
 
             // Borders first (drop zones, bottom boxes, and change-view toggles)
             if (in_pre_border) begin

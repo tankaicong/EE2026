@@ -37,11 +37,11 @@ module Top(
     assign ov7670_vsync = sw[14] ? 1'bz : ov7670_vsync_pin;
     assign ov7670_d = sw[14] ? 8'bzzzzzzzz : ov7670_d_pin;
 
-    localparam [23:0] RGB_THRESHOLD = {
-        4'hF, 4'hF, //B_MIN, B_MAX
-        4'hF, 4'hF, //G_MIN, G_MAX
-        4'hF, 4'hF  //R_MIN, R_MAX
-    };
+    // localparam [23:0] RGB_THRESHOLD = {
+    //     4'hF, 4'hF, //B_MIN, B_MAX
+    //     4'hF, 4'hF, //G_MIN, G_MAX
+    //     4'hF, 4'hF  //R_MIN, R_MAX
+    // };
 
     // ----------- CLOCKS ----------- //
     // Generate 25 MHz (for VGA) and 24 MHz (for camera) clocks from 100 MHz input
@@ -1709,6 +1709,9 @@ module Top(
     wire thr_enable = (state == S_CV_SETTINGS);
 
     // Instantiate threshold_section now that 'state' is declared so we can pass enable
+    wire [23:0] RGB_THRESHOLD = {start_red_val, end_red_val,
+                          start_green_val, end_green_val,
+                          start_blue_val, end_blue_val};
     threshold_subsection thr_section_inst (
         .clk25(clk25),
         .vga_reset(vga_reset),

@@ -175,22 +175,22 @@ module threshold_subsection (
                 dragging_b_max <= 1'b0;
             // initiatize left click drag on red min knob
             end else begin 
-                if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_min_x_disp, SLIDER0_Y)) begin
+                if (left_click && !dragging_r_max && !dragging_g_min && !dragging_g_max && !dragging_b_min && !dragging_b_max && is_on_knob(mouse_x_px, mouse_y_px, knob_r_min_x_disp, SLIDER0_Y)) begin
                     dragging_r_min <= 1'b1;
                 end
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_max_x_disp, SLIDER0_Y)) begin
+                else if (left_click && !dragging_r_min && !dragging_g_min && !dragging_g_max && !dragging_b_min && !dragging_b_max && is_on_knob(mouse_x_px, mouse_y_px, knob_r_max_x_disp, SLIDER0_Y)) begin
                     dragging_r_max <= 1'b1;
                 end
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_min_x_disp, SLIDER1_Y)) begin
+                else if (left_click && !dragging_r_min && !dragging_r_max && !dragging_g_max && !dragging_b_min && !dragging_b_max && is_on_knob(mouse_x_px, mouse_y_px, knob_g_min_x_disp, SLIDER1_Y)) begin
                     dragging_g_min <= 1'b1;
                 end
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_max_x_disp, SLIDER1_Y)) begin
+                else if (left_click && !dragging_r_min && !dragging_r_max && !dragging_g_min && !dragging_b_min && !dragging_b_max && is_on_knob(mouse_x_px, mouse_y_px, knob_g_max_x_disp, SLIDER1_Y)) begin
                     dragging_g_max <= 1'b1;
                 end
-                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_min_x_disp, SLIDER2_Y)) begin
+                else if(left_click && !dragging_r_min && !dragging_r_max && !dragging_g_min && !dragging_g_max && !dragging_b_max && is_on_knob(mouse_x_px, mouse_y_px, knob_b_min_x_disp, SLIDER2_Y)) begin
                     dragging_b_min <= 1'b1;
                 end
-                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_max_x_disp, SLIDER2_Y)) begin
+                else if(left_click && !dragging_r_min && !dragging_r_max && !dragging_g_min && !dragging_g_max && !dragging_b_min && is_on_knob(mouse_x_px, mouse_y_px, knob_b_max_x_disp, SLIDER2_Y)) begin
                     dragging_b_max <= 1'b1;
                 end
             end
@@ -212,7 +212,7 @@ module threshold_subsection (
                 end
                 // ensure min <= max
                 // if (red_min > red_max) red_min <= red_max;
-            end else if(dragging_r_max) begin
+            end else if (dragging_r_max) begin
                 if (mouse_x_px < SLIDE_X0) begin 
                     red_max <= red_min;
                 end

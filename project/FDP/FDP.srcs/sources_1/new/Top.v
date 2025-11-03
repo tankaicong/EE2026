@@ -1321,6 +1321,9 @@ module Top(
     cv_settings_overlay settings_cv_overlay (
         .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
         .px(frame_x), .py(frame_y),
+        .start_red_val(start_red_val), .end_red_val(end_red_val),
+        .start_green_val(start_green_val), .end_green_val(end_green_val), 
+        .start_blue_val(start_blue_val), .end_blue_val(end_blue_val),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
@@ -1573,9 +1576,11 @@ module Top(
                     end else begin
                         frame_pixel <= bram_pixel_out;
                     end
-
+                    
+                    if (thr_section_active) frame_pixel <= thr_section_pixel;
                     // draw CV settings overlay, then the info pixel, then draw cursor on top
-                    if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
+                    else if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
+
                     // Info pixel on top of overlay
                     if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
                     // For BRAM overlay (paint only when not transparent)
@@ -1687,6 +1692,44 @@ module Top(
         .to_write(write_high),
         .image_pixel(overlay_pixel)
     );
+
+
+
+
+    // Sets threshold color section
+    // Threshold section wires (instantiated later so we can tie enable to state)
+    wire [11:0] thr_section_pixel;
+    wire        thr_section_active;
+    wire [3:0]  start_red_val, end_red_val;
+    wire [3:0]  start_green_val, end_green_val;
+    wire [3:0]  start_blue_val, end_blue_val;
+    // Enable for threshold UI: active only when CV settings UI is visible so sliders
+    // are loaded with the BRAM overlay set. This ensures the sliders are drawn with
+    // other VGA-space overlays.
+    wire thr_enable = (state == S_CV_SETTINGS);
+
+    // Instantiate threshold_section now that 'state' is declared so we can pass enable
+    threshold_subsection thr_section_inst (
+        .clk25(clk25),
+        .vga_reset(vga_reset),
+        .px_src(frame_x),
+        .py_src(frame_y),
+        .mouse_x_px(mouse_x_vga),
+        .mouse_y_px(mouse_y_vga),
+        .left_click(left_click_sync[1]),
+        .left_click_edge(left_click_edge),
+        .enable(thr_enable),
+        .start_red_val(start_red_val),
+        .end_red_val(end_red_val),
+        .start_green_val(start_green_val),
+        .end_green_val(end_green_val),
+        .start_blue_val(start_blue_val),
+        .end_blue_val(end_blue_val),
+        .section_pixel(thr_section_pixel),
+        .section_active(thr_section_active)
+    );
+
+
 
 
     // Sets timer

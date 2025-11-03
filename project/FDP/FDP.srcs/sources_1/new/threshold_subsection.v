@@ -158,18 +158,24 @@ module threshold_subsection (
                 dragging_b_max <= 1'b0;
             // initiatize left click drag on red min knob
             end else begin 
-                if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_min_x_disp, SLIDER0_Y))
+                if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_min_x_disp, SLIDER0_Y)) begin
                     dragging_r_min <= 1'b1;
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_max_x_disp, SLIDER0_Y))
+                end
+                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_r_max_x_disp, SLIDER0_Y)) begin
                     dragging_r_max <= 1'b1;
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_min_x_disp, SLIDER1_Y))
+                end
+                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_min_x_disp, SLIDER1_Y)) begin
                     dragging_g_min <= 1'b1;
-                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_max_x_disp, SLIDER1_Y))
+                end
+                else if (left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_g_max_x_disp, SLIDER1_Y)) begin
                     dragging_g_max <= 1'b1;
-                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_min_x_disp, SLIDER2_Y))
+                end
+                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_min_x_disp, SLIDER2_Y)) begin
                     dragging_b_min <= 1'b1;
-                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_max_x_disp, SLIDER2_Y)) 
+                end
+                else if(left_click && is_on_knob(mouse_x_px, mouse_y_px, knob_b_max_x_disp, SLIDER2_Y)) begin
                     dragging_b_max <= 1'b1;
+                end
             end
 
             if (dragging_r_min) begin
@@ -296,9 +302,7 @@ module threshold_subsection (
             pixel_out    = CLR_GREY;
         end
 
-        // --------------------------------------------------
-        // 2. Coloured range (overrides grey)
-        // --------------------------------------------------
+        // 2. Coloured range
         if ((py_src >= (SLIDER0_Y - 2)) && (py_src <= (SLIDER0_Y + SLIDER_THICKNESS_Y + 2)) &&
             (px_src >= knob_r_min_x_disp) && (px_src <= knob_r_max_x_disp)) begin
             pixel_active = 1'b1;
@@ -315,25 +319,25 @@ module threshold_subsection (
             pixel_out    = BLUE;
         end
 
-        // Knobs (draw on top of ranges)
+        // slider knobs
         if (is_on_knob(px_src, py_src, knob_r_min_x_disp, SLIDER0_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_r_min ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_r_min ? 12'hFB0 : CLR_WHITE;
         end else if (is_on_knob(px_src, py_src, knob_r_max_x_disp, SLIDER0_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_r_max ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_r_max ? 12'hFB0 : CLR_WHITE;
         end else if (is_on_knob(px_src, py_src, knob_g_min_x_disp, SLIDER1_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_g_min ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_g_min ? 12'hFB0 : CLR_WHITE;
         end else if (is_on_knob(px_src, py_src, knob_g_max_x_disp, SLIDER1_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_g_max ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_g_max ? 12'hFB0 : CLR_WHITE;
         end else if (is_on_knob(px_src, py_src, knob_b_min_x_disp, SLIDER2_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_b_min ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_b_min ? 12'hFB0 : CLR_WHITE;
         end else if (is_on_knob(px_src, py_src, knob_b_max_x_disp, SLIDER2_Y)) begin
             pixel_active = 1'b1;
-            pixel_out = dragging_b_max ? CLR_CYAN : CLR_WHITE;
+            pixel_out = dragging_b_max ? 12'hFB0 : CLR_WHITE;
         end
 
         // display color boxes

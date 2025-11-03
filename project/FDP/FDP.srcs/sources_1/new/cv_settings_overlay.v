@@ -119,6 +119,7 @@ module cv_settings_overlay (
     assign morph_w_o = MORPH_W;
     assign morph_h_o = MORPH_H;
 
+
     // Drop zone borders (1px)
     wire in_pre_border;
     wire in_morph_border;
@@ -245,6 +246,7 @@ module cv_settings_overlay (
             if ((px == (10'd33 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
+
             // Filled rectangles inside the left box
             if ((px >= 10'd33) && (px < (10'd33 + 10'd44)) &&          // 0…43 px wide
                 (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin        // full height
@@ -257,6 +259,21 @@ module cv_settings_overlay (
                 overlay_en  = 1'b1;
                 overlay_rgb = {end_blue_val, end_green_val, end_red_val};
             end
+
+            // eyedropper reactangle to show color clicked and box to toggle eyedropper mode
+            // Rectangle at (150,330) size 50x15
+            // if ((px >= 230) && (px < (230 + 50)) &&
+            //     (py >= 330) && (py < (330 + 15))) begin
+            //     overlay_en  = 1'b1;
+            //     overlay_rgb = OFFWHITE;
+            // end
+
+            // // square to toggle eyedropper mode at (210, 330) size 15x15
+            // if ((px >= 290) && (px < (290 + 15)) &&
+            //     (py >= 330) && (py < (330 + 15))) begin
+            //     overlay_en  = 1'b1;
+            //     overlay_rgb = BLACK;
+            // end
 
 
             // Borders first (drop zones, bottom boxes, and change-view toggles)

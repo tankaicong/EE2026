@@ -1719,6 +1719,7 @@ module Top(
         .left_click(left_click_sync[1]),
         .left_click_edge(left_click_edge),
         .enable(thr_enable),
+        .bram_pixel_out(bram_pixel_out),
         .start_red_val(start_red_val),
         .end_red_val(end_red_val),
         .start_green_val(start_green_val),

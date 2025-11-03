@@ -19,3 +19,15 @@ Dumping all the prominent problems faced here for future writeup
 - Removing the bitmap buffer
     - As images were streaming into the upper and lower halves of the double buffer. Colour tresholding was done on the image to generate a 306 x 240 bitmap. Due to the BRAM limits 
 - Using single buffer by doubling FPGA
+
+### Realtime pipeline for convolutions
+
+- 3x3 kernel convolution performed by sliding into 2 FIFO queues. The pipeline is:
+    - \[R9\] \[R8\] \[R7\] FIFO1\[IMAGE_WIDTH-3\]
+    - \[R6\] \[R5\] \[R4\] FIFO2\[IMAGE_WIDTH-3\]
+    - \[R3\] \[R2\] \[R1\]
+
+- Each convolution introduces 1 row + 1 pixel of delay
+- Currently handled by aligning the final image as needed (e.g. for 3 convolution operations, shift final image by -3 rows, -3 columns)
+
+- Seems like can push the raw pixels into a buffer, while continuing convolution, then once convolution done, throw it into the FIFO queue structure above. Since need 2x rows + 3 pixels before new convolution can start, while convolution only needs 1 row + 1 pixel more time, so should be doable. To be implemented some time

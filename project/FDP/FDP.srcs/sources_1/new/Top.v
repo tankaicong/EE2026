@@ -1209,7 +1209,7 @@ module Top(
         (px_src >= mouse_x_px - 1) && (px_src <= mouse_x_px + 1) &&
         (py_src >= mouse_y_px - 1) && (py_src <= mouse_y_px + 1);
 
-    assign cursor_colour = within_cursor_3x3 ? 12'hFFF : 12'h000;
+    assign cursor_colour = within_cursor_3x3 ? 12'h0FF : 12'h000;
 
 
     // Parameters for overlay boxes
@@ -1613,7 +1613,7 @@ module Top(
                         frame_pixel <= bram_pixel_out;
                     end
 
-                                if (frame_addr == 74399) begin
+                    if (frame_addr == 74399) begin
                         // snapshot UFDS results once per VGA frame
                         left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
                         left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
@@ -1621,16 +1621,16 @@ module Top(
                         left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
                     end
 
-            if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
-                            // Comp 0
-                            (
-                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
-                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
-                            ) ||
+                    if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
+                        // Comp 0
+                        (
+                            (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                            (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                            (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                            (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                            (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                            (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
+                        ) ||
                             // Comp 1
                             (
                                 (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||

@@ -1030,8 +1030,6 @@ module Top(
     );
 
 
-
-
     // ----------- MOUSE CONTROLLER ----------- //
 
     // Synchronize reset to mouse controller clock domain
@@ -1695,6 +1693,30 @@ module Top(
 
 
 
+    reg [11:0] mouse_color_bram;
+    reg mouse_sample_ready;
+
+    // Sample BRAM pixel color under mouse cursor once per frame
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            mouse_color_bram <= 12'h000;
+            mouse_sample_ready <= 1'b0;
+        end else begin
+            // Reset ready flag at start of frame
+            if (frame_addr == 17'd0) begin
+                mouse_sample_ready <= 1'b0;
+            end
+            
+            // Sample once when scan passes mouse position
+            if (in_roi && !mouse_sample_ready && 
+                (frame_x[9:1] - 10 == mouse_x_vga[9:1] - 10) && 
+                (frame_y[9:1] == mouse_y_vga[8:1])) begin
+                mouse_color_bram <= bram_pixel_out;
+                mouse_sample_ready <= 1'b1;
+            end
+        end
+    end
+
 
     // Sets threshold color section
     // Threshold section wires (instantiated later so we can tie enable to state)
@@ -1723,6 +1745,7 @@ module Top(
         .left_click_edge(left_click_edge),
         .enable(thr_enable),
         .bram_pixel_out(bram_pixel_out),
+        .mouse_color_bram(mouse_color_bram),
         .start_red_val(start_red_val),
         .end_red_val(end_red_val),
         .start_green_val(start_green_val),

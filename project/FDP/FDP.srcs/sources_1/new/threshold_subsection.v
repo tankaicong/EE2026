@@ -34,7 +34,8 @@ module threshold_subsection (
     input  wire        left_click_edge,// 1-cycle edge pulse (synchronized)
     input  wire        enable,         // module only active when enable asserted (e.g. in S_GAME_AUTO_MODE)
     // BRAM pixel input at mouse location (sampled externally / provided by Top)
-    input  wire [11:0] bram_pixel_out,
+    input wire [11:0] bram_pixel_out,
+    input wire [11:0] mouse_color_bram,
     // Range outputs: 4-bit per channel (0..15)
     output reg  [3:0]  start_red_val,     // 0..15
     output reg  [3:0]  end_red_val,        
@@ -59,6 +60,11 @@ module threshold_subsection (
     localparam SLIDER2_Y      = 9'd382;
     localparam KNOB_SIZE_HEIGHT = 12; // 12
     localparam KNOB_SIZE_WIDTH = 6; // 6
+
+
+    // Line to demarcate eyedropper section
+    localparam EYEDROPPER_LINE_HEIGHT = 12;
+    localparam EYEDROPPER_LINE_WIDTH = 2;
 
 
     // Color boxes to display lower and higher end of thresholds
@@ -128,12 +134,15 @@ module threshold_subsection (
 
     // knob X positions derived from 4-bit values (0..15 -> positions along track)
 
-    wire [9:0] knob_r_min_x = SLIDE_X0 + ((red_min   * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_r_max_x = SLIDE_X0 + ((red_max   * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_g_min_x = SLIDE_X0 + ((green_min * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_g_max_x = SLIDE_X0 + ((green_max * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_b_min_x = SLIDE_X0 + ((blue_min  * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_b_max_x = SLIDE_X0 + ((blue_max  * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_r_min_x = SLIDE_X0 + ((red_min * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_r_max_x = SLIDE_X0 + ((red_max * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_g_min_x = SLIDE_X0 + ((green_min* SLIDER_WIDTH) / 15);
+    wire [9:0] knob_g_max_x = SLIDE_X0 + ((green_max* SLIDER_WIDTH) / 15);
+    wire [9:0] knob_b_min_x = SLIDE_X0 + ((blue_min * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_b_max_x = SLIDE_X0 + ((blue_max * SLIDER_WIDTH) / 15);
+    wire [9:0] eye_red_pos_x = SLIDE_X0 + ((picked_color[3:0] * SLIDER_WIDTH) / 15);
+    wire [9:0] eye_blue_pos_x = SLIDE_X0 + ((picked_color[7:4] * SLIDER_WIDTH) / 15);
+    wire [9:0] eye_green_pos_x = SLIDE_X0 + ((picked_color[11:8] * SLIDER_WIDTH) / 15);
 
     // display positions for knobs — when min==max, offset the two knobs left/right so
     // the user can select them separately (they form a side-by-side 10x10 visual block).
@@ -307,8 +316,8 @@ module threshold_subsection (
                     eyedropper_enabled <= ~eyedropper_enabled;
                 end else begin
                     // capture color of bram pixel at mouse location if eyedropper enabled
-                    if (eyedropper_enabled && (px_src == mouse_x_px) && (py_src == mouse_y_px)) begin
-                        picked_color <= bram_pixel_out;
+                    if (eyedropper_enabled) begin
+                        picked_color <= mouse_color_bram;
                     end
                 end
             end
@@ -354,6 +363,23 @@ module threshold_subsection (
             (px_src >= knob_b_min_x_disp) && (px_src <= knob_b_max_x_disp)) begin
             pixel_active = 1'b1;
             pixel_out    = BLUE;
+        end
+
+        // Eyedropper black lines
+        if ((py_src >= SLIDER0_Y - 2) && (py_src <= (SLIDER0_Y + EYEDROPPER_LINE_HEIGHT)) &&
+            (px_src >= eye_red_pos_x) && (px_src <= eye_red_pos_x + EYEDROPPER_LINE_WIDTH)) begin
+            pixel_active = 1'b1;
+            pixel_out = picked_color;
+        end
+        else if ((py_src >= SLIDER1_Y - 2) && (py_src <= (SLIDER1_Y + EYEDROPPER_LINE_HEIGHT)) &&
+            (px_src >= eye_green_pos_x) && (px_src <= eye_green_pos_x + EYEDROPPER_LINE_WIDTH)) begin
+            pixel_active = 1'b1;
+            pixel_out = picked_color;
+        end
+        else if ((py_src >= SLIDER2_Y - 2) && (py_src <= (SLIDER2_Y + EYEDROPPER_LINE_HEIGHT)) &&
+            (px_src >= eye_blue_pos_x) && (px_src <= eye_blue_pos_x + EYEDROPPER_LINE_WIDTH)) begin
+            pixel_active = 1'b1;
+            pixel_out = picked_color;
         end
 
         // slider knobs

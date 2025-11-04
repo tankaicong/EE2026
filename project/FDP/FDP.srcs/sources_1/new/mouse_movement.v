@@ -124,7 +124,7 @@ module mouse_movement(
     //     end
     // end
     // Convert servo angle (0–180 degrees) to pulse width (1 ms – 2 ms)
-    wire [20:0] pulse_width_x = 100_000 + ((180 - servo_x_angle) << 9 );
+    wire [20:0] pulse_width_x = 50000 + ((180 - servo_x_angle) << 10 );
     wire [20:0] pulse_width_y = 100_000 + (servo_y_angle << 9);
 
     always @(posedge clk) begin

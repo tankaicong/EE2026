@@ -866,6 +866,10 @@ module Top(
         .p_px(ufds_pixel_in), // use same bitmap data as vga pixel
         .clk(clk50),
         .ext_reset(cap_reset),
+        // Settings from UFDS UI
+        .min_area_sel(ufds_min_area_sel_r),
+        .sort_by_prox(ufds_sort_by_prox_r),
+        .max_boxes_sel(ufds_max_boxes_sel_r),
         .comp3210_left(comp3210_left),
         .comp3210_right(comp3210_right),
         .comp3210_top(comp3210_top),
@@ -1345,6 +1349,39 @@ module Top(
         .pix_x(info_pix_x), .pix_y(info_pix_y), .info_idx(info_idx), .pix_rgb(info_pix_rgb)
     );
 
+    // UFDS settings overlay (drawn when in UFDS settings state)
+    wire        ufds_overlay_en;
+    wire [11:0] ufds_overlay_rgb;
+    wire        ufds_return_click;
+    wire [2:0]  ufds_tab_idx;
+    wire [1:0]  ufds_min_area_sel;
+    wire        ufds_sort_by_prox;
+    wire [1:0]  ufds_max_boxes_sel;
+    ufds_settings_overlay ufds_ui (
+        .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
+        .px(frame_x), .py(frame_y),
+        .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
+        .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
+        .return_click(ufds_return_click),
+        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), .sort_by_prox(ufds_sort_by_prox), .max_boxes_sel(ufds_max_boxes_sel)
+    );
+
+    // Latch UFDS settings for UFDS pipeline (clk domain)
+    reg [1:0] ufds_min_area_sel_r;
+    reg       ufds_sort_by_prox_r;
+    reg [1:0] ufds_max_boxes_sel_r;
+    always @(posedge clk) begin
+        if (btnU) begin
+            ufds_min_area_sel_r  <= 2'b00; // 4
+            ufds_sort_by_prox_r  <= 1'b0;  // area
+            ufds_max_boxes_sel_r <= 2'b11; // 4 boxes
+        end else begin
+            ufds_min_area_sel_r  <= ufds_min_area_sel;
+            ufds_sort_by_prox_r  <= ufds_sort_by_prox;
+            ufds_max_boxes_sel_r <= ufds_max_boxes_sel;
+        end
+    end
+
     // expose selection on LEDs for quick debug
     assign led[9:8] = final_out;
     
@@ -1387,9 +1424,11 @@ module Top(
     localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
     localparam S_GAME_MANUAL_MODE = 3;
     localparam S_GAME_AUTO_MODE = 4;
+    localparam S_UFDS_SETTINGS = 5; // UFDS settings page
 
     wire cv_settings_mode = (state == S_CV_SETTINGS);
     wire user_settings_mode = (state == S_USER_SETTINGS);
+    wire ufds_settings_mode = (state == S_UFDS_SETTINGS);
 
     // address debouncing for state change settings 
     reg [23:0] state_change_cooldown = 0;
@@ -1458,54 +1497,6 @@ module Top(
             // every pixel that is not overwritten should be the camera's output
             frame_pixel <= bram_pixel_out;
 
-            if (frame_addr == 74399) begin
-                        // snapshot UFDS results once per VGA frame
-                        left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
-                        left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
-                        left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
-                        left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
-                    end
-
-            if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
-                            // Comp 0
-                            (
-                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
-                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
-                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
-                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
-                            ) ||
-                            // Comp 1
-                            (
-                                (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
-                                (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
-                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
-                                (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
-                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
-                            ) ||
-                            // Comp 2
-                            (
-                                (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
-                                (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
-                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
-                                (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
-                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
-                            ) ||
-                            // Comp 3
-                            (
-                                (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
-                                (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
-                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
-                                (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
-                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
-                            )
-                        )) begin
-                            frame_pixel <= GREEN;
-                        end
         end
             
             // if (right_click) begin
@@ -1600,7 +1591,80 @@ module Top(
                         else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
                         // 4'hF is transparent (ignored), anything else unmapped: do nothing
                     end
+                    // Enter UFDS settings when UFDS box is clicked
+                    if (ufds_box_clicked) begin
+                        prev_state <= state;
+                        state <= S_UFDS_SETTINGS;
+                    end
                     // Use VGA-space cursor here (overlay also uses VGA coords)
+                    if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
+                end
+
+                S_UFDS_SETTINGS: begin
+                    // right-click or Return box to go back to CV settings
+                    if (right_click_edge || ufds_return_click) begin
+                        state <= S_CV_SETTINGS;
+                    end
+
+                    // Dim camera feed under the settings region (rows >= 324)
+                    if (frame_y >= 9'd324) begin
+                        frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
+                    end else begin
+                        frame_pixel <= bram_pixel_out;
+                    end
+
+                                if (frame_addr == 74399) begin
+                        // snapshot UFDS results once per VGA frame
+                        left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
+                        left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
+                        left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
+                        left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
+                    end
+
+            if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
+                            // Comp 0
+                            (
+                                (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                                (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                                (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                                (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
+                            ) ||
+                            // Comp 1
+                            (
+                                (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                                (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                                (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
+                                (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
+                            ) ||
+                            // Comp 2
+                            (
+                                (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                                (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                                (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
+                                (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
+                            ) ||
+                            // Comp 3
+                            (
+                                (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                                (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                                (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
+                                (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
+                            )
+                        )) begin
+                            frame_pixel <= GREEN;
+                        end
+                        
+                    // UFDS overlay
+                    if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
+                    // Cursor on top
                     if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
                 end
 

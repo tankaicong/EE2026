@@ -72,12 +72,13 @@ module threshold_subsection (
     localparam BOX_START_LEFT_X = 33; // 13
     localparam BOX_START_LEFT_Y = 9'd348; // VGA Y coordinate for color boxes
 
-    // Eyedropper rectangle and toggle square geometry (VGA coords)
+    // Eyedropper display color rectangle and toggle square geometry (VGA coords)
     localparam EYE_X = 10'd230; // eyedropper color display box left
     localparam EYE_Y = 9'd330;
     localparam EYE_W = 10'd50;
     localparam EYE_H = 9'd15;
 
+    // Eyedropper (actual) background square
     localparam EYE_TOG_X = 10'd290; // small square to toggle eyedropper mode
     localparam EYE_TOG_Y = 9'd330;
     localparam EYE_TOG_W = 10'd15;

@@ -135,6 +135,13 @@ module cv_settings_overlay (
     wire in4 = (px >= x4) && (px < (x4 + W_MOR)) && (py >= y4) && (py < (y4 + H_ALL)); // DILATE A
     wire in5 = (px >= x5) && (px < (x5 + W_MOR)) && (py >= y5) && (py < (y5 + H_ALL)); // DILATE B
 
+    wire in0_mouse = (mouse_x >= x0) && (mouse_x < (x0 + W_PRE)) && (mouse_y >= y0) && (mouse_y < (y0 + H_ALL)); // GAUSS
+    wire in1_mouse = (mouse_x >= x1) && (mouse_x < (x1 + W_PRE)) && (mouse_y >= y1) && (mouse_y < (y1 + H_ALL)); // MEDIAN
+    wire in2_mouse = (mouse_x >= x2) && (mouse_x < (x2 + W_MOR)) && (mouse_y >= y2) && (mouse_y < (y2 + H_ALL)); // ERODE A
+    wire in3_mouse = (mouse_x >= x3) && (mouse_x < (x3 + W_MOR)) && (mouse_y >= y3) && (mouse_y < (y3 + H_ALL)); // ERODE B
+    wire in4_mouse = (mouse_x >= x4) && (mouse_x < (x4 + W_MOR)) && (mouse_y >= y4) && (mouse_y < (y4 + H_ALL)); // DILATE A
+    wire in5_mouse = (mouse_x >= x5) && (mouse_x < (x5 + W_MOR)) && (mouse_y >= y5) && (mouse_y < (y5 + H_ALL)); // DILATE B
+
     // Bottom row selection boxes (y = 435), custom widths
     localparam [8:0] ROW_Y  = 9'd435;
     localparam [9:0] CAM_X  = 10'd33;  localparam [9:0] CAM_W  = 10'd47;  localparam [8:0] CAM_Y  = ROW_Y;
@@ -154,20 +161,20 @@ module cv_settings_overlay (
 
     // Change-view toggle positions (centered vertically in bottom-row height)
     localparam [8:0] TOG_Y  = ROW_Y;
-    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X; // after CAM
-    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X; // after PRE
-    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X; // after BITMAP
-    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X; // after MORPH
+    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X + 1; // after CAM
+    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X + 1; // after PRE
+    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X + 1; // after BITMAP
+    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X + 1; // after MORPH
 
     // Toggle borders (1px)
-    wire in_tog0_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG0_X) && (px < (TOG0_X + TOG_W))) :
-                          ((px == TOG0_X) || (px == (TOG0_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
-    wire in_tog1_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG1_X) && (px < (TOG1_X + TOG_W))) :
-                          ((px == TOG1_X) || (px == (TOG1_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
-    wire in_tog2_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG2_X) && (px < (TOG2_X + TOG_W))) :
-                          ((px == TOG2_X) || (px == (TOG2_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
-    wire in_tog3_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px >= TOG3_X) && (px < (TOG3_X + TOG_W))) :
-                          ((px == TOG3_X) || (px == (TOG3_X + TOG_W - 1))) ? ((py >= TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog0_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px > TOG0_X) && (px < (TOG0_X + TOG_W))) :
+                          ((px == TOG0_X) || (px == (TOG0_X + TOG_W - 1))) ? ((py > TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog1_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px > TOG1_X) && (px < (TOG1_X + TOG_W))) :
+                          ((px == TOG1_X) || (px == (TOG1_X + TOG_W - 1))) ? ((py > TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog2_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px > TOG2_X) && (px < (TOG2_X + TOG_W))) :
+                          ((px == TOG2_X) || (px == (TOG2_X + TOG_W - 1))) ? ((py > TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
+    wire in_tog3_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px > TOG3_X) && (px < (TOG3_X + TOG_W))) :
+                          ((px == TOG3_X) || (px == (TOG3_X + TOG_W - 1))) ? ((py > TOG_Y) && (py < (TOG_Y + TOG_H))) : 1'b0;
 
     // Instantiate change-view controller
     wire [3:0] cv_flags;
@@ -258,6 +265,125 @@ module cv_settings_overlay (
                 (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
                 overlay_en  = 1'b1;
                 overlay_rgb = {end_blue_val, end_green_val, end_red_val};
+            end
+
+            // External rectangle for camera
+            if ((py == 435 || py == 468) && px >= 33 && px <= 79) begin      // Horizontal x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((px == 33 || px == 79) && py >= 436 && py <= 467) begin      // Vertical x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+
+            // Internal highlight on camera hover
+            if ((px >= 34 && px <= 78 && py >= 436 && py < 467) && (mouse_x >= 34 && mouse_x <= 78 && mouse_y >= 436 && mouse_y < 467)) begin
+                overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            end
+            // if (in_cam_rect) begin
+            //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            // end
+
+            // External rectangle for bitmap
+            if ((py == 435 || py == 468) && px >= 278 && px <= 349) begin     // Horizontal x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((px == 278 || px == 349) && py >= 435 && py <= 468) begin     // Vertical x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((px >= 279 && px <= 348 && py >= 436 && py < 467) && (mouse_x >= 279 && mouse_x <= 348 && mouse_y >= 436 && mouse_y < 467)) begin
+                overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            end
+            // if (in_bitmap_rect) begin
+            //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            // end
+
+            // External rectangle for UFDS
+            if ((py == 435 || py == 468) && px >= 564 && px <= 629) begin     // Horizontal x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((px == 564 || px == 629) && py >= 435 && py <= 468) begin     // Vertical x2
+                overlay_en = 1'b1; overlay_rgb = BLUE;
+            end
+            if ((px >= 565 && px <= 628 && py >= 436 && py < 467) && (mouse_x >= 565 && mouse_x <= 628 && mouse_y >= 436 && mouse_y < 467)) begin
+                overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            end
+            // if (in_ufds_rect) begin
+            //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            // end
+
+            // External rectangle for GB
+            // if ((py == 352 || py == 385) && px >= 320 && px <= 391) begin
+            if ((py == y0 || py == (y0 + H_ALL - 1)) && px >= x0 && px <= (x0 + W_PRE - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            // if ((px == 320 || px == 391) && py >= 352 && py <= 385) begin
+            if ((px == x0 || px == (x0 + W_PRE - 1)) && py >= y0 && py <= (y0 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            // External rectangle for MF
+            // if ((py == 352 || py == 385) && px >= 394 && px <= 465) begin
+            if ((py == y1 || py == (y1 + H_ALL - 1)) && px >= x1 && px <= (x1 + W_PRE - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            // if ((px == 394 || px == 465) && py >= 352 && py <= 385) begin
+            if ((px == x1 || px == (x1 + W_PRE - 1)) && py >= y1 && py <= (y1 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            // External rectangle for EA
+            // if ((py == 352 || py == 385) && px >= 468 && px <= 507) begin
+            if ((py == y2 || py == (y2 + H_ALL - 1)) && px >= x2 && px <= (x2 + W_MOR - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // if ((px == 468 || px == 507) && py >= 352 && py <= 385) begin
+            if ((px == x2 || px == (x2 + W_MOR - 1)) && py >= y2 && py <= (y2 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // External rectangle for EB
+            // if ((py == 352 || py == 385) && px >= 510 && px <= 549) begin
+            if ((py == y3 || py == (y3 + H_ALL - 1)) && px >= x3 && px <= (x3 + W_MOR - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // if ((px == 510 || px == 549) && py >= 352 && py <= 385) begin
+            if ((px == x3 || px == (x3 + W_MOR - 1)) && py >= y3 && py <= (y3 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // External rectangle for DA
+            // if ((py == 352 || py == 385) && px >= 552 && px <= 591) begin
+            if ((py == y4 || py == (y4 + H_ALL - 1)) && px >= x4 && px <= (x4 + W_MOR - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // if ((px == 552 || px == 591) && py >= 352 && py <= 385) begin
+            if ((px == x4 || px == (x4 + W_MOR - 1)) && py >= y4 && py <= (y4 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // External rectangle for DB
+            // if ((py == 352 || py == 385) && px >= 594 && px <= 633) begin
+            if ((py == y5 || py == (y5 + H_ALL - 1)) && px >= x5 && px <= (x5 + W_MOR - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            // if ((px == 594 || px == 633) && py >= 352 && py <= 385) begin
+            if ((px == x5 || px == (x5 + W_MOR - 1)) && py >= y5 && py <= (y5 + H_ALL - 1)) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            
+
+            if (in0 && in0_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            if (in1 && in1_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = CYAN;
+            end
+            if (in2 && in2_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            if (in3 && in3_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            if (in4 && in4_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            end
+            if (in5 && in5_mouse) begin
+                overlay_en = 1'b1; overlay_rgb = MAGENTA;
             end
 
             // eyedropper reactangle to show color clicked and box to toggle eyedropper mode

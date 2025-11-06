@@ -1166,17 +1166,17 @@ module Top(
     reg [8:0] top3_l, bottom3_l, cy3_l;
 
     // Randomised canvas module instance (mosaic + shapes). Used with sw[15] ON.
-    wire [11:0] canvas_pixel;
-    Randomised_Canvas canvas_inst (
-        .clk(clk25),
-        .reset(vga_reset),
-        .btnC(btnC),
-        .frame_x(frame_x),
-        .frame_y(frame_y),
-        .in_roi(in_roi),
-        .active_area(active_area),
-        .pixel_out(canvas_pixel)
-    );
+    // wire [11:0] canvas_pixel;
+    // Randomised_Canvas canvas_inst (
+    //     .clk(clk25),
+    //     .reset(vga_reset),
+    //     .btnC(btnC),
+    //     .frame_x(frame_x),
+    //     .frame_y(frame_y),
+    //     .in_roi(in_roi),
+    //     .active_area(active_area),
+    //     .pixel_out(canvas_pixel)
+    // );
 
 
     // ----------- MOUSE CONTROLLER ----------- //
@@ -1622,10 +1622,11 @@ module Top(
         if (vga_reset) begin
             state <= S_MENU;
             prev_state <= S_MENU;
-        end else if (sw[15]) begin
-            // Output random canvas of colours by separate FPGA using sw[15]
-            frame_pixel <= canvas_pixel;
-        end else begin 
+        // end else if (sw[15]) begin
+        //     // Output random canvas of colours by separate FPGA using sw[15]
+        //     frame_pixel <= canvas_pixel;
+        end 
+        else begin 
             // debouncing for right click / btnC
             if (state_change_cooldown > 0) begin
                 state_change_cooldown <= state_change_cooldown - 1;
@@ -1754,7 +1755,7 @@ module Top(
 
                     // Dim camera feed under the settings region (rows >= 324)
                     if (frame_y >= 9'd324) begin
-                        frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
+                        frame_pixel <= { (bram_pixel_out[11:8] >> 3), (bram_pixel_out[7:4] >> 3), (bram_pixel_out[3:0] >> 3) };
                     end else begin
                         frame_pixel <= bram_pixel_out;
                     end
@@ -1812,6 +1813,26 @@ module Top(
                     if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
                     // Cursor on top
                     if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
+
+                    // Pull from BRAM
+                    if (write_high && (overlay_pixel != 4'hF)) begin
+                        if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
+                        else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
+                        else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
+                        else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                        else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
+                        else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
+                        else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
+                        else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                        else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
+                        else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
+                        else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
+                        else if (overlay_pixel == 4'hB) frame_pixel <= 12'hBEE;
+                        else if (overlay_pixel == 4'hC) frame_pixel <= 12'hC70;
+                        else if (overlay_pixel == 4'hD) frame_pixel <= 12'hFB0;
+                        else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
+                        // 4'hF is transparent (ignored), anything else unmapped: do nothing
+                    end
                 end
 
                 S_USER_SETTINGS: begin
@@ -1894,9 +1915,13 @@ module Top(
         .en(1'b1),          // Always enabled
         .x(boxes_x_vector),
         .y(boxes_y_vector),
+        .gauss_t_x(info_pix_x),
+        .gauss_t_y(info_pix_y),
         .frame_x(frame_x),
         .frame_y(frame_y),
         .front_idx(front_idx),
+        .final_out(final_out),
+        .ufds_settings_mode(ufds_settings_mode),
         .to_write(write_high),
         .image_pixel(overlay_pixel)
     );

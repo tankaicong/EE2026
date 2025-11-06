@@ -55,35 +55,41 @@ module cv_settings_dragdrop (
     output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0} 
 
     // hover flags: 1 when mouse is currently over the box (for educational box to pop out)
-    output wire [5:0] hover, // box0..box5
+    // output wire [5:0] hover, // box0..box5
 
     // recorded orders for morphology: up to 4 steps, 2-bit code per step
-    output reg [2:0] morph_count,
+    // output reg [2:0] morph_count,
     // 01 = ERODE, 10 = DILATE
-    output reg [1:0] morph_order0,
-    output reg [1:0] morph_order1,
-    output reg [1:0] morph_order2,
-    output reg [1:0] morph_order3,
+    // output reg [1:0] morph_order0,
+    // output reg [1:0] morph_order1,
+    // output reg [1:0] morph_order2,
+    // output reg [1:0] morph_order3,
 
     // also expose how many pre boxes are placed and their chronological order
-    output reg [1:0] pre_count,
+    // output reg [1:0] pre_count,
     // 01 = GAUSS, 10 = MEDIAN
-    output reg [1:0] pre_order0,
-    output reg [1:0] pre_order1,
+    // output reg [1:0] pre_order0,
+    // output reg [1:0] pre_order1,
     // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
     output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
     // z-order control: index of box to render on top (foreground)
     output reg  [2:0] front_idx,
     // debug/telemetry (optional): expose dragging and drop reasons
-    output wire       dragging_o,
-    output reg  [1:0] drop_reason, // 1=fall-edge, 2=sustain-low (bitwise)
+    // output wire       dragging_o,
+    // output reg  [1:0] drop_reason, // 1=fall-edge, 2=sustain-low (bitwise)
     // One-cycle click pulses for info categories (derived from hover and left_edge)
     output wire       gauss_click,
     output wire       median_click,
     output wire       erode_click,
     output wire       dilate_click
 );
+
+    reg [1:0] pre_order0, pre_order1;
+    reg [1:0] morph_order0;
+    reg [1:0] morph_order1;
+    reg [1:0] morph_order2;
+    reg [1:0] morph_order3;
 
     // --------------- Box definitions ----------------
     // preprocessing boxes (cyan): GAUSS, MEDIAN (72x34)
@@ -196,8 +202,10 @@ module cv_settings_dragdrop (
             dragging <= 1'b0; drag_idx <= 3'd0; left_q <= 1'b0;
             drag_rel_cnt <= 20'd0;
 
-            pre_count <= 2'd0; pre_order0 <= 2'b00; pre_order1 <= 2'b00;
-            morph_count <= 3'd0; morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
+            // pre_count <= 2'd0; 
+            pre_order0 <= 2'b00; pre_order1 <= 2'b00;
+            // morph_count <= 3'd0; 
+            morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
             front_idx <= 3'd0;
         end else begin
             // sample left button
@@ -217,7 +225,7 @@ module cv_settings_dragdrop (
             // default: if settings not active, ignore interactions but keep positions
             if (!settings_active) begin
                 dragging <= 1'b0;
-                drop_reason <= 2'b00;
+                // drop_reason <= 2'b00;
             end else begin
                 // Start dragging on clean debounced press edge
                 if (mouse_left_edge && !dragging) begin
@@ -243,8 +251,8 @@ module cv_settings_dragdrop (
 
                 // Drop only on sustained-low (ignore brief dips/falling edges to avoid false releases)
                 if (dragging && (drag_rel_cnt >= DRAG_RELEASE_TH)) begin
-                    drop_reason[0] <= 1'b0;                 // bit0: falling-edge release disabled
-                    drop_reason[1] <= 1'b1;                 // bit1: released by sustained low
+                    // drop_reason[0] <= 1'b0;                 // bit0: falling-edge release disabled
+                    // drop_reason[1] <= 1'b1;                 // bit1: released by sustained low
                     case (drag_idx)
                         // GAUSS (0)
                         3'd0: begin
@@ -372,7 +380,7 @@ module cv_settings_dragdrop (
                 end
 
                 // Update registered morph_count after using mc for layout
-                morph_count <= mc;
+                // morph_count <= mc;
             end
 
             // Morphology processing order: left-to-right by x position (ignore chronological)
@@ -396,7 +404,7 @@ module cv_settings_dragdrop (
             morph_order3 <= (dx == 10'd1023) ? 2'b00 : dc;
 
             // Preprocessing count and order (left-to-right by x)
-            pre_count <= {1'b0, placed0_pre} + {1'b0, placed1_pre};
+            // pre_count <= {1'b0, placed0_pre} + {1'b0, placed1_pre};
             if (!placed0_pre && !placed1_pre) begin
                 pre_order0 <= 2'b00; pre_order1 <= 2'b00;
             end else if (placed0_pre && !placed1_pre) begin
@@ -415,6 +423,6 @@ module cv_settings_dragdrop (
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
     assign pre_order_vector = {pre_order1, pre_order0};
-    assign dragging_o = dragging;
+    // assign dragging_o = dragging;
 
 endmodule

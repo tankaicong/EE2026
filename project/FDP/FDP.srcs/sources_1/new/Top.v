@@ -32,10 +32,10 @@ module Top(
     wire ov7670_pclk;
     wire ov7670_vsync;
     wire [7:0] ov7670_d;
-    assign ov7670_href = sw[14] ? 1'bz : ov7670_href_pin;
-    assign ov7670_pclk = sw[14] ? 1'bz : ov7670_pclk_pin;
-    assign ov7670_vsync = sw[14] ? 1'bz : ov7670_vsync_pin;
-    assign ov7670_d = sw[14] ? 8'bzzzzzzzz : ov7670_d_pin;
+    assign ov7670_href = sw[13] ? 1'bz : ov7670_href_pin;
+    assign ov7670_pclk = sw[13] ? 1'bz : ov7670_pclk_pin;
+    assign ov7670_vsync = sw[13] ? 1'bz : ov7670_vsync_pin;
+    assign ov7670_d = sw[13] ? 8'bzzzzzzzz : ov7670_d_pin;
 
     // localparam [23:0] RGB_THRESHOLD = {
     //     4'hF, 4'hF, //B_MIN, B_MAX
@@ -414,9 +414,15 @@ module Top(
     end
 
     always @(posedge clk) begin
-        Preprocessing_State <= pre_order_vector;
-        Morphology_State <= morph_order_vector;
-        Final_Out_Control <= final_out;
+        if (sw[14]) begin
+            Preprocessing_State <= pre_order_vector;
+            Morphology_State <= morph_order_vector;
+            Final_Out_Control <= final_out;
+        end else begin
+            Preprocessing_State <= received_prevector;
+            Morphology_State <= received_morph;
+            Final_Out_Control <= 2'b11;
+        end
     end
 
     // input and output pixels from each convolutional block
@@ -884,11 +890,66 @@ module Top(
 
     // ----------- UART CONTROLLER ----------- //
     // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
-    reg  [79:0] tx_fifo_payload = 80'h09080706050403020100; // initial pattern (MSB..LSB = 09..00)
+    // reg  [79:0] tx_fifo_payload = 80'h09080706050403020100; // initial pattern (MSB..LSB = 09..00)
+    // reg         tx_fifo_wr_en   = 1'b0;                     // 1-cycle strobe to enqueue a 10-byte burst
+    // wire [79:0] rx_fifo_payload;
+    // reg [79:0] rx_fifo_payload_buf;
+    // wire        rx_fifo_rd_en;                               // 1-cycle strobe when 10 bytes received
+
+    // UART_Controller u_uart (
+    //     .clk(clk50),
+    //     .rst(btnU),
+    //     .tx_fifo(tx_fifo_payload),
+    //     .tx_fifo_wr_en(tx_fifo_wr_en),
+    //     .tx_pin(uart_tx),
+    //     .rx_fifo(rx_fifo_payload),
+    //     .rx_fifo_rd_en(rx_fifo_rd_en),
+    //     .rx_pin(uart_rx)
+    // );
+
+    // // Generate a new 10-byte sequence once per second and trigger a TX burst.
+    // // Sequence is base..base+9 in LSB..MSB, so the hex prints as (base+9 ... base)
+    // reg [26:0] one_sec_counter = 27'd0;
+    // reg [7:0]  base_byte = 8'd0;
+    // always @(posedge clk50) begin
+    //     tx_fifo_wr_en <= 1'b0; // default low
+    //     one_sec_counter <= one_sec_counter + 1;
+    //     if (one_sec_counter == 27'd50_000_000) begin
+    //         one_sec_counter <= 27'd0;
+    //         base_byte <= base_byte + 8'd1;
+    //         // Pack bytes: [7:0]=base, [15:8]=base+1, ... [79:72]=base+9
+    //         tx_fifo_payload[7:0]    <= base_byte;
+    //         tx_fifo_payload[15:8]   <= base_byte + 8'd1;
+    //         tx_fifo_payload[23:16]  <= base_byte + 8'd2;
+    //         tx_fifo_payload[31:24]  <= base_byte + 8'd3;
+    //         tx_fifo_payload[39:32]  <= base_byte + 8'd4;
+    //         tx_fifo_payload[47:40]  <= base_byte + 8'd5;
+    //         tx_fifo_payload[55:48]  <= base_byte + 8'd6;
+    //         tx_fifo_payload[63:56]  <= base_byte + 8'd7;
+    //         tx_fifo_payload[71:64]  <= base_byte + 8'd8;
+    //         tx_fifo_payload[79:72]  <= base_byte + 8'd9;
+    //         tx_fifo_wr_en <= 1'b1; // strobe send
+    //     end
+    // end
+
+
+
+    // <------- UART CONTROLLER FOR BOUNDING BOX -------->
+    // one bit = 434clks/bit * 1/50Mhz = 8.68 microseconds/bit
+    // to pass all four bounding boxes = 8.68 * 248 = 0.00215s
+    // each bit to pass in = 40 nanosecond
+    // delay = 0.00215s / (40 nanoseconds) = 53750 bits delay, which is roughly one frame worth of delay
+    // thus need to ensure that each TX waits for 0.00215s before sending
+
+
+    // wait 30000 ms to allow package to finish
+    reg [14:0] wait_counter = 15'd0;
+    // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
+    reg  [247:0] tx_fifo_payload = 0; // initial pattern (MSB..LSB = 09..00)
     reg         tx_fifo_wr_en   = 1'b0;                     // 1-cycle strobe to enqueue a 10-byte burst
-    wire [79:0] rx_fifo_payload;
-    reg [79:0] rx_fifo_payload_buf;
-    wire        rx_fifo_rd_en;                               // 1-cycle strobe when 10 bytes received
+    wire [247:0] rx_fifo_payload;
+    reg  [247:0] rx_fifo_payload_buf;
+    wire        rx_fifo_rd_en;           // 1-cycle strobe when 10 bytes received
 
     UART_Controller u_uart (
         .clk(clk50),
@@ -901,34 +962,118 @@ module Top(
         .rx_pin(uart_rx)
     );
 
-    // Generate a new 10-byte sequence once per second and trigger a TX burst.
-    // Sequence is base..base+9 in LSB..MSB, so the hex prints as (base+9 ... base)
-    reg [26:0] one_sec_counter = 27'd0;
-    reg [7:0]  base_byte = 8'd0;
+    // localparam CMD_BBOX = 1'd0;
+    // localparam CMD_SETTINGS = 1'd1;
+
+
+
+
+
+    // <--- Transmit BBOX Areas --->
+    // Temporary transmit fields (values come from UFDS top component outputs)
+    reg [39:0] left_coords;
+    reg [39:0] right_coords;
+    reg [35:0] top_coords;
+    reg [35:0] bottom_coords;
+    reg [39:0] cx0_coords;
+    reg [35:0] cy0_coords;
+    reg [3:0] pre_vector;
+    reg [7:0] morph_vector;
+    reg [1:0] udfs_min_area;
+    reg ufds_prio;
+    reg [1:0] ufds_max_box_no;
+
+    // Send BBOX packet once per second when UFDS has fresh results.
+    // Note: UART controller emits rx_fifo_rd_en only after MESSAGE_BITCOUNT/8 bytes (here 31) are received.
+    // This is the transmit block.
     always @(posedge clk50) begin
         tx_fifo_wr_en <= 1'b0; // default low
-        one_sec_counter <= one_sec_counter + 1;
-        if (one_sec_counter == 27'd50_000_000) begin
-            one_sec_counter <= 27'd0;
-            base_byte <= base_byte + 8'd1;
-            // Pack bytes: [7:0]=base, [15:8]=base+1, ... [79:72]=base+9
-            tx_fifo_payload[7:0]    <= base_byte;
-            tx_fifo_payload[15:8]   <= base_byte + 8'd1;
-            tx_fifo_payload[23:16]  <= base_byte + 8'd2;
-            tx_fifo_payload[31:24]  <= base_byte + 8'd3;
-            tx_fifo_payload[39:32]  <= base_byte + 8'd4;
-            tx_fifo_payload[47:40]  <= base_byte + 8'd5;
-            tx_fifo_payload[55:48]  <= base_byte + 8'd6;
-            tx_fifo_payload[63:56]  <= base_byte + 8'd7;
-            tx_fifo_payload[71:64]  <= base_byte + 8'd8;
-            tx_fifo_payload[79:72]  <= base_byte + 8'd9;
-            tx_fifo_wr_en <= 1'b1; // strobe send
+        // Periodic BBOX transmit (once per second) when UFDS has fresh results
+        // wait_counter <= wait_counter + 1;
+        // if (wait_counter == 15'd30_000 && ready_o) begin
+        //     wait_counter <= 15'd0;
+        if (sw[14]) begin
+            // main sends user inputs to secondary
+            pre_vector <= pre_order_vector;   // 40-bit
+            morph_vector <= morph_order_vector;   
+            udfs_min_area <= ufds_min_area_sel;
+            ufds_prio <= ufds_sort_by_prox;
+            ufds_max_box_no <= ufds_max_boxes_sel;
+        
+            tx_fifo_payload[3:0] <= pre_vector;
+            tx_fifo_payload[11:4] <= morph_vector;              
+            tx_fifo_payload[13:12] <= udfs_min_area;
+            tx_fifo_payload[14] <= ufds_prio;   
+            tx_fifo_payload[16:15] <= ufds_max_box_no;     
+            tx_fifo_payload[239:17] <= 0;
+        end else begin
+            // temporarily store 40-bits for all 4 BBox in its left, right, top, bottom, cx and cy
+            // secondary sends BB to main
+            left_coords <= comp3210_left;   // 40-bit
+            right_coords <= comp3210_right;   
+            top_coords <= comp3210_top;
+            bottom_coords <= comp3210_bottom;
+            cx0_coords <= comp3210_cx;   // 10-bit
+            cy0_coords <= comp3210_cy;   // 10-bit
+         
+            tx_fifo_payload[39:0] <= left_coords;
+            tx_fifo_payload[79:40] <= right_coords;              
+            tx_fifo_payload[119:80] <= {4'd0, top_coords};
+            tx_fifo_payload[159:120] <= {4'd0, bottom_coords};   
+            tx_fifo_payload[199:160] <= cx0_coords;          
+            tx_fifo_payload[239:200] <= {4'd0, cy0_coords};
+           
+        end
+         tx_fifo_wr_en <= 1'b1; // one-cycle strobe to enqueue the packet
+    end
+
+
+    // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
+    reg [3:0] received_prevector;
+    reg [7:0] received_morph;
+    reg [1:0] received_ufds_min_area;
+    reg received_ufds_sort_by_prox;
+    reg [1:0] received_ufds_max_box_sel;
+
+
+    reg [39:0] received_left_boxes = 0;
+    reg [39:0] received_right_boxes = 0;
+    reg [35:0] received_top_boxes = 0;
+    reg [35:0] received_bottom_boxes = 0;
+    reg [39:0] received_CX = 0;
+    reg [35:0] received_CY = 0;
+
+
+     // Receive Block.
+    always @(posedge clk50) begin
+        // UART PACKAGE
+        if (rx_fifo_rd_en) begin
+            // snapshot the payload buffer for use elsewhere
+                // Checks if message received is bounding boxes
+            if (sw[14]) begin
+                received_left_boxes = rx_fifo_payload[39:0];
+                received_right_boxes = rx_fifo_payload[79:40];
+                received_top_boxes = rx_fifo_payload[115:80];
+                received_bottom_boxes = rx_fifo_payload[155:120];
+                received_CX = rx_fifo_payload[199:160];
+                received_CY = rx_fifo_payload[235:200]; 
+            end else begin 
+                received_prevector <= tx_fifo_payload[3:0];
+                received_morph <= tx_fifo_payload[11:4];            
+                received_ufds_min_area <= tx_fifo_payload[13:12];
+                received_ufds_sort_by_prox <= tx_fifo_payload[14];   
+                received_ufds_max_box_sel <= tx_fifo_payload[16:15];   
+            end
         end
     end
 
-    always @(posedge rx_fifo_rd_en) begin
-        rx_fifo_payload_buf <= rx_fifo_payload;
-    end
+    // always @(posedge rx_fifo_rd_en) begin
+    //     rx_fifo_payload_buf <= rx_fifo_payload;
+    // end
+    
+
+
+
 
     // 7-seg display selection: choose 16-bit window from either TX or RX payload
     // wire [79:0] uart_dbg = sw[15] ? rx_fifo_payload_buf : tx_fifo_payload;
@@ -979,36 +1124,36 @@ module Top(
     wire [7:0] green_start_y = 120 + CROSSHAIR_HEIGHT;        // bottom of the stem
     // wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
 
-    // Decode concatenated outputs into per-component fields and latch once per VGA frame
-    wire [9:0] left0   = comp3210_left[9:0];
-    wire [9:0] left1   = comp3210_left[19:10];
-    wire [9:0] left2   = comp3210_left[29:20];
-    wire [9:0] left3   = comp3210_left[39:30];
+    // Decode concatenated outputs into per-component fields and latch once per VGA frame for display
+    wire [9:0] left0   = received_left_boxes[9:0];
+    wire [9:0] left1   = received_left_boxes[19:10];
+    wire [9:0] left2   = received_left_boxes[29:20];
+    wire [9:0] left3   = received_left_boxes[39:30];
 
-    wire [9:0] right0  = comp3210_right[9:0];
-    wire [9:0] right1  = comp3210_right[19:10];
-    wire [9:0] right2  = comp3210_right[29:20];
-    wire [9:0] right3  = comp3210_right[39:30];
+    wire [9:0] right0  = received_right_boxes[9:0];
+    wire [9:0] right1  = received_right_boxes[19:10];
+    wire [9:0] right2  = received_right_boxes[29:20];
+    wire [9:0] right3  = received_right_boxes[39:30];
 
-    wire [8:0] top0    = comp3210_top[8:0];
-    wire [8:0] top1    = comp3210_top[17:9];
-    wire [8:0] top2    = comp3210_top[26:18];
-    wire [8:0] top3    = comp3210_top[35:27];
+    wire [8:0] top0    = received_top_boxes[8:0];
+    wire [8:0] top1    = received_top_boxes[17:9];
+    wire [8:0] top2    = received_top_boxes[26:18];
+    wire [8:0] top3    = received_top_boxes[35:27];
 
-    wire [8:0] bottom0 = comp3210_bottom[8:0];
-    wire [8:0] bottom1 = comp3210_bottom[17:9];
-    wire [8:0] bottom2 = comp3210_bottom[26:18];
-    wire [8:0] bottom3 = comp3210_bottom[35:27];
+    wire [8:0] bottom0 = received_bottom_boxes[8:0];
+    wire [8:0] bottom1 = received_bottom_boxes[17:9];
+    wire [8:0] bottom2 = received_bottom_boxes[26:18];
+    wire [8:0] bottom3 = received_bottom_boxes[35:27];
 
-    wire [9:0] cx0     = comp3210_cx[9:0];
-    wire [9:0] cx1     = comp3210_cx[19:10];
-    wire [9:0] cx2     = comp3210_cx[29:20];
-    wire [9:0] cx3     = comp3210_cx[39:30];
+    wire [9:0] cx0     = received_CX[9:0];
+    wire [9:0] cx1     = received_CX[19:10];
+    wire [9:0] cx2     = received_CX[29:20];
+    wire [9:0] cx3     = received_CX[39:30];
 
-    wire [8:0] cy0     = comp3210_cy[8:0];
-    wire [8:0] cy1     = comp3210_cy[17:9];
-    wire [8:0] cy2     = comp3210_cy[26:18];
-    wire [8:0] cy3     = comp3210_cy[35:27];
+    wire [8:0] cy0     = received_CY[8:0];
+    wire [8:0] cy1     = received_CY[17:9];
+    wire [8:0] cy2     = received_CY[26:18];
+    wire [8:0] cy3     = received_CY[35:27];
 
     // Latches for overlay drawing
     reg [9:0] left0_l, right0_l, cx0_l;
@@ -1357,6 +1502,7 @@ module Top(
     wire [1:0]  ufds_min_area_sel;
     wire        ufds_sort_by_prox;
     wire [1:0]  ufds_max_boxes_sel;
+
     ufds_settings_overlay ufds_ui (
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
         .px(frame_x), .py(frame_y),
@@ -1621,7 +1767,7 @@ module Top(
                         left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
                     end
 
-                    if (in_roi && state != S_USER_SETTINGS && state != S_MENU && (
+                    if (in_roi && (
                         // Comp 0
                         (
                             (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||

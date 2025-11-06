@@ -3,10 +3,10 @@
 <!--                                                         -->
 <!-- Copyright 1986-2018 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="38" Path="C:/Users/Kenneth/Desktop/ee2026/EE2026/project/FDP/FDP.xpr">
+<Project Version="7" Minor="38" Path="C:/Users/Joshy/OneDrive/Desktop/Y2_SEM1/EE2026/finalized_project/EE2026_Project/project/FDP/FDP.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
-    <Option Name="Id" Val="c00568c962db45c493fc7b3f2de27e08"/>
+    <Option Name="Id" Val="67d569f020ea4c3a9c99fe474f33d22d"/>
     <Option Name="Part" Val="xc7a35tcpg236-1"/>
     <Option Name="CompiledLibDir" Val="$PCACHEDIR/compile_simlib"/>
     <Option Name="CompiledLibDirXSim" Val=""/>
@@ -68,6 +68,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/I2C_Controller.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/I2C_Controller.v"/>
+          <Attr Name="ImportTime" Val="1759945299"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -82,6 +84,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/Median_Filter.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Median_Filter.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -89,6 +93,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/Morphology_3x3.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Morphology_3x3.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -96,6 +102,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/OV7670_Capture.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/OV7670_Capture.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -103,6 +111,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/OV7670_Controller.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/OV7670_Controller.v"/>
+          <Attr Name="ImportTime" Val="1761166395"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -110,6 +120,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/OV7670_Registers.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/OV7670_Registers.v"/>
+          <Attr Name="ImportTime" Val="1761030341"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -117,6 +129,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/Randomised_Canvas.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Randomised_Canvas.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -124,6 +138,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/Seven_Seg.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Seven_Seg.v"/>
+          <Attr Name="ImportTime" Val="1761078073"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -138,6 +154,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UART_Controller.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UART_Controller.v"/>
+          <Attr Name="ImportTime" Val="1761206167"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -145,6 +163,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UART_Receiver.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UART_Receiver.v"/>
+          <Attr Name="ImportTime" Val="1761192269"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -152,6 +172,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UART_Transmitter.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UART_Transmitter.v"/>
+          <Attr Name="ImportTime" Val="1761205940"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -159,6 +181,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UFDS.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UFDS.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -166,6 +190,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UFDS_Bridge.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UFDS_Bridge.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -173,6 +199,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/UFDS_FIFO.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/UFDS_FIFO.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -180,6 +208,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/VGA_Controller.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/VGA_Controller.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -222,6 +252,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/layered_box.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/layered_box.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -229,6 +261,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/new/mouse_movement.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/mouse_movement.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -257,18 +291,24 @@
       </File>
       <File Path="$PSRCDIR/sources_1/imports/Desktop/Mouse_Control.vhd">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/imports/Desktop/Mouse_Control.vhd"/>
+          <Attr Name="ImportTime" Val="1761511901"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/imports/Desktop/Ps2Interface.vhd">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/imports/Desktop/Ps2Interface.vhd"/>
+          <Attr Name="ImportTime" Val="1760917178"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
       <File Path="$PSRCDIR/sources_1/new/Top.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Top.v"/>
+          <Attr Name="ImportTime" Val="1761924879"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -277,14 +317,8 @@
       <File Path="$PSRCDIR/sources_1/new/Convolution_3x3.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PSRCDIR/sources_1/new/Time_Countdown.v">
-        <FileInfo>
-          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Convolution_3x3.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -293,12 +327,24 @@
       <File Path="$PSRCDIR/sources_1/new/Dual_Port_Buffer.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Dual_Port_Buffer.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/new/menu_box.v">
+      <File Path="$PSRCDIR/sources_1/new/Time_Countdown.v">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/new/Time_Countdown.v"/>
+          <Attr Name="ImportTime" Val="1761166415"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../FDP/FDP.srcs/sources_1/new/menu_box.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -306,7 +352,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/new/mouse_cursor.v">
+      <File Path="$PPRDIR/../../FDP/FDP.srcs/sources_1/new/mouse_cursor.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -317,7 +363,7 @@
       <File Path="$PSRCDIR/sources_1/imports/Desktop/Oled_Display.v">
         <FileInfo>
           <Attr Name="UserDisabled" Val="1"/>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../../../../../../../../MODS.srcs/sources_1/imports/Desktop/Oled_Display.v"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../../../../../../../../../MODS.srcs/sources_1/imports/Desktop/Oled_Display.v"/>
           <Attr Name="ImportTime" Val="1677398246"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -340,7 +386,7 @@
       <Filter Type="Constrs"/>
       <File Path="$PSRCDIR/constrs_1/imports/Downloads/Basys3_Master.xdc">
         <FileInfo>
-          <Attr Name="ImportPath" Val="$PPRDIR/../../project_3/project_3.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc"/>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../../project_3/project_3.srcs/constrs_1/imports/Downloads/Basys3_Master.xdc"/>
           <Attr Name="ImportTime" Val="1757791005"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -354,6 +400,8 @@
       <Filter Type="Srcs"/>
       <File Path="$PSRCDIR/sim_1/new/uart_sim.v">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/uart_sim.v"/>
+          <Attr Name="ImportTime" Val="1761207047"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -362,6 +410,8 @@
       <File Path="$PSRCDIR/sim_1/new/ufds_sim.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/ufds_sim.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -370,6 +420,8 @@
       <File Path="$PSRCDIR/sim_1/new/OV7670_Model.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/OV7670_Model.v"/>
+          <Attr Name="ImportTime" Val="1760797947"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -378,6 +430,8 @@
       <File Path="$PSRCDIR/sim_1/new/Capture_Median_tb.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/Capture_Median_tb.v"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -386,31 +440,41 @@
       <File Path="$PSRCDIR/sim_1/new/Top_Sim.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/Top_Sim.v"/>
+          <Attr Name="ImportTime" Val="1760733096"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/ufds_sim_behav.wcfg">
+      <File Path="$PSRCDIR/sim_1/imports/FDP/ufds_sim_behav.wcfg">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../FDP/ufds_sim_behav.wcfg"/>
+          <Attr Name="ImportTime" Val="1761166415"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/median_filter_setup.wcfg">
+      <File Path="$PSRCDIR/sim_1/imports/FDP/median_filter_setup.wcfg">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../FDP/median_filter_setup.wcfg"/>
+          <Attr Name="ImportTime" Val="1760797352"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
       <File Path="$PSRCDIR/sim_1/new/Median_Filter_tb.v">
         <FileInfo>
           <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sim_1/new/Median_Filter_tb.v"/>
+          <Attr Name="ImportTime" Val="1760792950"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/uart_sim_behav.wcfg">
+      <File Path="$PSRCDIR/sim_1/imports/FDP/uart_sim_behav.wcfg">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PPRDIR/../../FDP/uart_sim_behav.wcfg"/>
+          <Attr Name="ImportTime" Val="1761207016"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
@@ -421,8 +485,8 @@
         <Option Name="TransportPathDelay" Val="0"/>
         <Option Name="TransportIntDelay" Val="0"/>
         <Option Name="SrcSet" Val="sources_1"/>
-        <Option Name="XSimWcfgFile" Val="$PPRDIR/ufds_sim_behav.wcfg"/>
-        <Option Name="XSimWcfgFile" Val="$PPRDIR/uart_sim_behav.wcfg"/>
+        <Option Name="XSimWcfgFile" Val="$PPRDIR/../../FDP/ufds_sim_behav.wcfg"/>
+        <Option Name="XSimWcfgFile" Val="$PPRDIR/../../FDP/uart_sim_behav.wcfg"/>
         <Option Name="xsim.simulate.runtime" Val="1000us"/>
         <Option Name="NLNetlistMode" Val="funcsim"/>
       </Config>
@@ -430,6 +494,8 @@
     <FileSet Name="display_clocks" Type="BlockSrcs" RelSrcDir="$PSRCDIR/display_clocks">
       <File Path="$PSRCDIR/sources_1/ip/display_clocks.xcix">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/ip/display_clocks.xcix"/>
+          <Attr Name="ImportTime" Val="1761238171"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -437,6 +503,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/ip/display_clocks/display_clocks.xci">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/ip/display_clocks/display_clocks.xci"/>
+          <Attr Name="ImportTime" Val="1761039684"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -450,6 +518,8 @@
     <FileSet Name="image_mem" Type="BlockSrcs" RelSrcDir="$PSRCDIR/image_mem">
       <File Path="$PSRCDIR/sources_1/ip/image_mem_1.xcix">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/ip/image_mem_1.xcix"/>
+          <Attr Name="ImportTime" Val="1761924814"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -457,6 +527,8 @@
       </File>
       <File Path="$PSRCDIR/sources_1/ip/image_mem_1/image_mem.xci">
         <FileInfo>
+          <Attr Name="ImportPath" Val="$PSRCDIR/sources_1/ip/image_mem_1/image_mem.xci"/>
+          <Attr Name="ImportTime" Val="1761925132"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>

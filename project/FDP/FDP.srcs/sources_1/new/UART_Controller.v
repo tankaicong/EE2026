@@ -15,15 +15,16 @@ module UART_Controller
     input rst,
 
     // Transmit side (host provides 10 bytes packed into tx_fifo and pulses tx_fifo_wr_en)
-    input [79:0] tx_fifo,
+    input [239:0] tx_fifo,
     input  tx_fifo_wr_en,
     output tx_pin,
 
     // Receive side (controller outputs 10 bytes and pulses rx_fifo_rd_en)
-    output reg [79:0] rx_fifo,
+    output reg [239:0] rx_fifo,
     output reg rx_fifo_rd_en,
     input rx_pin
 );
+
     // ---------------- UART core instances ---------------- //
     // TX core handshake
     reg uart_tx_valid = 1'b0;   // 1-cycle send strobe
@@ -52,8 +53,8 @@ module UART_Controller
     );
 
     // ---------------- TX FIFO controller (10 bytes) ---------------- //
-    reg [79:0] tx_buf;          // latched 10-byte payload
-    reg [3:0] tx_idx = 4'd0;   // 0..9 byte index
+    reg [239:0] tx_buf;          // latched 10-byte payload
+    reg [4:0] tx_idx = 4'd0;   // 0..9 byte index
     reg tx_busy = 1'b0;  // currently processing a 10-byte burst
 
     localparam TX_IDLE = 1'b0, TX_SEND = 1'b1;
@@ -63,7 +64,7 @@ module UART_Controller
         if (rst) begin
             tx_state <= TX_IDLE;
             tx_busy <= 1'b0;
-            tx_idx <= 4'd0;
+            tx_idx <= 5'd0;
             uart_tx_valid <= 1'b0;
             uart_tx_byte <= 8'h00;
         end else begin
@@ -103,15 +104,15 @@ module UART_Controller
     end
 
     // ---------------- RX FIFO controller (10 bytes) ---------------- //
-    reg [79:0] rx_buf;          // accumulating 10 bytes
-    reg [3:0] rx_idx = 4'd0;   // 0..9 index
+    reg [239:0] rx_buf;          // accumulating 10 bytes
+    reg [4:0] rx_idx = 4'd0;   // 0..9 index
     reg rx_done_pend = 1'b0;  // delay flag to assert rd_en one cycle after last byte is written
 
     always @(posedge clk) begin
         if (rst) begin
-            rx_idx <= 4'd0;
-            rx_buf <= 80'd0;
-            rx_fifo <= 80'd0;
+            rx_idx <= 5'd0;
+            rx_buf <= 240'd0;
+            rx_fifo <= 240'd0;
             rx_fifo_rd_en <= 1'b0;
             rx_done_pend <= 1'b0;
         end else begin
@@ -121,7 +122,8 @@ module UART_Controller
             // Capture bytes as they arrive
             if (uart_rx_valid) begin
                 rx_buf[8*rx_idx +: 8] <= uart_rx_byte;
-                if (rx_idx == 4'd9) begin
+                // The UFDS transfers 30 bytes while SETTINGS transfers 5 bytes
+                if (rx_idx == 4'd29) begin
                     rx_idx <= 4'd0;
                     rx_done_pend <= 1'b1; // on next cycle, publish rx_fifo and pulse rd_en
                 end else begin

@@ -1191,6 +1191,9 @@ module Top(
     // Click pulses from drag/drop for info categories
     wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
 
+    // Morphology order vector (existing) and new 4-bit morph vector for UART
+    wire [3:0] morph_vector_4;
+
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
         .reset(vga_reset),
@@ -1202,12 +1205,14 @@ module Top(
         .mouse_left_fall(left_click_fall),
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
+        .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         // .hover(box_hover),
-        // .morph_count(morph_count),
+        .morph_count(morph_count),
         // .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         // .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
         .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector),
+        .morph_vector(morph_vector_4),
         .front_idx(front_idx),
         // .dragging_o(led[2]),
         // .drop_reason(led[4:3]),
@@ -1432,6 +1437,7 @@ module Top(
 
     wire left_click, right_click, new_event;
     wire [11:0] mouse_x_raw, mouse_y_raw;
+    wire [3:0] zpos;
     
     MouseCtl mouse_instance (
         .clk(clk),
@@ -1472,6 +1478,23 @@ module Top(
             right_click_sync <= {right_click_sync[1:0], right_click};
             mouse_x_sync <= mouse_x_raw;
             mouse_y_sync <= mouse_y_raw;
+        end
+    end
+
+    // Generate one-cycle scroll pulses (clk25 domain) from MouseCtl zpos (4-bit signed)
+    reg [3:0] zpos_sync1 = 4'd0, zpos_sync2 = 4'd0, zpos_q = 4'd0;
+    reg       scroll_up_pulse = 1'b0;
+    reg       scroll_down_pulse = 1'b0;
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            zpos_sync1 <= 4'd0; zpos_sync2 <= 4'd0; zpos_q <= 4'd0;
+            scroll_up_pulse <= 1'b0; scroll_down_pulse <= 1'b0;
+        end else begin
+            zpos_sync1 <= zpos;
+            zpos_sync2 <= zpos_sync1;
+            zpos_q     <= zpos_sync2;
+            scroll_up_pulse   <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b0) && (zpos_q == 4'd0);
+            scroll_down_pulse <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b1) && (zpos_q == 4'd0);
         end
     end
 
@@ -1645,7 +1668,7 @@ module Top(
     reg [39:0] cx0_coords;
     reg [35:0] cy0_coords;
     reg [3:0] pre_vector;
-    reg [7:0] morph_vector;
+    reg [3:0] morph_vector;
     reg [1:0] udfs_min_area;
     reg ufds_prio;
     reg [1:0] ufds_max_box_no;
@@ -1661,14 +1684,14 @@ module Top(
         //     wait_counter <= 15'd0;
         if (sw[14]) begin
             // main sends user inputs to secondary
-            pre_vector <= pre_order_vector;   // 40-bit
-            morph_vector <= morph_order_vector;   
+            pre_vector <= pre_order_vector;   // 4 bits (two ops)
+            morph_vector <= morph_vector_4;   // 4 bits (1=ERODE)
             udfs_min_area <= ufds_min_area_sel;
             ufds_prio <= ufds_sort_by_prox;
             ufds_max_box_no <= ufds_max_boxes_sel;
         
             tx_fifo_payload[3:0] <= pre_vector;
-            tx_fifo_payload[11:4] <= morph_vector;              
+            tx_fifo_payload[7:4] <= morph_vector;              
             tx_fifo_payload[13:12] <= udfs_min_area;
             tx_fifo_payload[14] <= ufds_prio;   
             tx_fifo_payload[16:15] <= ufds_max_box_no;     
@@ -1697,7 +1720,7 @@ module Top(
 
     // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
     reg [3:0] received_prevector;
-    reg [7:0] received_morph;
+    reg [3:0] received_morph;
     reg [1:0] received_ufds_min_area;
     reg received_ufds_sort_by_prox;
     reg [1:0] received_ufds_max_box_sel;
@@ -1726,7 +1749,7 @@ module Top(
                 received_CY = rx_fifo_payload[235:200]; 
             end else begin 
                 received_prevector <= tx_fifo_payload[3:0];
-                received_morph <= tx_fifo_payload[11:4];            
+                received_morph <= tx_fifo_payload[7:4];            
                 received_ufds_min_area <= tx_fifo_payload[13:12];
                 received_ufds_sort_by_prox <= tx_fifo_payload[14];   
                 received_ufds_max_box_sel <= tx_fifo_payload[16:15];   

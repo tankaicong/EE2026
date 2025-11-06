@@ -213,8 +213,6 @@ module generate_bram_overlay(
 
     reg [9:0] gauss_tab_x, gauss_x, med_x, erode_1_x, erode_2_x, dilate_1_x, dilate_2_x;
     reg [8:0] gauss_tab_y, gauss_y, med_y, erode_1_y, erode_2_y, dilate_1_y, dilate_2_y;
-    integer eye_i_idx;
-    integer eye_start_addr;
 
     always @ (posedge clk) begin
         gauss_tab_x <= gauss_t_x;
@@ -234,6 +232,8 @@ module generate_bram_overlay(
         gauss_y <= y[8:0] + 4;
     end
 
+    integer eye_i_idx;
+    integer eye_start_addr;
     integer i, j;
     reg [2:0] sel; // 0:gauss 1:median 2:erode1 3:erode2 4:dilate1 5:dilate2 7:none
     always @ (*) begin

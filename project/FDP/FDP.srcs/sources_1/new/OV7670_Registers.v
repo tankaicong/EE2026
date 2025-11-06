@@ -96,6 +96,7 @@ module OV7670_Registers(
             8'h44: sreg <= 16'h3F00;    //default 00, edge enhancement??
             8'h45: sreg <= 16'h550F;    //default 00, brightness
             8'h46: sreg <= 16'h5640;    //default 40, contrast
+            8'h47: sreg <= 16'h0903;    //default 01, sets max current output from pin
 
             // Add missing scaling registers for QVGA (320x240) - From datasheet
             // 8'h40: sreg <= 16'h1214; // COM7   Size & RGB output

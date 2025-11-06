@@ -10,6 +10,10 @@ module UFDS_Bridge (
     // UFDS @ 100 MHz
     input  wire clk,
     input  wire ext_reset,
+    // UFDS settings
+    input  wire [1:0] min_area_sel,    // 00=4, 01=16, 10=32, 11=64
+    input  wire       sort_by_prox,    // 0=area, 1=proximity
+    input  wire [1:0] max_boxes_sel,   // 00=1, 01=2, 10=3, 11=4
 
     // UFDS single-bbox outputs
     // output wire [9:0] bbox_left, bbox_right, centroid_x,
@@ -70,6 +74,11 @@ module UFDS_Bridge (
         .line_start(ls_q),
         .frame_end(fe_q),
         .curr_pix(px_q),
+
+        // Settings to UFDS core
+        .min_area_sel(min_area_sel),
+        .sort_by_prox(sort_by_prox),
+        .max_boxes_sel(max_boxes_sel),
 
         .ready_to_read(ready_i),
 

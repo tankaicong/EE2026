@@ -377,70 +377,79 @@ module Top(
 
 //----------- MORPHOLOGY (ERODE/DILATE) ----------- //
     // Explicit binary thresholds (reuse for writer and morphology)
+
+    wire [3:0] user_choices;        // From CV settings
+    wire [2:0] num_blocks;          // From CV settings
+
+    wire B1_pixel_out, B2_pixel_out, B3_pixel_out, B4_pixel_out;
+    wire [16:0] B1_addr_out, B2_addr_out, B3_addr_out, B4_addr_out;
+    reg signed [3:0] B1_addr_off_col, B2_addr_off_col, B3_addr_off_col, B4_addr_off_col;
+    reg signed [3:0] B1_addr_off_row, B2_addr_off_row, B3_addr_off_row, B4_addr_off_row;
+    
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) erode3x3_1 (
+    ) B1 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(erode_1_pixel_we),
-        .pixel_in(erode_1_pixel_in),
-        .op_dilate(1'b0),
-        .addr_off_col(erode_1_addr_off_col),
-        .addr_off_row(erode_1_addr_off_row),
-        .pixel_out(erode_1_pixel_out),
-        .addr_out(erode_1_addr_out),
-        .pixel_valid(erode_1_pixel_valid)
+        .we(rgb_pixel_valid),
+        .pixel_in(threshold_pixel),
+        .op_dilate(user_choices[0]),                // 0 = erode, 1 = dilate
+        .addr_off_col(B1_addr_off_col),
+        .addr_off_row(B1_addr_off_row),
+        .pixel_out(B1_pixel_out),
+        .addr_out(B1_addr_out),
+        .pixel_valid(B1_pixel_valid)
     );
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) erode3x3_2 (
+    ) B2 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(erode_2_pixel_we),
-        .pixel_in(erode_2_pixel_in),
-        .op_dilate(1'b0),
-        .addr_off_col(erode_2_addr_off_col),
-        .addr_off_row(erode_2_addr_off_row),
-        .pixel_out(erode_2_pixel_out),
-        .addr_out(erode_2_addr_out),
-        .pixel_valid(erode_2_pixel_valid)
+        .we(B1_pixel_valid),
+        .pixel_in(B1_pixel_out),
+        .op_dilate(user_choices[1]),                // 0 = erode, 1 = dilate
+        .addr_off_col(B2_addr_off_col),
+        .addr_off_row(B2_addr_off_row),
+        .pixel_out(B2_pixel_out),
+        .addr_out(B2_addr_out),
+        .pixel_valid(B2_pixel_valid)
     );
 
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) dilate3x3_1 (
+    ) B3 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(dilate_1_pixel_we),
-        .pixel_in(dilate_1_pixel_in),
-        .op_dilate(1'b1),
-        .addr_off_col(dilate_1_addr_off_col),
-        .addr_off_row(dilate_1_addr_off_row),
-        .pixel_out(dilate_1_pixel_out),
-        .addr_out(dilate_1_addr_out),
-        .pixel_valid(dilate_1_pixel_valid)
+        .we(B2_pixel_valid),
+        .pixel_in(B2_pixel_out),
+        .op_dilate(user_choices[2]),               // 0 = erode, 1 = dilate
+        .addr_off_col(B3_addr_off_col),
+        .addr_off_row(B3_addr_off_row),
+        .pixel_out(B3_pixel_out),
+        .addr_out(B3_addr_out),
+        .pixel_valid(B3_pixel_valid)
     );
     Morphology_3x3 #(
         .IMAGE_WIDTH(310),
         .IMAGE_HEIGHT(240)
-    ) dilate3x3_2 (
+    ) B4 (
         .clk(ov7670_pclk),
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
-        .we(dilate_2_pixel_we),
-        .pixel_in(dilate_2_pixel_in),
-        .op_dilate(1'b1),
-        .addr_off_col(dilate_2_addr_off_col),
-        .addr_off_row(dilate_2_addr_off_row),
-        .pixel_out(dilate_2_pixel_out),
-        .addr_out(dilate_2_addr_out),
-        .pixel_valid(dilate_2_pixel_valid)
+        .we(B3_pixel_valid),
+        .pixel_in(B3_pixel_out),
+        .op_dilate(user_choices[3]),                // 0 = erode, 1 = dilate
+        .addr_off_col(B4_addr_off_col),
+        .addr_off_row(B4_addr_off_row),
+        .pixel_out(B4_pixel_out),
+        .addr_out(B4_addr_out),
+        .pixel_valid(B4_pixel_valid)
     );
 
 //----------- PING PONG BUFFERS ----------- //
@@ -636,10 +645,10 @@ module Top(
     reg Gaussian_In_Control;
     reg Median_In_Control;
     reg [1:0] RGB_Out_Control;
-    reg [1:0] Erode_1_In_Control = 2'b00;
-    reg [1:0] Erode_2_In_Control = 2'b00;
-    reg [1:0] Dilate_1_In_Control = 2'b00;
-    reg [1:0] Dilate_2_In_Control = 2'b00;
+    // reg [1:0] Erode_1_In_Control = 2'b00;
+    // reg [1:0] Erode_2_In_Control = 2'b00;
+    // reg [1:0] Dilate_1_In_Control = 2'b00;
+    // reg [1:0] Dilate_2_In_Control = 2'b00;
     reg [2:0] BMP_Out_Control = 3'b000;
     reg [1:0] Final_Out_Control;
     reg [3:0] Preprocessing_State = 4'h0;
@@ -652,14 +661,14 @@ module Top(
     reg signed [3:0] gaussian_addr_off_row = 4'sd0;
     reg signed [3:0] median_addr_off_col = 4'sd0;
     reg signed [3:0] median_addr_off_row = 4'sd0;
-    reg signed [3:0] erode_1_addr_off_col = 4'sd0;
-    reg signed [3:0] erode_1_addr_off_row = 4'sd0;
-    reg signed [3:0] erode_2_addr_off_col = 4'sd0;
-    reg signed [3:0] erode_2_addr_off_row = 4'sd0;
-    reg signed [3:0] dilate_1_addr_off_col = 4'sd0;
-    reg signed [3:0] dilate_1_addr_off_row = 4'sd0;
-    reg signed [3:0] dilate_2_addr_off_col = 4'sd0;
-    reg signed [3:0] dilate_2_addr_off_row = 4'sd0;
+    // reg signed [3:0] erode_1_addr_off_col = 4'sd0;
+    // reg signed [3:0] erode_1_addr_off_row = 4'sd0;
+    // reg signed [3:0] erode_2_addr_off_col = 4'sd0;
+    // reg signed [3:0] erode_2_addr_off_row = 4'sd0;
+    // reg signed [3:0] dilate_1_addr_off_col = 4'sd0;
+    // reg signed [3:0] dilate_1_addr_off_row = 4'sd0;
+    // reg signed [3:0] dilate_2_addr_off_col = 4'sd0;
+    // reg signed [3:0] dilate_2_addr_off_row = 4'sd0;
     reg signed [4:0] rgb_addr_off_col = 5'sd0;
     reg signed [4:0] rgb_addr_off_row = 5'sd0;
     reg signed [4:0] bmp_addr_off_col = 5'sd0;
@@ -734,150 +743,11 @@ module Top(
             end
         endcase
 
-        //state machine for morphology control
-        //only allow morphology operations to affect offset if display output is from them
-        case(Morphology_State)
-            8'b00000000: begin //no morphology ops
-                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b000;
-                bmp_addr_off_col = 0; bmp_addr_off_row = 0;
-                if (Final_Out_Control == 2'b11) Last_Stage = Last_Stage;
-            end
-            8'b00000001: begin //Erode
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b001;
-                bmp_addr_off_col = -1; bmp_addr_off_row = -1;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
-            end
-            8'b00000010: begin //Dilate
-                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b011;
-                bmp_addr_off_col = -1; bmp_addr_off_row = -1;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
-            end
-            8'b00000101: begin //Erode -> Erode
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'bxx; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            8'b00001010: begin //Dilate -> Dilate
-                Erode_1_In_Control <= 2'bxx; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b00001001: begin //Erode -> Dilate
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b011;
-                bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
-            end
-            8'b00000110: begin //Dilate -> Erode
-                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b001;
-                bmp_addr_off_col = -2; bmp_addr_off_row = -2;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
-            end
-            8'b00100101: begin //Erode -> Erode -> Dilate
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b011;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd4;
-            end
-            8'b00011001: begin //Erode -> Dilate -> Erode
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
-                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            8'b00010110: begin //Dilate -> Erode -> Erode
-                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'bxx;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            8'b00011010: begin //Dilate -> Dilate -> Erode
-                Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b001;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd3;
-            end
-            8'b00100110: begin //Dilate -> Erode -> Dilate
-                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b00101001: begin //Erode -> Dilate -> Dilate
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'bxx;
-                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -3; bmp_addr_off_row = -3;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b10100101: begin //Erode -> Erode -> Dilate -> Dilate
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b10; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b01101001: begin //Erode -> Dilate -> Dilate -> Erode
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            8'b01011010: begin //Dilate -> Dilate -> Erode -> Erode
-                Erode_1_In_Control <= 2'b10; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            8'b10010110: begin //Dilate -> Erode -> Erode -> Dilate
-                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b10;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b10011001: begin //Erode -> Dilate -> Erode -> Dilate
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b01;
-                Dilate_1_In_Control <= 2'b01; Dilate_2_In_Control <= 2'b10;
-                BMP_Out_Control <= 3'b100;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd6;
-            end
-            8'b01100110: begin //Dilate -> Erode -> Dilate -> Erode
-                Erode_1_In_Control <= 2'b01; Erode_2_In_Control <= 2'b10;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b01;
-                BMP_Out_Control <= 3'b010;
-                bmp_addr_off_col = -4; bmp_addr_off_row = -4;
-                if (Final_Out_Control == 2'b11) Last_Stage = 3'd5;
-            end
-            default: begin  //invalid states just shows no morphology ops
-                Erode_1_In_Control <= 2'b00; Erode_2_In_Control <= 2'b00;
-                Dilate_1_In_Control <= 2'b00; Dilate_2_In_Control <= 2'b00;
-                BMP_Out_Control <= 3'b000;
-                bmp_addr_off_col = 0; bmp_addr_off_row = 0;
-                if (Final_Out_Control == 2'b11) Last_Stage = Last_Stage;
-            end
-        endcase
+        // What used to be Morphology State machine
+        bmp_addr_off_col = -num_blocks;
+        bmp_addr_off_row = -num_blocks;
+        Last_Stage = Last_Stage + num_blocks;
+        BMP_Out_Control = num_blocks;
 
         // state machine for offsets due to convolutions
         total_addr_off_col = (Final_Out_Control == 2'b11) ? rgb_addr_off_col + bmp_addr_off_col : rgb_addr_off_col;
@@ -886,10 +756,10 @@ module Top(
         // zero out all offsets first
         gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
         median_addr_off_col <= 0; median_addr_off_row <= 0;
-        erode_1_addr_off_col <= 0; erode_1_addr_off_row <= 0;
-        erode_2_addr_off_col <= 0; erode_2_addr_off_row <= 0;
-        dilate_1_addr_off_col <= 0; dilate_1_addr_off_row <= 0;
-        dilate_2_addr_off_col <= 0; dilate_2_addr_off_row <= 0;
+        // erode_1_addr_off_col <= 0; erode_1_addr_off_row <= 0;
+        // erode_2_addr_off_col <= 0; erode_2_addr_off_row <= 0;
+        // dilate_1_addr_off_col <= 0; dilate_1_addr_off_row <= 0;
+        // dilate_2_addr_off_col <= 0; dilate_2_addr_off_row <= 0;
         case (Last_Stage)
             3'd0: begin //last stage is raw
                 // do nothing all offsets 0
@@ -903,20 +773,20 @@ module Top(
                 median_addr_off_row <= total_addr_off_row;
             end
             3'd3: begin //last stage is Erode 1
-                erode_1_addr_off_col <= total_addr_off_col;
-                erode_1_addr_off_row <= total_addr_off_row;
+                B1_addr_off_col <= total_addr_off_col;
+                B1_addr_off_row <= total_addr_off_row;
             end
             3'd4: begin //last stage is Dilate 1
-                dilate_1_addr_off_col <= total_addr_off_col;
-                dilate_1_addr_off_row <= total_addr_off_row;
+                B2_addr_off_col <= total_addr_off_col;
+                B2_addr_off_row <= total_addr_off_row;
             end
             3'd5: begin //last stage is Erode 2
-                erode_2_addr_off_col <= total_addr_off_col;
-                erode_2_addr_off_row <= total_addr_off_row;
+                B3_addr_off_col <= total_addr_off_col;
+                B3_addr_off_row <= total_addr_off_row;
             end
             3'd6: begin //last stage is Dilate 2
-                dilate_2_addr_off_col <= total_addr_off_col;
-                dilate_2_addr_off_row <= total_addr_off_row;
+                B4_addr_off_col <= total_addr_off_col;
+                B4_addr_off_row <= total_addr_off_row;
             end
             default: begin
                 //pass
@@ -941,32 +811,32 @@ module Top(
     wire [11:0] gaussian_pixel_in, gaussian_pixel_out;
     wire [11:0] rgb_pixel_out;
     wire threshold_pixel;
-    wire erode_1_pixel_in, erode_1_pixel_out;
-    wire erode_2_pixel_in, erode_2_pixel_out;
-    wire dilate_1_pixel_in, dilate_1_pixel_out;
-    wire dilate_2_pixel_in, dilate_2_pixel_out;
+    // wire erode_1_pixel_in, erode_1_pixel_out;
+    // wire erode_2_pixel_in, erode_2_pixel_out;
+    // wire dilate_1_pixel_in, dilate_1_pixel_out;
+    // wire dilate_2_pixel_in, dilate_2_pixel_out;
     wire bmp_pixel_out;
     wire [11:0] final_pixel_out;
 
     // write enables piping in pixel_valid outputs from previous convolutional blocks or camera capture block
     wire median_pixel_we, gaussian_pixel_we;
-    wire rgb_pixel_we;
-    wire erode_1_pixel_we, erode_2_pixel_we;
-    wire dilate_1_pixel_we, dilate_2_pixel_we;
+    // wire rgb_pixel_we;
+    // wire erode_1_pixel_we, erode_2_pixel_we;
+    // wire dilate_1_pixel_we, dilate_2_pixel_we;
 
     // output address wires from each convolutional block / mux
     wire [16:0] median_addr_out, gaussian_addr_out;
     wire [16:0] rgb_addr_out;
-    wire [16:0] erode_1_addr_out, erode_2_addr_out;
-    wire [16:0] dilate_1_addr_out, dilate_2_addr_out;
+    // wire [16:0] erode_1_addr_out, erode_2_addr_out;
+    // wire [16:0] dilate_1_addr_out, dilate_2_addr_out;
     wire [16:0] bmp_addr_out;
     wire [16:0] final_addr_out;
 
     // output flags from the convolutional blocks / mux indicating when pixel_out is valid
     wire median_pixel_valid, gaussian_pixel_valid;
     wire rgb_pixel_valid;
-    wire erode_1_pixel_valid, erode_2_pixel_valid;
-    wire dilate_1_pixel_valid, dilate_2_pixel_valid;
+    // wire erode_1_pixel_valid, erode_2_pixel_valid;
+    // wire dilate_1_pixel_valid, dilate_2_pixel_valid;
     wire bmp_pixel_valid;
     wire final_pixel_valid;
 
@@ -995,49 +865,49 @@ module Top(
                              (dout[11:8] >= RGB_THRESHOLD[7:4]) && (dout[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
 
     // morphological operations path control
-    assign erode_1_pixel_in = (Erode_1_In_Control == 2'b00) ? threshold_pixel :
-                              (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_out :
-                              (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
-    assign erode_1_pixel_we = (Erode_1_In_Control == 2'b00) ? rgb_pixel_valid :
-                              (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_valid :
-                              (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;    
+    // assign erode_1_pixel_in = (Erode_1_In_Control == 2'b00) ? threshold_pixel :
+    //                           (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_out :
+    //                           (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
+    // assign erode_1_pixel_we = (Erode_1_In_Control == 2'b00) ? rgb_pixel_valid :
+    //                           (Erode_1_In_Control == 2'b01) ? dilate_1_pixel_valid :
+    //                           (Erode_1_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;    
 
-    assign erode_2_pixel_in = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_out :
-                              (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_out :
-                              (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
-    assign erode_2_pixel_we = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_valid :
-                              (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_valid :
-                              (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;
+    // assign erode_2_pixel_in = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_out :
+    //                           (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_out :
+    //                           (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_out : 1'b0;
+    // assign erode_2_pixel_we = (Erode_2_In_Control == 2'b00) ? erode_1_pixel_valid :
+    //                           (Erode_2_In_Control == 2'b01) ? dilate_1_pixel_valid :
+    //                           (Erode_2_In_Control == 2'b10) ? dilate_2_pixel_valid : 1'b0;
 
-    assign dilate_1_pixel_in = (Dilate_1_In_Control == 2'b00) ? threshold_pixel :
-                               (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_out :
-                               (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
-    assign dilate_1_pixel_we = (Dilate_1_In_Control == 2'b00) ? rgb_pixel_valid :
-                               (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_valid :
-                               (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
+    // assign dilate_1_pixel_in = (Dilate_1_In_Control == 2'b00) ? threshold_pixel :
+    //                            (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_out :
+    //                            (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
+    // assign dilate_1_pixel_we = (Dilate_1_In_Control == 2'b00) ? rgb_pixel_valid :
+    //                            (Dilate_1_In_Control == 2'b01) ? erode_1_pixel_valid :
+    //                            (Dilate_1_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
 
-    assign dilate_2_pixel_in = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_out :
-                               (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_out :
-                               (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
-    assign dilate_2_pixel_we = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_valid :
-                               (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_valid :
-                               (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
+    // assign dilate_2_pixel_in = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_out :
+    //                            (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_out :
+    //                            (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_out : 1'b0;
+    // assign dilate_2_pixel_we = (Dilate_2_In_Control == 2'b00) ? dilate_1_pixel_valid :
+    //                            (Dilate_2_In_Control == 2'b01) ? erode_1_pixel_valid :
+    //                            (Dilate_2_In_Control == 2'b10) ? erode_2_pixel_valid : 1'b0;
 
     assign bmp_pixel_out = (BMP_Out_Control == 3'b000) ? threshold_pixel :
-                           (BMP_Out_Control == 3'b001) ? erode_1_pixel_out :
-                           (BMP_Out_Control == 3'b010) ? erode_2_pixel_out :
-                           (BMP_Out_Control == 3'b011) ? dilate_1_pixel_out :
-                           (BMP_Out_Control == 3'b100) ? dilate_2_pixel_out : 1'b0;
+                           (BMP_Out_Control == 3'b001) ? B1_pixel_out :
+                           (BMP_Out_Control == 3'b010) ? B2_pixel_out :
+                           (BMP_Out_Control == 3'b011) ? B3_pixel_out :
+                           (BMP_Out_Control == 3'b100) ? B4_pixel_out : 1'b0;
     assign bmp_addr_out = (BMP_Out_Control == 3'b000) ? rgb_addr_out :
-                          (BMP_Out_Control == 3'b001) ? erode_1_addr_out :
-                          (BMP_Out_Control == 3'b010) ? erode_2_addr_out :
-                          (BMP_Out_Control == 3'b011) ? dilate_1_addr_out :
-                          (BMP_Out_Control == 3'b100) ? dilate_2_addr_out : 17'd0;
+                          (BMP_Out_Control == 3'b001) ? B1_addr_out :
+                          (BMP_Out_Control == 3'b010) ? B2_addr_out :
+                          (BMP_Out_Control == 3'b011) ? B3_addr_out :
+                          (BMP_Out_Control == 3'b100) ? B4_addr_out : 17'd0;
     assign bmp_pixel_valid = (BMP_Out_Control == 3'b000) ? rgb_pixel_valid :
-                             (BMP_Out_Control == 3'b001) ? erode_1_pixel_valid :
-                             (BMP_Out_Control == 3'b010) ? erode_2_pixel_valid :
-                             (BMP_Out_Control == 3'b011) ? dilate_1_pixel_valid :
-                             (BMP_Out_Control == 3'b100) ? dilate_2_pixel_valid : 1'b0;
+                             (BMP_Out_Control == 3'b001) ? B1_pixel_valid :
+                             (BMP_Out_Control == 3'b010) ? B2_pixel_valid :
+                             (BMP_Out_Control == 3'b011) ? B3_pixel_valid :
+                             (BMP_Out_Control == 3'b100) ? B4_pixel_valid : 1'b0;
 
     assign final_pixel_out = (Final_Out_Control == 2'b00) ? dout :
                              (Final_Out_Control == 2'b01) ? rgb_pixel_out :
@@ -1191,9 +1061,7 @@ module Top(
     // Click pulses from drag/drop for info categories
     wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
 
-    // Morphology order vector (existing) and new 4-bit morph vector for UART
     wire [3:0] morph_vector_4;
-
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
         .reset(vga_reset),
@@ -1205,14 +1073,16 @@ module Top(
         .mouse_left_fall(left_click_fall),
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
-        .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         // .hover(box_hover),
-        .morph_count(morph_count),
+        // .morph_count(morph_count),
+        // .morph_vector(morph_vector_4),
+        .morph_count(num_blocks),
+        .morph_vector(user_choices),
+        // .morph_count(morph_count),
         // .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         // .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
         .morph_order_vector(morph_order_vector), .pre_order_vector(pre_order_vector),
-        .morph_vector(morph_vector_4),
         .front_idx(front_idx),
         // .dragging_o(led[2]),
         // .drop_reason(led[4:3]),
@@ -1437,7 +1307,6 @@ module Top(
 
     wire left_click, right_click, new_event;
     wire [11:0] mouse_x_raw, mouse_y_raw;
-    wire [3:0] zpos;
     
     MouseCtl mouse_instance (
         .clk(clk),
@@ -1478,23 +1347,6 @@ module Top(
             right_click_sync <= {right_click_sync[1:0], right_click};
             mouse_x_sync <= mouse_x_raw;
             mouse_y_sync <= mouse_y_raw;
-        end
-    end
-
-    // Generate one-cycle scroll pulses (clk25 domain) from MouseCtl zpos (4-bit signed)
-    reg [3:0] zpos_sync1 = 4'd0, zpos_sync2 = 4'd0, zpos_q = 4'd0;
-    reg       scroll_up_pulse = 1'b0;
-    reg       scroll_down_pulse = 1'b0;
-    always @(posedge clk25) begin
-        if (vga_reset) begin
-            zpos_sync1 <= 4'd0; zpos_sync2 <= 4'd0; zpos_q <= 4'd0;
-            scroll_up_pulse <= 1'b0; scroll_down_pulse <= 1'b0;
-        end else begin
-            zpos_sync1 <= zpos;
-            zpos_sync2 <= zpos_sync1;
-            zpos_q     <= zpos_sync2;
-            scroll_up_pulse   <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b0) && (zpos_q == 4'd0);
-            scroll_down_pulse <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b1) && (zpos_q == 4'd0);
         end
     end
 
@@ -1668,7 +1520,7 @@ module Top(
     reg [39:0] cx0_coords;
     reg [35:0] cy0_coords;
     reg [3:0] pre_vector;
-    reg [3:0] morph_vector;
+    reg [7:0] morph_vector;
     reg [1:0] udfs_min_area;
     reg ufds_prio;
     reg [1:0] ufds_max_box_no;
@@ -1684,14 +1536,14 @@ module Top(
         //     wait_counter <= 15'd0;
         if (sw[14]) begin
             // main sends user inputs to secondary
-            pre_vector <= pre_order_vector;   // 4 bits (two ops)
-            morph_vector <= morph_vector_4;   // 4 bits (1=ERODE)
+            pre_vector <= pre_order_vector;   // 40-bit
+            morph_vector <= morph_order_vector;   
             udfs_min_area <= ufds_min_area_sel;
             ufds_prio <= ufds_sort_by_prox;
             ufds_max_box_no <= ufds_max_boxes_sel;
         
             tx_fifo_payload[3:0] <= pre_vector;
-            tx_fifo_payload[7:4] <= morph_vector;              
+            tx_fifo_payload[11:4] <= morph_vector;              
             tx_fifo_payload[13:12] <= udfs_min_area;
             tx_fifo_payload[14] <= ufds_prio;   
             tx_fifo_payload[16:15] <= ufds_max_box_no;     
@@ -1720,7 +1572,7 @@ module Top(
 
     // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
     reg [3:0] received_prevector;
-    reg [3:0] received_morph;
+    reg [7:0] received_morph;
     reg [1:0] received_ufds_min_area;
     reg received_ufds_sort_by_prox;
     reg [1:0] received_ufds_max_box_sel;
@@ -1749,7 +1601,7 @@ module Top(
                 received_CY = rx_fifo_payload[235:200]; 
             end else begin 
                 received_prevector <= tx_fifo_payload[3:0];
-                received_morph <= tx_fifo_payload[7:4];            
+                received_morph <= tx_fifo_payload[11:4];            
                 received_ufds_min_area <= tx_fifo_payload[13:12];
                 received_ufds_sort_by_prox <= tx_fifo_payload[14];   
                 received_ufds_max_box_sel <= tx_fifo_payload[16:15];   

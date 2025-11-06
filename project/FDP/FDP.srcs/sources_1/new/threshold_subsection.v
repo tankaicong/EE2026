@@ -115,8 +115,8 @@ module threshold_subsection (
         input [9:0] ky;
         begin
             // Use separate knob width/height (centered at kx,ky)
-            is_on_knob = (x >= (kx - (KNOB_SIZE_WIDTH/2)) && x <= (kx + (KNOB_SIZE_WIDTH/2)) &&
-                          y >= (ky - (KNOB_SIZE_HEIGHT/2)) && y <= (ky + (KNOB_SIZE_HEIGHT/2)));
+            is_on_knob = (x >= (kx - (KNOB_SIZE_WIDTH>>1)) && x <= (kx + (KNOB_SIZE_WIDTH>>1)) &&
+                          y >= (ky - (KNOB_SIZE_HEIGHT>>1)) && y <= (ky + (KNOB_SIZE_HEIGHT>>1)));
         end
     endfunction
 

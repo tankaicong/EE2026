@@ -50,6 +50,10 @@ module cv_settings_dragdrop (
     input wire [9:0] morph_w, // width
     input wire [8:0] morph_h, // height
 
+    // Scroll wheel pulses: up = set to ERODE, down = set to DILATE
+    input wire scroll_up,
+    input wire scroll_down,
+
     // concatenated top-left positions (send to BRAM)
     output wire [59:0] boxes_x, // 6 x 10 bit, {box5..box0}
     output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0} 
@@ -58,7 +62,7 @@ module cv_settings_dragdrop (
     // output wire [5:0] hover, // box0..box5
 
     // recorded orders for morphology: up to 4 steps, 2-bit code per step
-    // output reg [2:0] morph_count,
+    output reg [2:0] morph_count,
     // 01 = ERODE, 10 = DILATE
     // output reg [1:0] morph_order0,
     // output reg [1:0] morph_order1,
@@ -73,6 +77,8 @@ module cv_settings_dragdrop (
     // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
     output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
+    // New: 4-bit morphology vector by left-to-right order. 1=ERODE, 0=DILATE or not placed
+    output wire [3:0] morph_vector,
     // z-order control: index of box to render on top (foreground)
     output reg  [2:0] front_idx,
     // debug/telemetry (optional): expose dragging and drop reasons
@@ -86,10 +92,7 @@ module cv_settings_dragdrop (
 );
 
     reg [1:0] pre_order0, pre_order1;
-    reg [1:0] morph_order0;
-    reg [1:0] morph_order1;
-    reg [1:0] morph_order2;
-    reg [1:0] morph_order3;
+    reg [1:0] morph_order0, morph_order1, morph_order2, morph_order3;
 
     // --------------- Box definitions ----------------
     // preprocessing boxes (cyan): GAUSS, MEDIAN (72x34)
@@ -119,6 +122,10 @@ module cv_settings_dragdrop (
     reg [9:0] x0, x1, x2, x3, x4, x5;
     reg [8:0] y0, y1, y2, y3, y4, y5;
 
+    // Dynamic type flags for the 4 morphology boxes (hover + scroll to toggle)
+    // 1 = ERODE, 0 = DILATE
+    reg is_erode2, is_erode3, is_erode4, is_erode5;
+
     // Flags: placed into drop boxes
     reg placed0_pre, placed1_pre; // GAUSS, MEDIAN
     reg placed2_morph, placed3_morph; // ERODE A, ERODE B
@@ -144,7 +151,7 @@ module cv_settings_dragdrop (
     wire hov3 = (mouse_x >= x3) && (mouse_x < (x3 + W_MOR)) && (mouse_y >= y3) && (mouse_y < (y3 + H_ALL));
     wire hov4 = (mouse_x >= x4) && (mouse_x < (x4 + W_MOR)) && (mouse_y >= y4) && (mouse_y < (y4 + H_ALL));
     wire hov5 = (mouse_x >= x5) && (mouse_x < (x5 + W_MOR)) && (mouse_y >= y5) && (mouse_y < (y5 + H_ALL));
-    assign hover = {hov5, hov4, hov3, hov2, hov1, hov0};
+    // assign hover = {hov5, hov4, hov3, hov2, hov1, hov0};
 
     // Click pulses per category for info tab module
     assign gauss_click  = settings_active && mouse_left_edge && hov0;
@@ -204,9 +211,12 @@ module cv_settings_dragdrop (
 
             // pre_count <= 2'd0; 
             pre_order0 <= 2'b00; pre_order1 <= 2'b00;
-            // morph_count <= 3'd0; 
+            morph_count <= 3'd0; 
             morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
             front_idx <= 3'd0;
+
+            // Default types: keep initial semantics (2,3 = ERODE (1); 4,5 = DILATE (0))
+            is_erode2 <= 1'b1; is_erode3 <= 1'b1; is_erode4 <= 1'b0; is_erode5 <= 1'b0;
         end else begin
             // sample left button
             left_q <= mouse_left;
@@ -227,6 +237,22 @@ module cv_settings_dragdrop (
                 dragging <= 1'b0;
                 // drop_reason <= 2'b00;
             end else begin
+                // Hover + scroll to set type (not while dragging)
+                if (!dragging) begin
+                    if (scroll_up) begin // set to ERODE
+                        if (hov2) is_erode2 <= 1'b1;
+                        else if (hov3) is_erode3 <= 1'b1;
+                        else if (hov4) is_erode4 <= 1'b1;
+                        else if (hov5) is_erode5 <= 1'b1;
+                    end
+                    if (scroll_down) begin // set to DILATE
+                        if (hov2) is_erode2 <= 1'b0;
+                        else if (hov3) is_erode3 <= 1'b0;
+                        else if (hov4) is_erode4 <= 1'b0;
+                        else if (hov5) is_erode5 <= 1'b0;
+                    end
+                end
+
                 // Start dragging on clean debounced press edge
                 if (mouse_left_edge && !dragging) begin
                     if (hov0) begin dragging <= 1'b1; drag_idx <= 3'd0; front_idx <= 3'd0; end
@@ -380,15 +406,15 @@ module cv_settings_dragdrop (
                 end
 
                 // Update registered morph_count after using mc for layout
-                // morph_count <= mc;
+                morph_count <= mc;
             end
 
             // Morphology processing order: left-to-right by x position (ignore chronological)
-            // Seed sortable pairs (x, code) with sentinel x for non-placed boxes
-            ax = placed2_morph ? x2 : 10'd1023; ac = 2'b01; // ERODE
-            bx = placed3_morph ? x3 : 10'd1023; bc = 2'b01; // ERODE
-            cx = placed4_morph ? x4 : 10'd1023; cc = 2'b10; // DILATE
-            dx = placed5_morph ? x5 : 10'd1023; dc = 2'b10; // DILATE
+            // Seed sortable pairs (x, code) with sentinel x for non-placed boxes and dynamic type codes
+            ax = placed2_morph ? x2 : 10'd1023; ac = is_erode2 ? 2'b01 : 2'b10; // dynamic ERODE/DILATE
+            bx = placed3_morph ? x3 : 10'd1023; bc = is_erode3 ? 2'b01 : 2'b10;
+            cx = placed4_morph ? x4 : 10'd1023; cc = is_erode4 ? 2'b01 : 2'b10;
+            dx = placed5_morph ? x5 : 10'd1023; dc = is_erode5 ? 2'b01 : 2'b10;
 
             // Sorting network for 4 elements (A,B,C,D) ascending by x
             if (ax > bx) begin tmpx = ax; ax = bx; bx = tmpx; tmpc = ac; ac = bc; bc = tmpc; end
@@ -422,6 +448,12 @@ module cv_settings_dragdrop (
     assign boxes_y = {y5[8:0], y4[8:0], y3[8:0], y2[8:0], y1[8:0], y0[8:0]};
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
+    // New 4-bit morphology vector, ordered left-to-right for LSB-to-MSB; 1=ERODE, 0=DILATE or not placed
+    // meaning just need to check if each morph_orderX == 2'b01 (ERODE)
+    assign morph_vector = { (morph_order3 == 2'b01),
+                            (morph_order2 == 2'b01),
+                            (morph_order1 == 2'b01),
+                            (morph_order0 == 2'b01) };
     assign pre_order_vector = {pre_order1, pre_order0};
     // assign dragging_o = dragging;
 

@@ -290,8 +290,11 @@ module ufds_settings_overlay (
     wire border_box1 = ((px >= box1[0] && px <= box1[1] && ((py >= box1[2] && py <= box1[2] + 2) || (py >= box1[3] && py <= box1[3] + 2))) ||             // Horizontals
                         (py >= (box1[2] + 2) && py <= box1[3] && ((px >= box1[0] && px <= box1[0] + 2) || (px >= (box1[1] - 2) && px <= box1[1]))));      // Verticals
 
-    wire border_box2 = ((px >= box2[0] && px <= box2[1] && (py >= box2[2] && py <= box2[2] + 2)) ||                       // Horizontal top
-                        (px >= (box2[0] + 25) && px <= box2[1] && (py >= box2[3] && py <= box2[3] + 2)) ||                // Horizontal bottom due to cutout for READY
+    // wire border_box2 = ((px >= box2[0] && px <= box2[1] && (py >= box2[2] && py <= box2[2] + 2)) ||                       // Horizontal top
+    //                     (px >= (box2[0] + 25) && px <= box2[1] && (py >= box2[3] && py <= box2[3] + 2)) ||                // Horizontal bottom due to cutout for READY
+    //                     (py >= (box2[2] + 2) && py <= box2[3] && ((px >= box2[0] && px <= box2[0] + 2) || (px >= (box2[1] - 2) && px <= box2[1]))));     // Verticals
+    
+    wire border_box2 = ((px >= box2[0] && px <= box2[1] && ((py >= box2[2] && py <= box2[2] + 2) || (py >= box2[3] && py <= box2[3] + 2))) ||            // Horizontals
                         (py >= (box2[2] + 2) && py <= box2[3] && ((px >= box2[0] && px <= box2[0] + 2) || (px >= (box2[1] - 2) && px <= box2[1]))));     // Verticals
 
     wire border_box3 = ((px >= box3[0] && px <= box3[1] && ((py >= box3[2] && py <= box3[2] + 2) || (py >= box3[3] && py <= box3[3] + 2))) ||             // Horizontals

@@ -26,8 +26,8 @@ module Morphology_3x3
     input  wire        pixel_in,      // 1-bit bitmap input
     input  wire        op_dilate,     // 1 = dilate (OR of 3x3), 0 = erode (AND of 3x3)
 
-    input  wire signed [11:0] addr_off_col,
-    input  wire signed [11:0] addr_off_row,
+    input  wire signed [4:0] addr_off_col,
+    input  wire signed [4:0] addr_off_row,
 
     output reg         pixel_out,     // 1-bit morphology result
     output reg [17:0]  addr_out,      // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)

@@ -18,8 +18,8 @@ module Median_Filter
     input frame_start,                       // assert during VSYNC
     input [PIXEL_DEPTH-1:0] pixel_in,        // RGB444
     input we,                                // 1 = input sample valid this cycle
-    input wire signed [11:0] addr_off_col,
-    input wire signed [11:0] addr_off_row,
+    input wire signed [4:0] addr_off_col,
+    input wire signed [4:0] addr_off_row,
     output reg [11:0] pixel_out,             // RGB444 of the pixel whose grayscale is the window median
     output reg [16:0] addr_out,              // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)
     output reg pixel_valid

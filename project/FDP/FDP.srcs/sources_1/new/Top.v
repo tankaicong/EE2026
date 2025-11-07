@@ -258,7 +258,6 @@ module Top(
             end
         endcase
     end
-
 // ----------- CLOCKS ----------- //
     // Generate 25 MHz (for VGA) and 24 MHz (for camera) clocks from 100 MHz input
     wire clk_status, clk25, clk24, clk50;
@@ -810,7 +809,7 @@ module Top(
     wire [11:0] median_pixel_in, median_pixel_out;
     wire [11:0] gaussian_pixel_in, gaussian_pixel_out;
     wire [11:0] rgb_pixel_out;
-    wire threshold_pixel;
+    wire threshold_pixel; 
     // wire erode_1_pixel_in, erode_1_pixel_out;
     // wire erode_2_pixel_in, erode_2_pixel_out;
     // wire dilate_1_pixel_in, dilate_1_pixel_out;
@@ -856,13 +855,76 @@ module Top(
     assign rgb_pixel_valid = (RGB_Out_Control == 2'b00) ? we :
                              (RGB_Out_Control == 2'b01) ? gaussian_pixel_valid :
                              (RGB_Out_Control == 2'b10) ? median_pixel_valid : 1'b0;
+    // --- Thresholding operations (RGB and HSV modes) ---
+    // Synchronize HSV thresholds and mode flag to ov7670_pclk domain (consumed by thresholding)
+    reg [3:0] h_min_p1, h_min_p2, h_max_p1, h_max_p2;
+    reg [3:0] s_min_p1, s_min_p2, s_max_p1, s_max_p2;
+    reg [3:0] v_min_p1, v_min_p2, v_max_p1, v_max_p2;
+    reg       mode_hsv_p1, mode_hsv_p2;
+    always @(posedge ov7670_pclk) begin
+        h_min_p1 <= start_h_val; h_min_p2 <= h_min_p1;
+        h_max_p1 <= end_h_val;   h_max_p2 <= h_max_p1;
+        s_min_p1 <= start_s_val; s_min_p2 <= s_min_p1;
+        s_max_p1 <= end_s_val;   s_max_p2 <= s_max_p1;
+        v_min_p1 <= start_v_val; v_min_p2 <= v_min_p1;
+        v_max_p1 <= end_v_val;   v_max_p2 <= v_max_p1;
+        mode_hsv_p1 <= mode_is_hsv; mode_hsv_p2 <= mode_hsv_p1;
+    end
 
-    assign threshold_pixel = (((rgb_pixel_out[3:0] >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0] <= RGB_THRESHOLD[19:16]) &&
-                             (rgb_pixel_out[7:4] >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4] <= RGB_THRESHOLD[11:8]) &&
-                             (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4]) && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
-    wire threshold_pixel_dout = (((dout[3:0] >= RGB_THRESHOLD[23:20]) && (dout[3:0] <= RGB_THRESHOLD[19:16]) &&
-                             (dout[7:4] >= RGB_THRESHOLD[15:12]) && (dout[7:4] <= RGB_THRESHOLD[11:8]) &&
-                             (dout[11:8] >= RGB_THRESHOLD[7:4]) && (dout[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+    // thresholding operation (RGB path)
+    // Use the currently selected RGB stream (rgb_pixel_out) against live RGB thresholds from UI.
+    // This keeps thresholding consistent with preprocessing stage selection.
+    assign threshold_pixel_rgb = (
+        (rgb_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
+        (rgb_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
+        (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4])   && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])     // R in range
+    ) ? 1'b1 : 1'b0;
+
+    // RGB444 -> HSV (Q4) for current pixel stream (approximation, no division)
+    wire [3:0] R4 = rgb_pixel_out[11:8];
+    wire [3:0] G4 = rgb_pixel_out[7:4];
+    wire [3:0] B4_ = rgb_pixel_out[3:0];
+    wire [3:0] maxc4 = (R4>=G4 && R4>=B4_) ? R4 : (G4>=B4_ ? G4 : B4_);
+    wire [3:0] minc4 = (R4<=G4 && R4<=B4_) ? R4 : (G4<=B4_ ? G4 : B4_);
+    wire [3:0] delta4 = maxc4 - minc4;
+    wire [3:0] V4 = maxc4;
+    wire [3:0] S4 = delta4; // approximate
+    // Hue calculation with 16 bins around circle using thresholded differences
+    wire signed [5:0] t_rg = $signed({2'b00,G4}) - $signed({2'b00,B4_});
+    wire signed [5:0] t_gb = $signed({2'b00,B4_}) - $signed({2'b00,R4});
+    wire signed [5:0] t_br = $signed({2'b00,R4}) - $signed({2'b00,G4});
+    reg  [3:0] H4;
+    always @(*) begin
+        if (delta4 == 4'd0) H4 = 4'd0; else begin
+            if (maxc4 == R4) begin
+                if (t_rg >= 0)
+                    H4 = ( (t_rg<<<2) >= (3*delta4) ) ? 4'd5 : ( (t_rg<<<1) >= delta4 ? 4'd3 : 4'd1 );
+                else
+                    H4 = 4'd15 - ( ((-t_rg)<<<2) >= (3*delta4) ? 4'd1 : (((-t_rg)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end else if (maxc4 == G4) begin
+                if (t_gb >= 0)
+                    H4 = 4'd5 + ( (t_gb<<<2) >= (3*delta4) ? 4'd5 : ( (t_gb<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
+                else
+                    H4 = 4'd5 - ( ((-t_gb)<<<2) >= (3*delta4) ? 4'd1 : (((-t_gb)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end else begin
+                if (t_br >= 0)
+                    H4 = 4'd10 + ( (t_br<<<2) >= (3*delta4) ? 4'd5 : ( (t_br<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
+                else
+                    H4 = 4'd10 - ( ((-t_br)<<<2) >= (3*delta4) ? 4'd1 : (((-t_br)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end
+        end
+    end
+
+    // HSV range checks (H handles wrap-around)
+    wire h_in_range = (h_min_p2 <= h_max_p2) ? ((H4 >= h_min_p2) && (H4 <= h_max_p2))
+                                             : ((H4 >= h_min_p2) || (H4 <= h_max_p2));
+    wire s_in_range = (S4 >= s_min_p2) && (S4 <= s_max_p2);
+    wire v_in_range = (V4 >= v_min_p2) && (V4 <= v_max_p2);
+    wire threshold_pixel_hsv = h_in_range && s_in_range && v_in_range;
+
+    // Final threshold bit selected by mode
+    wire threshold_pixel_hsv_w = threshold_pixel_hsv; // alias to avoid reordering warnings
+    wire threshold_pixel = mode_hsv_p2 ? threshold_pixel_hsv_w : threshold_pixel_rgb;
 
     // morphological operations path control
     // assign erode_1_pixel_in = (Erode_1_In_Control == 2'b00) ? threshold_pixel :
@@ -1161,6 +1223,16 @@ module Top(
     wire [3:0]  start_red_val, end_red_val;
     wire [3:0]  start_green_val, end_green_val;
     wire [3:0]  start_blue_val, end_blue_val;
+    // HSV slider outputs and mode flag
+    wire [3:0]  start_h_val, end_h_val;
+    wire [3:0]  start_s_val, end_s_val;
+    wire [3:0]  start_v_val, end_v_val;
+    wire        mode_is_hsv;
+    // New HSV thresholds and mode flag from threshold UI
+    wire [3:0]  start_h_val, end_h_val;
+    wire [3:0]  start_s_val, end_s_val;
+    wire [3:0]  start_v_val, end_v_val;
+    wire        mode_is_hsv;
     // Enable for threshold UI: active only when CV settings UI is visible so sliders
     // are loaded with the BRAM overlay set. This ensures the sliders are drawn with
     // other VGA-space overlays.
@@ -1188,6 +1260,10 @@ module Top(
         .end_green_val(end_green_val),
         .start_blue_val(start_blue_val),
         .end_blue_val(end_blue_val),
+        .start_h_val(start_h_val), .end_h_val(end_h_val),
+        .start_s_val(start_s_val), .end_s_val(end_s_val),
+        .start_v_val(start_v_val), .end_v_val(end_v_val),
+        .mode_is_hsv(mode_is_hsv),
         .section_pixel(thr_section_pixel),
         .section_active(thr_section_active)
     );

@@ -49,13 +49,20 @@ module Top(
     // Crosshair color mapping from selection
     wire [11:0] crosshair_rgb = MAGENTA;
 
+    wire [10:0] convolution_cutoff_x = (Final_Out_Control == 2'b11) ? (640 - (Total_Count-1)*2) : 640 - (Pre_Count-1)*2;
+    wire [9:0] convolution_cutoff_y = (Final_Out_Control == 2'b11) ? (480 - (Total_Count-1)*2) : 480 - (Pre_Count-1)*2;
+
     always @(posedge clk25) begin
         if (btnU) begin
             state <= S_MENU;
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
-            frame_pixel <= bram_pixel_out;
+            if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove black borders from convolutions
+                frame_pixel <= BLACK;
+            end else begin
+                frame_pixel <= bram_pixel_out;
+            end
         end
         
         // State machine for different overlays
@@ -96,11 +103,12 @@ module Top(
 
 
                 // Dim camera feed under the settings region (rows >= 324), keep normal feed above
-                if (frame_y >= 9'd324) begin
+                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove black borders from convolutions
+                    frame_pixel <= BLACK;
+                end
+                else if (frame_y >= 9'd324) begin
                     // Per-channel dimming (RGB444 -> quarter brightness)
                     frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
-                end else begin
-                    frame_pixel <= bram_pixel_out;
                 end
                 
                 if (thr_section_active) frame_pixel <= thr_section_pixel;
@@ -144,10 +152,11 @@ module Top(
                 end
 
                 // Dim camera feed under the settings region (rows >= 324)
-                if (frame_y >= 9'd324) begin
+                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove black borders from convolutions
+                    frame_pixel <= BLACK;
+                end
+                else if (frame_y >= 9'd324) begin
                     frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
-                end else begin
-                    frame_pixel <= bram_pixel_out;
                 end
 
                 if (frame_addr == 74399) begin
@@ -643,6 +652,8 @@ module Top(
 
     wire [3:0] Morphology_State;        // From CV settings
     wire [2:0] Morph_Count;          // From CV settings
+    reg [1:0] Pre_Count;
+    wire [3:0] Total_Count = Morph_Count + Pre_Count;   //extra bit for bitshift operations
     
 
     // Runtime-adjustable address offsets for convolutions
@@ -675,6 +686,7 @@ module Top(
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b00;
+                Pre_Count <= 2'd0;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd0;
             end
@@ -682,6 +694,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b01;
+                Pre_Count <= 2'd1;
                 rgb_addr_off_col = -1; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd1;
             end
@@ -689,6 +702,7 @@ module Top(
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b10;
+                Pre_Count <= 2'd1;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd2;
             end
@@ -696,6 +710,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b1;
                 RGB_Out_Control <= 2'b10;
+                Pre_Count <= 2'd2;
                 rgb_addr_off_col = -2; rgb_addr_off_row = -1;
                 Last_Stage_RGB = 3'd2;
             end
@@ -703,6 +718,7 @@ module Top(
                 Gaussian_In_Control <= 1'b1;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b01;
+                Pre_Count <= 2'd2;
                 rgb_addr_off_col = -2; rgb_addr_off_row = -1;
                 Last_Stage_RGB = 3'd1;
             end
@@ -710,6 +726,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b00;
+                Pre_Count <= 2'd0;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd0;
             end

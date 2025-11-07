@@ -77,7 +77,7 @@ module cv_settings_dragdrop (
     // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
     output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
-    // New: 4-bit morphology vector by left-to-right order. 1=ERODE, 0=DILATE or not placed
+    // New: 4-bit morphology vector by left-to-right order. 1=DILATE, 0=ERODE or not placed
     output wire [3:0] morph_vector,
     // z-order control: index of box to render on top (foreground)
     output reg  [2:0] front_idx,
@@ -123,7 +123,7 @@ module cv_settings_dragdrop (
     reg [8:0] y0, y1, y2, y3, y4, y5;
 
     // Dynamic type flags for the 4 morphology boxes (hover + scroll to toggle)
-    // 1 = ERODE, 0 = DILATE
+    // is_erodeX == 1 means this box is an ERODE step; 0 means DILATE.
     reg is_erode2, is_erode3, is_erode4, is_erode5;
 
     // Flags: placed into drop boxes
@@ -215,7 +215,7 @@ module cv_settings_dragdrop (
             morph_order0 <= 2'b00; morph_order1 <= 2'b00; morph_order2 <= 2'b00; morph_order3 <= 2'b00;
             front_idx <= 3'd0;
 
-            // Default types: keep initial semantics (2,3 = ERODE (1); 4,5 = DILATE (0))
+            // Default types: keep initial semantics (2,3 start as ERODE; 4,5 start as DILATE)
             is_erode2 <= 1'b1; is_erode3 <= 1'b1; is_erode4 <= 1'b0; is_erode5 <= 1'b0;
         end else begin
             // sample left button
@@ -448,12 +448,12 @@ module cv_settings_dragdrop (
     assign boxes_y = {y5[8:0], y4[8:0], y3[8:0], y2[8:0], y1[8:0], y0[8:0]};
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
-    // New 4-bit morphology vector, ordered left-to-right for LSB-to-MSB; 1=ERODE, 0=DILATE or not placed
-    // meaning just need to check if each morph_orderX == 2'b01 (ERODE)
-    assign morph_vector = { (morph_order3 == 2'b01),
-                            (morph_order2 == 2'b01),
-                            (morph_order1 == 2'b01),
-                            (morph_order0 == 2'b01) };
+    // 4-bit morphology vector (LSB = leftmost placed morph box). Bit=1 for DILATE, 0 for ERODE or not placed.
+    // Each bit derived by comparing morph_orderX == 2'b10 (DILATE code).
+    assign morph_vector = { (morph_order3 == 2'b10),
+                            (morph_order2 == 2'b10),
+                            (morph_order1 == 2'b10),
+                            (morph_order0 == 2'b10) };
     assign pre_order_vector = {pre_order1, pre_order0};
     // assign dragging_o = dragging;
 

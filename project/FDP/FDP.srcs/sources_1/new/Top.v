@@ -258,7 +258,6 @@ module Top(
             end
         endcase
     end
-
 // ----------- CLOCKS ----------- //
     // Generate 25 MHz (for VGA) and 24 MHz (for camera) clocks from 100 MHz input
     wire clk_status, clk25, clk24, clk50;
@@ -394,8 +393,8 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(rgb_pixel_valid),
-        .pixel_in(threshold_pixel),
-        .op_dilate(user_choices[0]),                // 0 = erode, 1 = dilate
+            .pixel_in(threshold_pixel),
+            .op_dilate(user_choices[0]),                 // user_choices bit now directly 1 = DILATE
         .addr_off_col(B1_addr_off_col),
         .addr_off_row(B1_addr_off_row),
         .pixel_out(B1_pixel_out),
@@ -411,7 +410,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B1_pixel_valid),
         .pixel_in(B1_pixel_out),
-        .op_dilate(user_choices[1]),                // 0 = erode, 1 = dilate
+            .op_dilate(user_choices[1]),                 // 1 = DILATE
         .addr_off_col(B2_addr_off_col),
         .addr_off_row(B2_addr_off_row),
         .pixel_out(B2_pixel_out),
@@ -428,7 +427,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B2_pixel_valid),
         .pixel_in(B2_pixel_out),
-        .op_dilate(user_choices[2]),               // 0 = erode, 1 = dilate
+            .op_dilate(user_choices[2]),                 // 1 = DILATE
         .addr_off_col(B3_addr_off_col),
         .addr_off_row(B3_addr_off_row),
         .pixel_out(B3_pixel_out),
@@ -444,7 +443,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B3_pixel_valid),
         .pixel_in(B3_pixel_out),
-        .op_dilate(user_choices[3]),                // 0 = erode, 1 = dilate
+            .op_dilate(user_choices[3]),                 // 1 = DILATE
         .addr_off_col(B4_addr_off_col),
         .addr_off_row(B4_addr_off_row),
         .pixel_out(B4_pixel_out),
@@ -810,7 +809,7 @@ module Top(
     wire [11:0] median_pixel_in, median_pixel_out;
     wire [11:0] gaussian_pixel_in, gaussian_pixel_out;
     wire [11:0] rgb_pixel_out;
-    wire threshold_pixel;
+    wire threshold_pixel; 
     // wire erode_1_pixel_in, erode_1_pixel_out;
     // wire erode_2_pixel_in, erode_2_pixel_out;
     // wire dilate_1_pixel_in, dilate_1_pixel_out;
@@ -856,13 +855,76 @@ module Top(
     assign rgb_pixel_valid = (RGB_Out_Control == 2'b00) ? we :
                              (RGB_Out_Control == 2'b01) ? gaussian_pixel_valid :
                              (RGB_Out_Control == 2'b10) ? median_pixel_valid : 1'b0;
+    // --- Thresholding operations (RGB and HSV modes) ---
+    // Synchronize HSV thresholds and mode flag to ov7670_pclk domain (consumed by thresholding)
+    reg [3:0] h_min_p1, h_min_p2, h_max_p1, h_max_p2;
+    reg [3:0] s_min_p1, s_min_p2, s_max_p1, s_max_p2;
+    reg [3:0] v_min_p1, v_min_p2, v_max_p1, v_max_p2;
+    reg       mode_hsv_p1, mode_hsv_p2;
+    always @(posedge ov7670_pclk) begin
+        h_min_p1 <= start_h_val; h_min_p2 <= h_min_p1;
+        h_max_p1 <= end_h_val;   h_max_p2 <= h_max_p1;
+        s_min_p1 <= start_s_val; s_min_p2 <= s_min_p1;
+        s_max_p1 <= end_s_val;   s_max_p2 <= s_max_p1;
+        v_min_p1 <= start_v_val; v_min_p2 <= v_min_p1;
+        v_max_p1 <= end_v_val;   v_max_p2 <= v_max_p1;
+        mode_hsv_p1 <= mode_is_hsv; mode_hsv_p2 <= mode_hsv_p1;
+    end
 
-    assign threshold_pixel = (((rgb_pixel_out[3:0] >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0] <= RGB_THRESHOLD[19:16]) &&
-                             (rgb_pixel_out[7:4] >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4] <= RGB_THRESHOLD[11:8]) &&
-                             (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4]) && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
-    wire threshold_pixel_dout = (((dout[3:0] >= RGB_THRESHOLD[23:20]) && (dout[3:0] <= RGB_THRESHOLD[19:16]) &&
-                             (dout[7:4] >= RGB_THRESHOLD[15:12]) && (dout[7:4] <= RGB_THRESHOLD[11:8]) &&
-                             (dout[11:8] >= RGB_THRESHOLD[7:4]) && (dout[11:8] <= RGB_THRESHOLD[3:0])) ? 1'b1 : 1'b0);
+    // thresholding operation (RGB path)
+    // Use the currently selected RGB stream (rgb_pixel_out) against live RGB thresholds from UI.
+    // This keeps thresholding consistent with preprocessing stage selection.
+    assign threshold_pixel_rgb = (
+        (rgb_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
+        (rgb_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
+        (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4])   && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])     // R in range
+    ) ? 1'b1 : 1'b0;
+
+    // RGB444 -> HSV (Q4) for current pixel stream (approximation, no division)
+    wire [3:0] R4 = rgb_pixel_out[11:8];
+    wire [3:0] G4 = rgb_pixel_out[7:4];
+    wire [3:0] B4_ = rgb_pixel_out[3:0];
+    wire [3:0] maxc4 = (R4>=G4 && R4>=B4_) ? R4 : (G4>=B4_ ? G4 : B4_);
+    wire [3:0] minc4 = (R4<=G4 && R4<=B4_) ? R4 : (G4<=B4_ ? G4 : B4_);
+    wire [3:0] delta4 = maxc4 - minc4;
+    wire [3:0] V4 = maxc4;
+    wire [3:0] S4 = delta4; // approximate
+    // Hue calculation with 16 bins around circle using thresholded differences
+    wire signed [5:0] t_rg = $signed({2'b00,G4}) - $signed({2'b00,B4_});
+    wire signed [5:0] t_gb = $signed({2'b00,B4_}) - $signed({2'b00,R4});
+    wire signed [5:0] t_br = $signed({2'b00,R4}) - $signed({2'b00,G4});
+    reg  [3:0] H4;
+    always @(*) begin
+        if (delta4 == 4'd0) H4 = 4'd0; else begin
+            if (maxc4 == R4) begin
+                if (t_rg >= 0)
+                    H4 = ( (t_rg<<<2) >= (3*delta4) ) ? 4'd5 : ( (t_rg<<<1) >= delta4 ? 4'd3 : 4'd1 );
+                else
+                    H4 = 4'd15 - ( ((-t_rg)<<<2) >= (3*delta4) ? 4'd1 : (((-t_rg)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end else if (maxc4 == G4) begin
+                if (t_gb >= 0)
+                    H4 = 4'd5 + ( (t_gb<<<2) >= (3*delta4) ? 4'd5 : ( (t_gb<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
+                else
+                    H4 = 4'd5 - ( ((-t_gb)<<<2) >= (3*delta4) ? 4'd1 : (((-t_gb)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end else begin
+                if (t_br >= 0)
+                    H4 = 4'd10 + ( (t_br<<<2) >= (3*delta4) ? 4'd5 : ( (t_br<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
+                else
+                    H4 = 4'd10 - ( ((-t_br)<<<2) >= (3*delta4) ? 4'd1 : (((-t_br)<<<1) >= delta4 ? 4'd3 : 4'd5) );
+            end
+        end
+    end
+
+    // HSV range checks (H handles wrap-around)
+    wire h_in_range = (h_min_p2 <= h_max_p2) ? ((H4 >= h_min_p2) && (H4 <= h_max_p2))
+                                             : ((H4 >= h_min_p2) || (H4 <= h_max_p2));
+    wire s_in_range = (S4 >= s_min_p2) && (S4 <= s_max_p2);
+    wire v_in_range = (V4 >= v_min_p2) && (V4 <= v_max_p2);
+    wire threshold_pixel_hsv = h_in_range && s_in_range && v_in_range;
+
+    // Final threshold bit selected by mode
+    wire threshold_pixel_hsv_w = threshold_pixel_hsv; // alias to avoid reordering warnings
+    wire threshold_pixel = mode_hsv_p2 ? threshold_pixel_hsv_w : threshold_pixel_rgb;
 
     // morphological operations path control
     // assign erode_1_pixel_in = (Erode_1_In_Control == 2'b00) ? threshold_pixel :
@@ -1073,6 +1135,7 @@ module Top(
         .mouse_left_fall(left_click_fall),
         .pre_x(PRE_X_VGA), .pre_y(PRE_Y_VGA), .pre_w(PRE_W_VGA), .pre_h(PRE_H_VGA),
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
+        .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         // .hover(box_hover),
         // .morph_count(morph_count),
@@ -1160,6 +1223,16 @@ module Top(
     wire [3:0]  start_red_val, end_red_val;
     wire [3:0]  start_green_val, end_green_val;
     wire [3:0]  start_blue_val, end_blue_val;
+    // HSV slider outputs and mode flag
+    wire [3:0]  start_h_val, end_h_val;
+    wire [3:0]  start_s_val, end_s_val;
+    wire [3:0]  start_v_val, end_v_val;
+    wire        mode_is_hsv;
+    // New HSV thresholds and mode flag from threshold UI
+    wire [3:0]  start_h_val, end_h_val;
+    wire [3:0]  start_s_val, end_s_val;
+    wire [3:0]  start_v_val, end_v_val;
+    wire        mode_is_hsv;
     // Enable for threshold UI: active only when CV settings UI is visible so sliders
     // are loaded with the BRAM overlay set. This ensures the sliders are drawn with
     // other VGA-space overlays.
@@ -1187,6 +1260,10 @@ module Top(
         .end_green_val(end_green_val),
         .start_blue_val(start_blue_val),
         .end_blue_val(end_blue_val),
+        .start_h_val(start_h_val), .end_h_val(end_h_val),
+        .start_s_val(start_s_val), .end_s_val(end_s_val),
+        .start_v_val(start_v_val), .end_v_val(end_v_val),
+        .mode_is_hsv(mode_is_hsv),
         .section_pixel(thr_section_pixel),
         .section_active(thr_section_active)
     );
@@ -1307,6 +1384,7 @@ module Top(
 
     wire left_click, right_click, new_event;
     wire [11:0] mouse_x_raw, mouse_y_raw;
+    wire [3:0] zpos;
     
     MouseCtl mouse_instance (
         .clk(clk),
@@ -1347,6 +1425,23 @@ module Top(
             right_click_sync <= {right_click_sync[1:0], right_click};
             mouse_x_sync <= mouse_x_raw;
             mouse_y_sync <= mouse_y_raw;
+        end
+    end
+
+    // Generate one-cycle scroll pulses (clk25 domain) from MouseCtl zpos (4-bit signed)
+    reg [3:0] zpos_sync1 = 4'd0, zpos_sync2 = 4'd0, zpos_q = 4'd0;
+    reg       scroll_up_pulse = 1'b0;
+    reg       scroll_down_pulse = 1'b0;
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            zpos_sync1 <= 4'd0; zpos_sync2 <= 4'd0; zpos_q <= 4'd0;
+            scroll_up_pulse <= 1'b0; scroll_down_pulse <= 1'b0;
+        end else begin
+            zpos_sync1 <= zpos;
+            zpos_sync2 <= zpos_sync1;
+            zpos_q     <= zpos_sync2;
+            scroll_up_pulse   <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b0) && (zpos_q == 4'd0);
+            scroll_down_pulse <= (zpos_sync2 != 4'd0) && (zpos_sync2[3] == 1'b1) && (zpos_q == 4'd0);
         end
     end
 
@@ -1520,7 +1615,7 @@ module Top(
     reg [39:0] cx0_coords;
     reg [35:0] cy0_coords;
     reg [3:0] pre_vector;
-    reg [7:0] morph_vector;
+    reg [3:0] morph_vector;
     reg [1:0] udfs_min_area;
     reg ufds_prio;
     reg [1:0] ufds_max_box_no;
@@ -1536,14 +1631,14 @@ module Top(
         //     wait_counter <= 15'd0;
         if (sw[14]) begin
             // main sends user inputs to secondary
-            pre_vector <= pre_order_vector;   // 40-bit
-            morph_vector <= morph_order_vector;   
+            pre_vector <= pre_order_vector;   // 4 bits (two ops)
+            morph_vector <= user_choices;     // 4 bits (1=DILATE)
             udfs_min_area <= ufds_min_area_sel;
             ufds_prio <= ufds_sort_by_prox;
             ufds_max_box_no <= ufds_max_boxes_sel;
         
             tx_fifo_payload[3:0] <= pre_vector;
-            tx_fifo_payload[11:4] <= morph_vector;              
+            tx_fifo_payload[7:4] <= morph_vector;              
             tx_fifo_payload[13:12] <= udfs_min_area;
             tx_fifo_payload[14] <= ufds_prio;   
             tx_fifo_payload[16:15] <= ufds_max_box_no;     
@@ -1572,7 +1667,7 @@ module Top(
 
     // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
     reg [3:0] received_prevector;
-    reg [7:0] received_morph;
+    reg [3:0] received_morph;
     reg [1:0] received_ufds_min_area;
     reg received_ufds_sort_by_prox;
     reg [1:0] received_ufds_max_box_sel;
@@ -1601,7 +1696,7 @@ module Top(
                 received_CY = rx_fifo_payload[235:200]; 
             end else begin 
                 received_prevector <= tx_fifo_payload[3:0];
-                received_morph <= tx_fifo_payload[11:4];            
+                received_morph <= tx_fifo_payload[7:4];            
                 received_ufds_min_area <= tx_fifo_payload[13:12];
                 received_ufds_sort_by_prox <= tx_fifo_payload[14];   
                 received_ufds_max_box_sel <= tx_fifo_payload[16:15];   

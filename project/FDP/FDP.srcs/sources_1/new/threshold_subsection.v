@@ -1,22 +1,40 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 30.10.2025 19:20:04
-// Design Name: 
-// Module Name: threshold_section
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+// This module allows users to threshold bitmap images based on RGB or HSV ranges.
+// 2 buttons. One to turn on HSV mode, one to turn on RGB mode. 
+// Toggling one will untoggle the other (use the same logic as the changeview.v toggling of 4 buttons.)
+//
+// Then, thresholding follows the mode that is turned on. 
+// In RGB mode, rgb_pixel_out is taken in, user use slider to change RGB_THRESHOLD values, then outputs this threshold values to top.v then threshold_pixel_rgb will be 1 or 0
+//
+// In HSV mode, we mux the thresholding pipeline, such that within threshold_subsection, 
+// it is RGB pixel out -> convert to HSV_pixel -> use HSV thresholdings that are actually now in HSV values -> send to top.v the min and max H, S, V values. 
+// threshold_pixel_rgb then uses these min and max H S V values to get 1 or 0
+//
+// For the convertion from RGB to HSV, do it within threshold_subsection.
+//
+// Sliders:
+//      RGB mode: R, G, B sliders set channel min/max independently (0..15).
+//      HSV mode: H, S, V sliders set intuitive ranges (0..15) where:
+//      H is sector index 0..15 (0=red.. ~5=green .. ~10=blue).
+//      S and V ranges are 0..15 (more saturated, brighter).
+//      Implementation: In HSV mode, the three sliders update HSV min/max.
+//      Those are converted to RGB min/max internally and exported out to Top so thresholding stays in RGB.
+//
+// Box colors:
+//      Left box shows the lower endpoint; right box the upper endpoint.
+//      In HSV mode, those endpoints are converted to RGB for display, so the colors are visually consistent regardless of mode.
+//
+// Toggling behavior:
+//      RGB → HSV: We compute HSV endpoints from the current RGB endpoints, so sliders start in the “right” place. Large boxes keep the same colors.
+//      HSV → RGB: Sliders return to RGB sliders; exported RGB outputs just mirror the RGB regs. Large boxes keep the same colors.
+//
+// RGB to HSV math
+// Based on https://www.rapidtables.com/convert/color/rgb-to-hsv.html
+// V = max(R,G,B)
+// S = 0 if V=0 else (V - min(R,G,B)) / V (floor ((delta * 15) / MAX) for 4-bit S)
+// H 0 to 15 derived via ratio = floor ((abs(diff) * 15) / delta)
+//
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -43,6 +61,15 @@ module threshold_subsection (
     output reg  [3:0]  end_green_val,        
     output reg  [3:0]  start_blue_val,
     output reg  [3:0]  end_blue_val,
+    // HSV outputs (0..15 per channel)
+    output reg  [3:0]  start_h_val,
+    output reg  [3:0]  end_h_val,
+    output reg  [3:0]  start_s_val,
+    output reg  [3:0]  end_s_val,
+    output reg  [3:0]  start_v_val,
+    output reg  [3:0]  end_v_val,
+    // Mode flag: 1 = HSV mode, 0 = RGB mode
+    output reg         mode_is_hsv,
     output wire [11:0] section_pixel,  // 12-bit (RGB444) pixel to overlay when module asserts active
     output wire        section_active  // 1 if this module wants to drive pixel
 );
@@ -84,9 +111,17 @@ module threshold_subsection (
     localparam EYE_TOG_W = 10'd15;
     localparam EYE_TOG_H = 9'd15;
 
+    // Mode toggle buttons: RGB / HSV (mutually exclusive)
+    localparam MODE_TOG_W = 10'd32;
+    localparam MODE_TOG_H = 9'd15;
+    localparam RGB_TOG_X  = 10'd150;
+    localparam RGB_TOG_Y  = 9'd330;
+    localparam HSV_TOG_X  = 10'd190;
+    localparam HSV_TOG_Y  = 9'd330;
+
 
     // Colors (12-bit RGB444)
-    localparam GREEN = 12'h0F0;
+    localparam GREEN = 12'h1C1;
     localparam RED   = 12'h00F;
     localparam BLUE  = 12'hF00;
 
@@ -124,6 +159,10 @@ module threshold_subsection (
     reg [3:0] red_min,  red_max;
     reg [3:0] green_min, green_max;
     reg [3:0] blue_min, blue_max;
+    // HSV ranges (internal)
+    reg [3:0] h_min, h_max;
+    reg [3:0] s_min, s_max;
+    reg [3:0] v_min, v_max;
     reg dragging_r_min, dragging_r_max;
     reg dragging_g_min, dragging_g_max;
     reg dragging_b_min, dragging_b_max;
@@ -134,13 +173,20 @@ module threshold_subsection (
 
 
     // knob X positions derived from 4-bit values (0..15 -> positions along track)
+    // Active sliders follow mode: RGB uses R,G,B; HSV uses H,S,V.
+    wire [3:0] slider0_min = mode_is_hsv ? h_min   : red_min;
+    wire [3:0] slider0_max = mode_is_hsv ? h_max   : red_max;
+    wire [3:0] slider1_min = mode_is_hsv ? s_min   : green_min;
+    wire [3:0] slider1_max = mode_is_hsv ? s_max   : green_max;
+    wire [3:0] slider2_min = mode_is_hsv ? v_min   : blue_min;
+    wire [3:0] slider2_max = mode_is_hsv ? v_max   : blue_max;
 
-    wire [9:0] knob_r_min_x = SLIDE_X0 + ((red_min * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_r_max_x = SLIDE_X0 + ((red_max * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_g_min_x = SLIDE_X0 + ((green_min* SLIDER_WIDTH) / 15);
-    wire [9:0] knob_g_max_x = SLIDE_X0 + ((green_max* SLIDER_WIDTH) / 15);
-    wire [9:0] knob_b_min_x = SLIDE_X0 + ((blue_min * SLIDER_WIDTH) / 15);
-    wire [9:0] knob_b_max_x = SLIDE_X0 + ((blue_max * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_r_min_x = SLIDE_X0 + ((slider0_min * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_r_max_x = SLIDE_X0 + ((slider0_max * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_g_min_x = SLIDE_X0 + ((slider1_min * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_g_max_x = SLIDE_X0 + ((slider1_max * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_b_min_x = SLIDE_X0 + ((slider2_min * SLIDER_WIDTH) / 15);
+    wire [9:0] knob_b_max_x = SLIDE_X0 + ((slider2_max * SLIDER_WIDTH) / 15);
     wire [9:0] eye_red_pos_x = SLIDE_X0 + ((picked_color[3:0] * SLIDER_WIDTH) / 15);
     wire [9:0] eye_blue_pos_x = SLIDE_X0 + ((picked_color[7:4] * SLIDER_WIDTH) / 15);
     wire [9:0] eye_green_pos_x = SLIDE_X0 + ((picked_color[11:8] * SLIDER_WIDTH) / 15);
@@ -157,6 +203,11 @@ module threshold_subsection (
     // small temp for scaling math
     reg [15:0] tmp_calc;
 
+    // --- RGB->HSV endpoint conversion (approx, integer, no div) ---
+    // Helper wires for converting a single RGB444 color to HSV Q4 (H 0..15 (0=red ~5=green ~10=blue), S 0..15, V 0..15)
+    // Implemented as a task-like comb block for use in procedural always blocks.
+    // Since Verilog tasks are not allowed per constraints, inline the logic where needed.
+
     // initialize on reset
     always @(posedge clk25) begin
         if (vga_reset) begin
@@ -166,6 +217,13 @@ module threshold_subsection (
             green_max <= 4'd15;
             blue_min  <= 4'd0;
             blue_max  <= 4'd15;
+            // HSV defaults mirror full range
+            h_min     <= 4'd0;
+            h_max     <= 4'd15;
+            s_min     <= 4'd0;
+            s_max     <= 4'd15;
+            v_min     <= 4'd0;
+            v_max     <= 4'd15;
             dragging_r_min <= 1'b0; dragging_r_max <= 1'b0;
             dragging_g_min <= 1'b0; dragging_g_max <= 1'b0;
             dragging_b_min <= 1'b0; dragging_b_max <= 1'b0;
@@ -173,6 +231,10 @@ module threshold_subsection (
             start_red_val  <= 4'd0; end_red_val  <= 4'd15;
             start_green_val<= 4'd0; end_green_val<= 4'd15;
             start_blue_val <= 4'd0; end_blue_val <= 4'd15;
+            start_h_val    <= 4'd0; end_h_val    <= 4'd15;
+            start_s_val    <= 4'd0; end_s_val    <= 4'd15;
+            start_v_val    <= 4'd0; end_v_val    <= 4'd15;
+            mode_is_hsv    <= 1'b0; // default RGB mode
         end else if (enable) begin
             // ---------- RED range interaction ----------
             // If no other slider is active, this click may start red dragging.
@@ -207,102 +269,118 @@ module threshold_subsection (
 
             if (dragging_r_min) begin
                 if (mouse_x_px < SLIDE_X0) begin
-                    red_min <= 4'd0;
+                    if (mode_is_hsv) h_min <= 4'd0; else red_min <= 4'd0;
                 end
                 else if (mouse_x_px > SLIDE_X1) begin 
-                    red_min <= red_max;
+                    if (mode_is_hsv) h_min <= h_max; else red_min <= red_max;
                 end
                 else begin
                     // temporary calc to perform multiply and divide
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    if (tmp_calc[3:0] > red_max)
-                        red_min <= red_max;
-                    else
-                        red_min <= tmp_calc[3:0];
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] > h_max) h_min <= h_max; else h_min <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] > red_max) red_min <= red_max; else red_min <= tmp_calc[3:0];
+                    end
                 end
                 // ensure min <= max
                 // if (red_min > red_max) red_min <= red_max;
             end else if (dragging_r_max) begin
                 if (mouse_x_px < SLIDE_X0) begin 
-                    red_max <= red_min;
+                    if (mode_is_hsv) h_max <= h_min; else red_max <= red_min;
                 end
                 else if (mouse_x_px > SLIDE_X1) begin 
-                    red_max <= 4'd15;
+                    if (mode_is_hsv) h_max <= 4'd15; else red_max <= 4'd15;
                 end
                 else begin
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    if (tmp_calc[3:0] < red_min)
-                        red_max <= red_min;
-                    else
-                        red_max <= tmp_calc[3:0];
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] < h_min) h_max <= h_min; else h_max <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] < red_min) red_max <= red_min; else red_max <= tmp_calc[3:0];
+                    end
                 end
                 // if (red_max < red_min) red_max <= red_min;
             end else if (dragging_g_min) begin
                 if (mouse_x_px < SLIDE_X0) begin
-                    green_min <= 4'd0;
+                    if (mode_is_hsv) s_min <= 4'd0; else green_min <= 4'd0;
                 end
                 else if (mouse_x_px > SLIDE_X1) begin 
-                    green_min <= green_max;
+                    if (mode_is_hsv) s_min <= s_max; else green_min <= green_max;
                 end
                 else begin
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    if (tmp_calc[3:0] > green_max)
-                        green_min <= green_max;
-                    else
-                        green_min <= tmp_calc[3:0];
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] > s_max) s_min <= s_max; else s_min <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] > green_max) green_min <= green_max; else green_min <= tmp_calc[3:0];
+                    end
                 end
             end else if (dragging_g_max) begin
                 if (mouse_x_px < SLIDE_X0) begin 
-                    green_max <= green_min;
+                    if (mode_is_hsv) s_max <= s_min; else green_max <= green_min;
                 end else if (mouse_x_px > SLIDE_X1) begin
-                    green_max <= 4'd15;
+                    if (mode_is_hsv) s_max <= 4'd15; else green_max <= 4'd15;
                 end
                 else begin
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    if (tmp_calc[3:0] < green_min)
-                        green_max <= green_min;
-                    else
-                        green_max <= tmp_calc[3:0];
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] < s_min) s_max <= s_min; else s_max <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] < green_min) green_max <= green_min; else green_max <= tmp_calc[3:0];
+                    end
                 end
             end else if (dragging_b_min) begin
                 if (mouse_x_px < SLIDE_X0) begin
-                    blue_min <= 4'd0;
+                    if (mode_is_hsv) v_min <= 4'd0; else blue_min <= 4'd0;
                 end else if (mouse_x_px > SLIDE_X1) begin 
-                    blue_min <= blue_max;
+                    if (mode_is_hsv) v_min <= v_max; else blue_min <= blue_max;
                 end
                 else begin
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    if (tmp_calc[3:0] > blue_max)
-                        blue_min <= blue_max;
-                    else
-                        blue_min <= tmp_calc[3:0];
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] > v_max) v_min <= v_max; else v_min <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] > blue_max) blue_min <= blue_max; else blue_min <= tmp_calc[3:0];
+                    end
                 end
             end else if (dragging_b_max) begin
                 // mouse_x_px is in pixel coords — convert to 0..15 slider value
                 if (mouse_x_px < SLIDE_X0) begin
-                    blue_max <= 4'd0;
+                    if (mode_is_hsv) v_max <= 4'd0; else blue_max <= 4'd0;
                 end else if (mouse_x_px > SLIDE_X1) begin
-                    blue_max <= 4'd15;
+                    if (mode_is_hsv) v_max <= 4'd15; else blue_max <= 4'd15;
                 end else begin
                     tmp_calc = ((mouse_x_px - SLIDE_X0) * 15) / SLIDER_WIDTH;
-                    // clamp to ensure blue_max >= blue_min
-                    if (tmp_calc[3:0] < blue_min)
-                        blue_max <= blue_min;
-                    else
-                        blue_max <= tmp_calc[3:0];
+                    // clamp to ensure max >= min
+                    if (mode_is_hsv) begin
+                        if (tmp_calc[3:0] < v_min) v_max <= v_min; else v_max <= tmp_calc[3:0];
+                    end else begin
+                        if (tmp_calc[3:0] < blue_min) blue_max <= blue_min; else blue_max <= tmp_calc[3:0];
+                    end
                 end
             end
 
             // always mirror internal ranges to the outputs so Top.v or backend can read
             start_red_val  <= red_min;  
-            end_red_val  <= red_max;
+            end_red_val    <= red_max;
             start_green_val<= green_min;
-            end_green_val<= green_max;
+            end_green_val  <= green_max;
             start_blue_val <= blue_min; 
-            end_blue_val <= blue_max;
+            end_blue_val   <= blue_max;
+            start_h_val    <= h_min;  end_h_val <= h_max;
+            start_s_val    <= s_min;  end_s_val <= s_max;
+            start_v_val    <= v_min;  end_v_val <= v_max;
         end
     end
 
+             reg [3:0] r, g, b;
+                        reg [3:0] maxc, minc, delta;
+                        reg signed [5:0] t;
+                        reg [3:0] h_q, s_q, v_q;
+            reg [3:0] maxc, minc, delta;
+                        reg signed [5:0] t;
+                        reg [3:0] h_q, s_q, v_q;
     // Eyedropper toggle and sampling: toggle with click inside small square; when enabled,
     // sample the provided BRAM pixel on any left_click_edge (except when toggling the square)
     always @(posedge clk25) begin
@@ -315,6 +393,96 @@ module threshold_subsection (
                 if ((mouse_x_px >= EYE_TOG_X) && (mouse_x_px < (EYE_TOG_X + EYE_TOG_W)) &&
                     (mouse_y_px >= EYE_TOG_Y) && (mouse_y_px < (EYE_TOG_Y + EYE_TOG_H))) begin
                     eyedropper_enabled <= ~eyedropper_enabled;
+                // Mode toggle buttons: mutually exclusive
+                end else if ((mouse_x_px >= RGB_TOG_X) && (mouse_x_px < (RGB_TOG_X + MODE_TOG_W)) &&
+                             (mouse_y_px >= RGB_TOG_Y) && (mouse_y_px < (RGB_TOG_Y + MODE_TOG_H))) begin
+                    // Switch to RGB mode and compute RGB endpoints from HSV so boxes keep colors
+                    mode_is_hsv <= 1'b0;
+                    // No change needed; boxes already use RGB registers
+                end else if ((mouse_x_px >= HSV_TOG_X) && (mouse_x_px < (HSV_TOG_X + MODE_TOG_W)) &&
+                             (mouse_y_px >= HSV_TOG_Y) && (mouse_y_px < (HSV_TOG_Y + MODE_TOG_H))) begin
+                    // Switch to HSV mode; compute initial HSV from current RGB endpoints
+                    mode_is_hsv <= 1'b1;
+                    // Convert lower RGB endpoint to HSV
+                    // begin : RGBMIN_TO_HSV
+           
+                        r = red_min; g = green_min; b = blue_min;
+                        // max/min
+                        maxc = (r>=g && r>=b) ? r : (g>=b ? g : b);
+                        minc = (r<=g && r<=b) ? r : (g<=b ? g : b);
+                        delta = maxc - minc;
+                        v_q = maxc;
+                        s_q = delta; // approximate saturation as chroma
+                        if (delta == 4'd0) begin
+                            h_q = 4'd0;
+                        end else begin
+                            if (maxc == r) begin
+                                t = $signed({2'b00,g}) - $signed({2'b00,b});
+                                // map around red: 0..5 forward (towards green) or 15..11 (towards blue)
+                                if (t >= 0) begin
+                                    // approximate 0..5 by thresholding t vs delta fractions
+                                    h_q = ( (t<<<2) >= (3*delta) ) ? 4'd5 :
+                                          ( (t<<<1) >= (delta) )   ? 4'd3 :
+                                          ( t >= 0 )               ? 4'd1 : 4'd0;
+                                end else begin
+                                    // negative t -> towards 15
+                                    h_q = 4'd15 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end else if (maxc == g) begin
+                                t = $signed({2'b00,b}) - $signed({2'b00,r});
+                                if (t >= 0) begin
+                                    h_q = 4'd5 + ( (t<<<2) >= (3*delta) ? 4'd5 : ( (t<<<1) >= delta ? 4'd3 : 4'd1 ) );
+                                end else begin
+                                    h_q = 4'd5 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end else begin // max = b
+                                t = $signed({2'b00,r}) - $signed({2'b00,g});
+                                if (t >= 0) begin
+                                    h_q = 4'd10 + ( (t<<<2) >= (3*delta) ? 4'd5 : ( (t<<<1) >= delta ? 4'd3 : 4'd1 ) );
+                                end else begin
+                                    h_q = 4'd10 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end
+                        end
+                        h_min <= h_q; s_min <= s_q; v_min <= v_q;
+                    end
+                    // Convert upper RGB endpoint to HSV
+                    // begin : RGBMAX_TO_HSV
+                        r = red_max; g = green_max; b = blue_max;
+                        maxc = (r>=g && r>=b) ? r : (g>=b ? g : b);
+                        minc = (r<=g && r<=b) ? r : (g<=b ? g : b);
+                        delta = maxc - minc;
+                        v_q = maxc;
+                        s_q = delta;
+                        if (delta == 4'd0) begin
+                            h_q = 4'd0;
+                        end else begin
+                            if (maxc == r) begin
+                                t = $signed({2'b00,g}) - $signed({2'b00,b});
+                                if (t >= 0) begin
+                                    h_q = ( (t<<<2) >= (3*delta) ) ? 4'd5 :
+                                          ( (t<<<1) >= (delta) )   ? 4'd3 : 4'd1;
+                                end else begin
+                                    h_q = 4'd15 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end else if (maxc == g) begin
+                                t = $signed({2'b00,b}) - $signed({2'b00,r});
+                                if (t >= 0) begin
+                                    h_q = 4'd5 + ( (t<<<2) >= (3*delta) ? 4'd5 : ( (t<<<1) >= delta ? 4'd3 : 4'd1 ) );
+                                end else begin
+                                    h_q = 4'd5 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end else begin
+                                t = $signed({2'b00,r}) - $signed({2'b00,g});
+                                if (t >= 0) begin
+                                    h_q = 4'd10 + ( (t<<<2) >= (3*delta) ? 4'd5 : ( (t<<<1) >= delta ? 4'd3 : 4'd1 ) );
+                                end else begin
+                                    h_q = 4'd10 - ( ((-t)<<<2) >= (3*delta) ? 4'd1 : (((-t)<<<1) >= delta ? 4'd3 : 4'd5) );
+                                end
+                            end
+                        end
+                        h_max <= h_q; s_max <= s_q; v_max <= v_q;
+                    end
                 end else begin
                     // capture color of bram pixel at mouse location if eyedropper enabled
                     if (eyedropper_enabled) begin
@@ -322,12 +490,38 @@ module threshold_subsection (
                     end
                 end
             end
-        end
-    end
 
     // Display hover color design
     reg [11:0] pixel_out;
     reg        pixel_active;
+
+    // Approximate HSV->RGB conversion for box colors when in HSV mode
+    // Uses coarse 6-sector mapping and fixed-point products via shifts.
+    wire [3:0] box0_h = h_min, box0_s = s_min, box0_v = v_min;
+    wire [3:0] box1_h = h_max, box1_s = s_max, box1_v = v_max;
+    function [11:0] hsv_to_rgb444;
+        input [3:0] H4; input [3:0] S4; input [3:0] V4;
+        reg [6:0] H6; // 0..95 approx (scaled 0..6*16)
+        reg [2:0] sector;
+        reg [4:0] C, m; // up to 30 okay
+        reg [4:0] Rp,Gp,Bp;
+        begin
+            H6 = H4 * 6; // 0..90
+            sector = H6[6:4]; // top bits ~ 0..5
+            C = (S4 * V4) >> 4; // approx (S*V)/16
+            m = V4 - C;
+            // Simple mapping without fractional within sector: choose endpoints
+            case (sector)
+                3'd0: begin Rp = V4; Gp = m + C; Bp = m; end       // R->Y
+                3'd1: begin Rp = m + C; Gp = V4; Bp = m; end       // Y->G
+                3'd2: begin Rp = m; Gp = V4; Bp = m + C; end       // G->C
+                3'd3: begin Rp = m; Gp = m + C; Bp = V4; end       // C->B
+                3'd4: begin Rp = m + C; Gp = m; Bp = V4; end       // B->M
+                default: begin Rp = V4; Gp = m; Bp = m + C; end    // M->R
+            endcase
+            hsv_to_rgb444 = {Gp[3:0], Bp[3:0], Rp[3:0]}; // Note project uses {B,G,R} ordering in some places; here boxes expect {B,G,R}
+        end
+    endfunction
 
     always @(*) begin
         // default: not active (let other overlays draw)
@@ -410,12 +604,12 @@ module threshold_subsection (
         (py_src >= BOX_START_LEFT_Y) && (py_src < (BOX_START_LEFT_Y + BOX_WIDTH_HEIGHT))) begin
             // red box
             pixel_active = 1'b1;
-            pixel_out = {blue_min, green_min, red_min}; // upper threshold
+            pixel_out = mode_is_hsv ? hsv_to_rgb444(box0_h, box0_s, box0_v) : {blue_min, green_min, red_min}; // lower threshold
         end
         // right box
         else if ((px_src >= (BOX_START_LEFT_X + BOX_WIDTH_HEIGHT + 5)) && (px_src < (BOX_START_LEFT_X + 2 *  BOX_WIDTH_HEIGHT + 5)) && (py_src >= BOX_START_LEFT_Y) && (py_src < (BOX_START_LEFT_Y + BOX_WIDTH_HEIGHT))) begin
             pixel_active = 1'b1;
-            pixel_out = {blue_max, green_max, red_max}; // lower threshold
+            pixel_out = mode_is_hsv ? hsv_to_rgb444(box1_h, box1_s, box1_v) : {blue_max, green_max, red_max}; // upper threshold
         end
 
         // <---- Eyedropper display rectangle (shows sampled colour) ----->
@@ -429,6 +623,14 @@ module threshold_subsection (
             pixel_active = 1'b1;
             // visible feedback when enabled
             pixel_out = eyedropper_enabled ? CLR_GREY : CLR_WHITE;
+        end
+        // Mode toggle rectangles (outline fill)
+        else if ((px_src >= RGB_TOG_X) && (px_src < (RGB_TOG_X + MODE_TOG_W)) && (py_src >= RGB_TOG_Y) && (py_src < (RGB_TOG_Y + MODE_TOG_H))) begin
+            pixel_active = 1'b1;
+            pixel_out = (mode_is_hsv == 1'b0) ? CLR_BLACK : CLR_GREY;
+        end else if ((px_src >= HSV_TOG_X) && (px_src < (HSV_TOG_X + MODE_TOG_W)) && (py_src >= HSV_TOG_Y) && (py_src < (HSV_TOG_Y + MODE_TOG_H))) begin
+            pixel_active = 1'b1;
+            pixel_out = (mode_is_hsv == 1'b1) ? CLR_BLACK : CLR_GREY;
         end
     end      
 

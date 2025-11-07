@@ -113,6 +113,11 @@ module ufds_settings_overlay (
         ((px >= 485 && px <= 489) && (py == 402 || py == 403))                                      // Horizontal line from filter to bounding
     );
 
+    wire gen_magenta = (
+        (px >= 21 && px <= 31) && (py == 435 || py == 469) ||
+        (px == 31 && (py >= 435 && py <= 469))
+    );
+
     // X start, X end, Y start, Y end
     // localparam integer box1 [0:3] = {21, 31, 435, 468};
     // localparam integer box2 [0:3] = {63, 219, 324, 432};
@@ -121,12 +126,13 @@ module ufds_settings_overlay (
     // localparam integer box5 [0:3] = {397, 494, 324, 432};
     // localparam integer box6 [0:3] = {495, 596, 324, 479};
     // localparam integer box7 [0:3] = {597, 639, 324, 479};
-    localparam integer box1 [0:3] = {21, 31, 435, 469};
+    // localparam integer box1 [0:3] = {21, 31, 435, 469};
+    localparam integer box1 [0:3] = {21, 64, 324, 475};
     localparam integer box2 [0:3] = {63, 219, 324, 432};
     localparam integer box3 [0:3] = {220, 324, 324, 432};
     localparam integer box4 [0:3] = {325, 396, 324, 432};
     localparam integer box5 [0:3] = {397, 494, 324, 449};
-    localparam integer box6 [0:3] = {495, 596, 324, 479};
+    localparam integer box6 [0:3] = {495, 596, 324, 449};
     localparam integer box7 [0:3] = {597, 639, 324, 479};
 
 
@@ -229,6 +235,7 @@ module ufds_settings_overlay (
             if (settings_active && left_edge) begin
                 if (mouse_in_box1) begin
                     return_click <= 1'b1;
+                    tab_idx <= 0;
                 end else if (mouse_in_box2) begin
                     tab_idx <= 1;
                 end else if (mouse_in_box3) begin
@@ -277,9 +284,12 @@ module ufds_settings_overlay (
 
     // Precomputed border wires
     // Thickness 1 for pink box
-    wire border_box1 = ((px >= box1[0] && px <= box1[1] && (py == box1[2] || py == box1[3])) ||                                 // Leftmost (pink box) horiz lines
-                        ((px == box1[0] || px == box1[1]) && (py >= box1[2] + 1 && py <= box1[3] - 1)));                        // vertical lines
+    // wire border_box1 = ((px >= box1[0] && px <= box1[1] && (py == box1[2] || py == box1[3])) ||                                 // Leftmost (pink box) horiz lines
+    //                     ((px == box1[0] || px == box1[1]) && (py >= box1[2] + 1 && py <= box1[3] - 1)));                        // vertical lines
     // Thickness 2 for all the rest
+    wire border_box1 = ((px >= box1[0] && px <= box1[1] && ((py >= box1[2] && py <= box1[2] + 2) || (py >= box1[3] && py <= box1[3] + 2))) ||             // Horizontals
+                        (py >= (box1[2] + 2) && py <= box1[3] && ((px >= box1[0] && px <= box1[0] + 2) || (px >= (box1[1] - 2) && px <= box1[1]))));      // Verticals
+
     wire border_box2 = ((px >= box2[0] && px <= box2[1] && (py >= box2[2] && py <= box2[2] + 2)) ||                       // Horizontal top
                         (px >= (box2[0] + 25) && px <= box2[1] && (py >= box2[3] && py <= box2[3] + 2)) ||                // Horizontal bottom due to cutout for READY
                         (py >= (box2[2] + 2) && py <= box2[3] && ((px >= box2[0] && px <= box2[0] + 2) || (px >= (box2[1] - 2) && px <= box2[1]))));     // Verticals
@@ -369,7 +379,11 @@ module ufds_settings_overlay (
             if (mouse_in_box7 && in_box7) begin overlay_en=1; overlay_rgb=MAGENTA; end
 
             // Draw tab borders
-            if (border_box1) begin overlay_en=1; overlay_rgb=GREEN; end
+            // if (border_box1) begin overlay_en=1; overlay_rgb=GREEN; end
+            if (border_box1) begin
+                overlay_en=1;
+                if (tab_idx == 0) overlay_rgb=GREY; else overlay_rgb=GREEN;
+            end
             if (border_box2) begin
                 overlay_en = 1; 
                 if (tab_idx == 1) overlay_rgb = GREEN; else overlay_rgb = GREY;
@@ -394,6 +408,8 @@ module ufds_settings_overlay (
 
             if (gen_black) begin overlay_en=1; overlay_rgb=BLACK; end
             if (gen_yellow) begin overlay_en=1; overlay_rgb=YELLOW; end
+
+            if (gen_magenta) begin overlay_en=1; overlay_rgb=MAGENTA; end
 
             // Panel indicator 9x9 squares inside boxes 2..6
             // Place near top-left inside each tab box

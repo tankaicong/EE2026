@@ -31,8 +31,8 @@ module Convolution_3x3_Improved
     input  wire [PIXEL_DEPTH-1:0] pixel_rgb_in,       // RGB444
     input  wire                 pixel_bin_in,         // 1-bit bitmap
 
-    input  wire signed [11:0]   addr_off_col,
-    input  wire signed [11:0]   addr_off_row,
+    input  wire signed [4:0]   addr_off_col,
+    input  wire signed [4:0]   addr_off_row,
 
     output reg  [PIXEL_DEPTH-1:0] pixel_out,          // RGB444 filtered output
     output reg  [16:0]           addr_out,            // 0..(IMAGE_WIDTH*IMAGE_HEIGHT-1)

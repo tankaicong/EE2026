@@ -25,7 +25,8 @@ module cv_settings_info_tab (
     input wire dilate_click,
     output reg [9:0] pix_x, // moving pixel X (VGA coords)
     output reg [8:0] pix_y, // moving pixel Y (VGA coords)
-    output reg [2:0] info_idx, // 0=CAMERA,1=GAUSS,2=MEDIAN,3=ERODE,4=DILATE,5=BITMAP,6=UFDS
+    // output reg [2:0] info_idx, // 0=CAMERA,1=GAUSS,2=MEDIAN,3=ERODE,4=DILATE,5=BITMAP,6=UFDS
+    output reg [3:0] info_idx, // 0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate
     output reg [11:0] pix_rgb // moving pixel color (RGB444)
 );
 

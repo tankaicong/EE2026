@@ -240,7 +240,7 @@ module Top(
 
 
                 // Info tab overlay
-                if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
+                // if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
@@ -1211,6 +1211,8 @@ module Top(
     // Wires from drag-drop module
     wire [59:0] boxes_x_vector;
     wire [53:0] boxes_y_vector;
+    wire [59:0] boxes_x_vector_test;
+    wire [53:0] boxes_y_vector_test;
     // Concatenated order (leftmost in LSB)
     // morph_order_vector and pre_order_vector are forward-declared above
     // wire [5:0]  box_hover;
@@ -1235,6 +1237,7 @@ module Top(
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
+        .boxes_x_test(boxes_x_vector_test), .boxes_y_test(boxes_y_vector_test),
         // .hover(box_hover),
         // .morph_count(morph_count),
         // .morph_vector(morph_vector_4),
@@ -1249,12 +1252,14 @@ module Top(
         // .dragging_o(led[2]),
         // .drop_reason(led[4:3]),
         .gauss_click(gauss_click_mv), .median_click(median_click_mv), .erode_click(erode_click_mv), .dilate_click(dilate_click_mv)
+        // .hov2(erodedilate1), .hov3(erodedilate2), .hov4(erodedilate3), .hov5(erodedilate4)
     );
-
+    wire [7:0] morph_box_order;
+// wire erodedilate1, erodedilate2, erodedilate3, erodedilate4;
     // Overlay pixel from settings UI (drag/drop) in VGA coordinates
     wire cv_sett_overlay_en;
     wire [11:0] cv_sett_overlay;
-    // Click pulses from CV settings overlay selection boxes
+    // Click pulses from overlay selection boxes
     // wire cam_box_clicked;
     wire bitmap_box_clicked;
     wire ufds_box_clicked;

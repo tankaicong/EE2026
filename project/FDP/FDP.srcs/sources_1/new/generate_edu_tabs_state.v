@@ -11,7 +11,7 @@ module Education_Tabs_State #(
 	parameter ROW_MAJOR      = 1'b1,
 	// Number of cycles between address present and valid BRAM data
 	// Set to 1 for typical inferred ROM/BRAM, 2 if an extra output reg is enabled
-	parameter integer BRAM_LATENCY = 2
+	parameter integer BRAM_LATENCY = 1
 ) (
     input        clk,
 	input        clk25,
@@ -79,7 +79,7 @@ module Education_Tabs_State #(
 
 	assign edu_rgb = bram_bit[0] ? 12'hFFF : 12'h000;
 
-	// ---------------- Constants ----------------
+// ---------------- Constants ----------------
 	localparam integer GLYPH_W    = 5;
 	localparam integer GLYPH_H    = 8;
 	localparam integer CELL_W     = GLYPH_W + 1;  // spacer column
@@ -92,27 +92,27 @@ module Education_Tabs_State #(
                         neighbor3_num = 6,
                         neighbor4_num = 31,
                         neighbor5_num = 29,
-                        neighbor6_num = 33;
+                        neighbor6_num = 32;
 
     localparam integer neighbor_paragraphs = 2;
 
     localparam integer neighbor1 [0: (neighbor1_num - 1)] = {
-        4, 26, 28, 33, 52, 48, 33, 34, 45, 30, 52, 41, 34, 49, 30, 37, 57, 53, 58, 52, 34, 44, 52, 26, 52, 39, 40, 29, 30
+        4, 26, 28, 33, 52, 48, 33, 34, 45, 30, 52, 41, 34, 49, 30, 37, 55, 57, 56, 52, 34, 44, 52, 26, 52, 39, 40, 29, 30
     };
     localparam integer neighbor2 [0: (neighbor2_num - 1)] = {
-        34, 39, 52, 26, 52, 32, 43, 34, 29, 55, 52, 39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 31, 40, 43, 38
+        34, 39, 52, 26, 52, 32, 43, 34, 29, 53, 52, 39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 31, 40, 43, 38
     };
     localparam integer neighbor3 [0: (neighbor3_num - 1)] = {
-        30, 29, 32, 30, 44, 56
+        30, 29, 32, 30, 44, 54
     };
     localparam integer neighbor4 [0: (neighbor4_num - 1)] = {
-        5, 40, 43, 52, 11, 30, 31, 45, 55, 52, 20, 41, 41, 30, 43, 52, 11, 30, 31, 45, 55, 52, 20, 41, 41, 30, 43, 52, 26, 39, 29
+        5, 40, 43, 52, 11, 30, 31, 45, 53, 52, 20, 41, 41, 30, 43, 52, 11, 30, 31, 45, 53, 52, 20, 41, 41, 30, 43, 52, 26, 39, 29
     };
     localparam integer neighbor5 [0: (neighbor5_num - 1)] = {
-        20, 41, 41, 30, 43, 52, 17, 34, 32, 33, 45, 52, 41, 34, 49, 30, 37, 55, 52, 31, 34, 39, 29, 52, 45, 33, 30, 34, 43
+        20, 41, 41, 30, 43, 52, 17, 34, 32, 33, 45, 52, 41, 34, 49, 30, 37, 53, 52, 31, 34, 39, 29, 52, 45, 33, 30, 34, 43
     };
     localparam integer neighbor6 [0: (neighbor6_num - 1)] = {
-        43, 40, 40, 45, 52, 27, 50, 52, 48, 26, 37, 36, 34, 39, 32, 52, 46, 41, 52, 45, 33, 30, 34, 43, 52, 41, 26, 43, 30, 39, 45, 44, 56
+        43, 40, 40, 45, 52, 27, 50, 52, 48, 26, 37, 36, 34, 39, 32, 52, 46, 41, 52, 45, 33, 30, 34, 43, 52, 41, 26, 43, 30, 39, 45, 44
     };
 
     // Start coords of neighbor paragraphs
@@ -129,110 +129,139 @@ module Education_Tabs_State #(
 // ---------- Union Components (disabled for now; neighbors only) ----------
 
     // Start of Union components paragraphs
-    localparam integer union_paragraphs = 1;
+    localparam integer union_paragraphs = 2;
     localparam integer union_stats [0 : (union_paragraphs * 3) - 1] = {
-        93, 38, 5     // X start, Y start 1st paragraph
+        93, 38, 3,     // X start, Y start, num lines 1st paragraph
+        93, 90, 3      // X start, Y start, num lines 2nd paragraph
     };
 
     localparam integer union1_num = 25,
-                     union2_num = 29,
-                     union3_num = 30,
-                     union4_num = 26,
-                     union5_num = 24;
+                     union2_num = 30,
+                     union3_num = 17,
+                     union4_num = 25,
+                     union5_num = 24,
+                     union6_num = 14;
 
     localparam integer union1 [0 : (union1_num - 1)] = {
         0, 37, 37, 40, 28, 26, 45, 30, 52, 28, 46, 43, 43, 30, 39, 45, 52, 41, 34, 49, 30, 37, 52, 34, 31
     };
     localparam integer union2 [0 : (union2_num - 1)] = {
-        39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 33, 26, 47, 30, 52, 39, 40, 52, 43, 40, 40, 45, 44, 57, 34, 45, 52, 34
+        39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 33, 26, 47, 30, 52, 39, 40, 52, 43, 40, 40, 45, 44, 55, 34, 45, 52, 34, 44
     };
     localparam integer union3 [0 : (union3_num - 1)] = {
-        26, 52, 39, 30, 48, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 58, 56, 52, 4, 37, 44, 30, 55, 52, 41, 34, 28, 36, 52, 26
+        26, 52, 39, 30, 48, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 56, 54
     };
     localparam integer union4 [0 : (union4_num - 1)] = {
-        39, 30, 34, 32, 33, 27, 40, 46, 43, 34, 39, 32, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 52, 26, 39, 29
+        4, 37, 44, 30, 53, 52, 41, 34, 28, 36, 52, 26, 52, 39, 30, 34, 32, 33, 27, 40, 46, 43, 34, 39, 32
     };
     localparam integer union5 [0 : (union5_num - 1)] = {
-        46, 39, 34, 40, 39, 52, 34, 39, 45, 40, 52, 40, 39, 30, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45
+        28, 40, 38, 41, 40, 39, 30, 39, 45, 52, 26, 39, 29, 52, 46, 39, 34, 40, 39, 52, 34, 39, 45, 40
+    };
+    localparam integer union6 [0 : (union6_num - 1)] = {
+        40, 39, 30, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 54
     };
 
 
 // ---------- Statistics ----------
-    localparam integer statistics_paragraphs = 1;
+    localparam integer statistics_paragraphs = 2;
     localparam integer statistics_stats [0 : (statistics_paragraphs * 3) - 1] = {
-        93, 38, 5     // X start, Y start 1st paragraph
+        93, 38, 3,    // X start, Y start 1st paragraph
+        93, 90, 3     // X start, Y start 2nd paragraph
     };
 
     localparam integer stats1_num = 22,
-                     stats2_num = 30,
-                     stats3_num = 31,
-                     stats4_num = 28,
-                     stats5_num = 18;
+                        stats2_num = 19,
+                        stats3_num = 11,
+                        stats4_num = 31,
+                        stats5_num = 28,
+                        stats6_num = 19;
     localparam integer stats1 [0 : (stats1_num - 1)] = {
-        0, 44, 52, 31, 43, 26, 38, 30, 52, 27, 46, 34, 37, 29, 44, 55, 52, 46, 39, 34, 40, 39
+        0, 44, 52, 31, 43, 26, 38, 30, 52, 27, 46, 34, 37, 29, 44, 53, 52, 46, 39, 34, 40, 39
     };
 
     localparam integer stats2 [0 : (stats2_num - 1)] = {
-        39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 26, 39, 29, 52, 32, 43, 40, 48, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44
+        39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 26, 39, 29, 52, 32, 43, 40, 48
     };
     localparam integer stats3 [0 : (stats3_num - 1)] = {
-        4, 26, 28, 33, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 52, 44, 45, 40, 43, 30, 44, 52, 26, 52, 43, 46, 39, 39, 34, 39, 32
+        28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 54
     };
     localparam integer stats4 [0 : (stats4_num - 1)] = {
-        26, 43, 30, 26, 52, 28, 40, 46, 39, 45, 52, 26, 39, 29, 52, 38, 34, 39, 55, 52, 38, 26, 49, 52, 49, 55, 52, 50
+        4, 26, 28, 33, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 52, 44, 45, 40, 43, 30, 44, 52, 26, 52, 43, 46, 39, 39, 34, 39, 32
     };
     localparam integer stats5 [0 : (stats5_num - 1)] = {
-        31, 40, 43, 52, 27, 40, 46, 39, 29, 34, 39, 32, 52, 27, 40, 49, 30, 44
+        26, 43, 30, 26, 52, 28, 40, 46, 39, 45, 52, 26, 39, 29, 52, 38, 34, 39, 53, 52, 38, 26, 49, 52, 49, 53, 52, 50
+    };
+    localparam integer stats6 [0 : (stats6_num - 1)] = {
+        31, 40, 43, 52, 27, 40, 46, 39, 29, 34, 39, 32, 52, 27, 40, 49, 30, 44, 54
     };
 
 
 // ---------- Filters ----------
 
-    localparam integer filter_paragraphs = 1;
+    localparam integer filter_paragraphs = 2;
     localparam integer filter_stats [0 : (filter_paragraphs * 3) - 1] = {
-        93, 38, 6     // X start, Y start 1st paragraph
+        93, 38, 3,    // X start, Y start 1st paragraph
+        93, 90, 3     // X start, Y start 2nd paragraph
     };
 
     localparam integer filter1_num = 31;
     localparam integer filter2_num = 26;
-    localparam integer filter3_num = 28;
-    localparam integer filter4_num = 26;
-    localparam integer filter5_num = 29;
-    localparam integer filter6_num = 31;
+    localparam integer filter3_num = 29;
+    localparam integer filter4_num = 29;
+    localparam integer filter5_num = 22;
+    localparam integer filter6_num = 8;
 
     localparam integer filter1 [0 : (filter1_num - 1)] = {
         17, 30, 38, 40, 47, 30, 52, 45, 34, 39, 50, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 52, 26, 44, 52, 45, 33, 30, 43, 30
     };
     localparam integer filter2 [0 : (filter2_num - 1)] = {
-        38, 26, 50, 52, 27, 30, 52, 39, 40, 34, 44, 30, 55, 52, 27, 50, 52, 38, 34, 39, 52, 26, 43, 30, 26, 55
+        38, 26, 50, 52, 27, 30, 52, 39, 40, 34, 44, 30, 53, 52, 27, 50, 52, 38, 34, 39, 52, 26, 43, 30, 26, 54
     };
     localparam integer filter3 [0 : (filter3_num - 1)] = {
-        33, 30, 34, 32, 33, 45, 55, 52, 48, 34, 29, 45, 33, 52, 26, 44, 52, 41, 26, 43, 26, 38, 30, 45, 30, 43, 44, 56
+        55, 39, 40, 54, 52, 40, 31, 52, 41, 34, 49, 30, 37, 52, 34, 39, 52, 26, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 56
     };
     localparam integer filter4 [0 : (filter4_num - 1)] = {
-        2, 33, 40, 40, 44, 30, 52, 48, 33, 34, 28, 33, 52, 41, 26, 43, 26, 38, 30, 45, 30, 43, 44, 52, 45, 40
+        30, 54, 32, 54, 53, 52, 60, 52, 38, 30, 26, 39, 44, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 52, 48, 34, 45, 33
     };
     localparam integer filter5 [0 : (filter5_num - 1)] = {
-        29, 30, 45, 30, 43, 38, 34, 39, 30, 52, 48, 33, 34, 28, 33, 52, 41, 26, 43, 26, 38, 30, 45, 30, 43, 44, 52, 45, 40
+        37, 30, 44, 44, 52, 45, 33, 26, 39, 52, 60, 52, 41, 34, 49, 30, 37, 44, 52, 26, 43, 30
     };
     localparam integer filter6 [0 : (filter6_num - 1)] = {
-        26, 43, 30, 26, 55, 52, 33, 30, 34, 32, 33, 45, 55, 52, 48, 34, 29, 45, 33, 55, 52, 41, 43, 40, 49, 34, 38, 34, 45, 50, 58
+        34, 39, 47, 26, 37, 34, 29, 54
     };
 
 
 // ---------- Buildings ----------
-    localparam integer building_paragraphs = 1;
+    localparam integer building_paragraphs = 2;
     localparam integer building_stats [0 : (building_paragraphs * 3) - 1] = {
-        93, 38, 2     // X start, Y start 1st paragraph
+        93, 38, 3,    // X start, Y start 1st paragraph
+        93, 90, 3     // X start, Y start 2nd paragraph
     };
-    localparam integer building1_num = 27;
+    localparam integer building1_num = 11;
     localparam integer building2_num = 16;
+    localparam integer building3_num = 17;
+    localparam integer building4_num = 22;
+    localparam integer building5_num = 19;
+    localparam integer building6_num = 17;
 
     localparam integer building1 [0 : (building1_num - 1)] = {
-        15, 34, 28, 36, 52, 46, 41, 52, 45, 40, 52, 54, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 52, 26, 39, 29
+        15, 34, 28, 36, 52, 46, 41, 52, 45, 40, 52
     };
     localparam integer building2 [0 : (building2_num - 1)] = {
-        29, 43, 26, 48, 52, 45, 33, 30, 34, 43, 52, 27, 40, 49, 30, 44
+        57, 52, 40, 43, 52, 58, 52, 40, 43, 52, 59, 52, 40, 43, 52, 60
+    };
+
+    localparam integer building3 [0 : (building3_num - 1)] = {
+        47, 26, 37, 34, 29, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 54
+    };
+    localparam integer building4 [0 : (building4_num - 1)] = {
+        20, 44, 34, 39, 32, 52, 38, 34, 39, 53, 52, 38, 26, 49, 53, 52, 28, 30, 39, 45, 43, 30
+    };
+    localparam integer building5 [0 : (building5_num - 1)] = {
+        40, 31, 52, 49, 53, 52, 50, 53, 52, 29, 43, 26, 48, 52, 45, 33, 30, 34, 43
+    };
+    localparam integer building6 [0 : (building6_num - 1)] = {
+        43, 30, 44, 41, 30, 28, 45, 34, 47, 30, 52, 27, 40, 49, 30, 44, 54
     };
 
 
@@ -300,50 +329,50 @@ module Education_Tabs_State #(
 	wire [3:0] temp = (rel_y - (active_start_y + line_idx*LINE_PITCH));
 	wire [2:0] glyph_row_now = line_active_vert ? temp[2:0] : 3'd0;
 
-	// Line length & glyph code from counters
-	reg [7:0] line_length; reg [7:0] glyph_code;
+		// Line length & glyph code from counters (and prefetch glyph code for next char)
+		reg [7:0] line_length; reg [7:0] glyph_code; reg [7:0] glyph_code_pre;
 	always @* begin
-		line_length = 0; glyph_code = 0;
+				line_length = 0; glyph_code = 0; glyph_code_pre = 0;
 		if(line_idx != 4'hF) begin
 			case(info_select)
 				5'd0: if(!use_par1) begin
 						case(line_idx)
-							0: begin line_length = neighbor1_num; if(char_idx < neighbor1_num) glyph_code = neighbor1[char_idx]; end
-							1: begin line_length = neighbor2_num; if(char_idx < neighbor2_num) glyph_code = neighbor2[char_idx]; end
-							2: begin line_length = neighbor3_num; if(char_idx < neighbor3_num) glyph_code = neighbor3[char_idx]; end
+														0: begin line_length = neighbor1_num; if(char_idx < neighbor1_num) glyph_code = neighbor1[char_idx]; if(char_next < neighbor1_num) glyph_code_pre = neighbor1[char_next]; end
+														1: begin line_length = neighbor2_num; if(char_idx < neighbor2_num) glyph_code = neighbor2[char_idx]; if(char_next < neighbor2_num) glyph_code_pre = neighbor2[char_next]; end
+														2: begin line_length = neighbor3_num; if(char_idx < neighbor3_num) glyph_code = neighbor3[char_idx]; if(char_next < neighbor3_num) glyph_code_pre = neighbor3[char_next]; end
 						endcase
 					  end else begin
 						case(line_idx)
-							0: begin line_length = neighbor4_num; if(char_idx < neighbor4_num) glyph_code = neighbor4[char_idx]; end
-							1: begin line_length = neighbor5_num; if(char_idx < neighbor5_num) glyph_code = neighbor5[char_idx]; end
-							2: begin line_length = neighbor6_num; if(char_idx < neighbor6_num) glyph_code = neighbor6[char_idx]; end
+														0: begin line_length = neighbor4_num; if(char_idx < neighbor4_num) glyph_code = neighbor4[char_idx]; if(char_next < neighbor4_num) glyph_code_pre = neighbor4[char_next]; end
+														1: begin line_length = neighbor5_num; if(char_idx < neighbor5_num) glyph_code = neighbor5[char_idx]; if(char_next < neighbor5_num) glyph_code_pre = neighbor5[char_next]; end
+														2: begin line_length = neighbor6_num; if(char_idx < neighbor6_num) glyph_code = neighbor6[char_idx]; if(char_next < neighbor6_num) glyph_code_pre = neighbor6[char_next]; end
 						endcase
 					  end
-				5'd1: case(line_idx)
-						0: begin line_length = union1_num; if(char_idx < union1_num) glyph_code = union1[char_idx]; end
-						1: begin line_length = union2_num; if(char_idx < union2_num) glyph_code = union2[char_idx]; end
-						2: begin line_length = union3_num; if(char_idx < union3_num) glyph_code = union3[char_idx]; end
-						3: begin line_length = union4_num; if(char_idx < union4_num) glyph_code = union4[char_idx]; end
-						4: begin line_length = union5_num; if(char_idx < union5_num) glyph_code = union5[char_idx]; end
-					  endcase
+								5'd1: case(line_idx)
+												0: begin line_length = union1_num; if(char_idx < union1_num) glyph_code = union1[char_idx]; if(char_next < union1_num) glyph_code_pre = union1[char_next]; end
+												1: begin line_length = union2_num; if(char_idx < union2_num) glyph_code = union2[char_idx]; if(char_next < union2_num) glyph_code_pre = union2[char_next]; end
+												2: begin line_length = union3_num; if(char_idx < union3_num) glyph_code = union3[char_idx]; if(char_next < union3_num) glyph_code_pre = union3[char_next]; end
+												3: begin line_length = union4_num; if(char_idx < union4_num) glyph_code = union4[char_idx]; if(char_next < union4_num) glyph_code_pre = union4[char_next]; end
+												4: begin line_length = union5_num; if(char_idx < union5_num) glyph_code = union5[char_idx]; if(char_next < union5_num) glyph_code_pre = union5[char_next]; end
+											endcase
 				5'd2: case(line_idx)
-						0: begin line_length = stats1_num; if(char_idx < stats1_num) glyph_code = stats1[char_idx]; end
-						1: begin line_length = stats2_num; if(char_idx < stats2_num) glyph_code = stats2[char_idx]; end
-						2: begin line_length = stats3_num; if(char_idx < stats3_num) glyph_code = stats3[char_idx]; end
-						3: begin line_length = stats4_num; if(char_idx < stats4_num) glyph_code = stats4[char_idx]; end
-						4: begin line_length = stats5_num; if(char_idx < stats5_num) glyph_code = stats5[char_idx]; end
+												0: begin line_length = stats1_num; if(char_idx < stats1_num) glyph_code = stats1[char_idx]; if(char_next < stats1_num) glyph_code_pre = stats1[char_next]; end
+												1: begin line_length = stats2_num; if(char_idx < stats2_num) glyph_code = stats2[char_idx]; if(char_next < stats2_num) glyph_code_pre = stats2[char_next]; end
+												2: begin line_length = stats3_num; if(char_idx < stats3_num) glyph_code = stats3[char_idx]; if(char_next < stats3_num) glyph_code_pre = stats3[char_next]; end
+												3: begin line_length = stats4_num; if(char_idx < stats4_num) glyph_code = stats4[char_idx]; if(char_next < stats4_num) glyph_code_pre = stats4[char_next]; end
+												4: begin line_length = stats5_num; if(char_idx < stats5_num) glyph_code = stats5[char_idx]; if(char_next < stats5_num) glyph_code_pre = stats5[char_next]; end
 					  endcase
 				5'd3: case(line_idx)
-						0: begin line_length = filter1_num; if(char_idx < filter1_num) glyph_code = filter1[char_idx]; end
-						1: begin line_length = filter2_num; if(char_idx < filter2_num) glyph_code = filter2[char_idx]; end
-						2: begin line_length = filter3_num; if(char_idx < filter3_num) glyph_code = filter3[char_idx]; end
-						3: begin line_length = filter4_num; if(char_idx < filter4_num) glyph_code = filter4[char_idx]; end
-						4: begin line_length = filter5_num; if(char_idx < filter5_num) glyph_code = filter5[char_idx]; end
-						5: begin line_length = filter6_num; if(char_idx < filter6_num) glyph_code = filter6[char_idx]; end
+												0: begin line_length = filter1_num; if(char_idx < filter1_num) glyph_code = filter1[char_idx]; if(char_next < filter1_num) glyph_code_pre = filter1[char_next]; end
+												1: begin line_length = filter2_num; if(char_idx < filter2_num) glyph_code = filter2[char_idx]; if(char_next < filter2_num) glyph_code_pre = filter2[char_next]; end
+												2: begin line_length = filter3_num; if(char_idx < filter3_num) glyph_code = filter3[char_idx]; if(char_next < filter3_num) glyph_code_pre = filter3[char_next]; end
+												3: begin line_length = filter4_num; if(char_idx < filter4_num) glyph_code = filter4[char_idx]; if(char_next < filter4_num) glyph_code_pre = filter4[char_next]; end
+												4: begin line_length = filter5_num; if(char_idx < filter5_num) glyph_code = filter5[char_idx]; if(char_next < filter5_num) glyph_code_pre = filter5[char_next]; end
+												5: begin line_length = filter6_num; if(char_idx < filter6_num) glyph_code = filter6[char_idx]; if(char_next < filter6_num) glyph_code_pre = filter6[char_next]; end
 					  endcase
 				5'd4: case(line_idx)
-						0: begin line_length = building1_num; if(char_idx < building1_num) glyph_code = building1[char_idx]; end
-						1: begin line_length = building2_num; if(char_idx < building2_num) glyph_code = building2[char_idx]; end
+												0: begin line_length = building1_num; if(char_idx < building1_num) glyph_code = building1[char_idx]; if(char_next < building1_num) glyph_code_pre = building1[char_next]; end
+												1: begin line_length = building2_num; if(char_idx < building2_num) glyph_code = building2[char_idx]; if(char_next < building2_num) glyph_code_pre = building2[char_next]; end
 					  endcase
 				default: ;
 			endcase
@@ -380,35 +409,45 @@ module Education_Tabs_State #(
 		end
 	end
 
-	// Inside glyph (exclude spacer)
-	wire inside_char = h_band_valid && (glyph_col_cnt < GLYPH_W) && (glyph_row_cnt < GLYPH_H) && (char_idx < line_length);
+	// Prefetch next pixel position to hide BRAM latency
+	wire [2:0] col_next = (!h_band_valid) ? 3'd0 :
+						  (h_band_start) ? 3'd0 :
+						  (glyph_col_cnt == CELL_W-1) ? 3'd0 :
+						  (glyph_col_cnt + 3'd1);
+	wire [7:0] char_next = (!h_band_valid) ? 8'd0 :
+						   (h_band_start) ? 8'd0 :
+						   (glyph_col_cnt == CELL_W-1) ? (char_idx + 8'd1) :
+						   char_idx;
 
-	// Address calculation
-	wire [11:0] glyph_base = CODE_IS_BASE ? glyph_code[11:0] : (glyph_code * GLYPH_SIZE);
-	wire [11:0] row_offset = ROW_MAJOR ? (glyph_row_cnt * GLYPH_W) : (glyph_col_cnt * GLYPH_H);
-	wire [11:0] col_offset = ROW_MAJOR ? glyph_col_cnt : glyph_row_cnt;
+	// Will the NEXT pixel be inside a glyph (exclude spacer)?
+	wire pre_inside_char = h_band_valid && (col_next < GLYPH_W) && (glyph_row_cnt < GLYPH_H) && (char_next < line_length);
+
+	// Address calculation (prefetch for next pixel)
+	wire [11:0] glyph_base_pre = CODE_IS_BASE ? glyph_code_pre[11:0] : (glyph_code_pre * GLYPH_SIZE);
+	wire [11:0] row_offset_pre = ROW_MAJOR ? (glyph_row_cnt * GLYPH_W) : (col_next * GLYPH_H);
+	wire [11:0] col_offset_pre = ROW_MAJOR ? col_next : glyph_row_cnt;
 	// Signed offset addition with clamping to BRAM range (0 .. 2499)
 	localparam [11:0] BUF_LAST = 12'd2499;
-	wire [11:0] addr_base = glyph_base + row_offset + col_offset; // 0..(<2500)
-	wire signed [12:0] addr_signed = $signed({1'b0,addr_base}) + input_offset; // sign-extend base then add offset
-	wire [11:0] addr_calc = (addr_signed < 0) ? 12'd0 : (addr_signed > BUF_LAST) ? BUF_LAST : addr_signed[11:0];
+	wire [11:0] addr_base_pre = glyph_base_pre + row_offset_pre + col_offset_pre; // 0..(<2500)
+	wire signed [12:0] addr_signed_pre = $signed({1'b0,addr_base_pre}) + input_offset; // sign-extend base then add offset
+	wire [11:0] addr_calc_pre = (addr_signed_pre < 0) ? 12'd0 : (addr_signed_pre > BUF_LAST) ? BUF_LAST : addr_signed_pre[11:0];
 
 	// Align outputs with synchronous BRAM latency
-	reg inside_char_d1, inside_char_d2;
-	wire inside_char_aligned = (BRAM_LATENCY==2) ? inside_char_d2 : inside_char_d1;
+	reg pre_inside_char_d1, pre_inside_char_d2;
+	wire inside_char_aligned = (BRAM_LATENCY==2) ? pre_inside_char_d2 : pre_inside_char_d1;
 
 	always @(posedge clk25 or posedge rst) begin
 		if(rst) begin
 			edu_pixel_en   <= 1'b0;
 			edu_tab_addr   <= 12'd0;
-			inside_char_d1 <= 1'b0;
-			inside_char_d2 <= 1'b0;
+			pre_inside_char_d1 <= 1'b0;
+			pre_inside_char_d2 <= 1'b0;
 		end else begin
-			// present address this cycle; data will be valid next cycle(s)
-			edu_tab_addr   <= inside_char ? addr_calc : 12'd0;
+			// present address for next pixel; data will be valid next cycle(s)
+			edu_tab_addr   <= pre_inside_char ? addr_calc_pre : 12'd0;
 			// pipeline enable to match BRAM latency
-			inside_char_d1 <= inside_char;
-			inside_char_d2 <= inside_char_d1;
+			pre_inside_char_d1 <= pre_inside_char;
+			pre_inside_char_d2 <= pre_inside_char_d1;
 			edu_pixel_en   <= inside_char_aligned;
 		end
 	end

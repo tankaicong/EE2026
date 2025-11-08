@@ -157,7 +157,7 @@ module generate_bram_overlay(
         468,  352, 40, 34, 88508, 	// 107 erode 1
         510,  352, 40, 34, 88508, 	// 108 erode 2
         552,  352, 40, 34, 89868, 	// 109 dilate 1
-        595,  352, 40, 34, 89868, 	// 110 dilate 2
+        595,  352, 40, 34, 89868 	// 110 dilate 2
     };
 
     // User settings wires
@@ -296,8 +296,8 @@ module generate_bram_overlay(
 
         if (coin) overlay_addr = ((frame_y - lookup[89*ATTRS + 1]) * lookup[89*ATTRS + 2]) + (frame_x - lookup[89*ATTRS]) + lookup[89*ATTRS + 4];
         else if (insert_coin) overlay_addr = ((frame_y - lookup[88*ATTRS + 1]) * lookup[88*ATTRS + 2]) + (frame_x - lookup[88*ATTRS]) + lookup[88*ATTRS + 4];
-        else if (tracking_title) overlay_addr = ((frame_y - lookup[87*ATTRS + 1]) * lookup[87*ATTRS + 2]) + (frame_x - lookup[87*ATTRS]) + lookup[87*ATTRS + 4];
-        else if (object_title) overlay_addr = ((frame_y - lookup[86*ATTRS + 1]) * lookup[86*ATTRS + 2]) + (frame_x - lookup[86*ATTRS]) + lookup[86*ATTRS + 4];
+        // else if (tracking_title) overlay_addr = ((frame_y - lookup[87*ATTRS + 1]) * lookup[87*ATTRS + 2]) + (frame_x - lookup[87*ATTRS]) + lookup[87*ATTRS + 4];
+        // else if (object_title) overlay_addr = ((frame_y - lookup[86*ATTRS + 1]) * lookup[86*ATTRS + 2]) + (frame_x - lookup[86*ATTRS]) + lookup[86*ATTRS + 4];
         
         // Elements within info box as least priority
         if (fr_tab_pic_1) overlay_addr = ((frame_y - (lookup[(NUM_ACTL - 23)*ATTRS + 1] + gauss_tab_y)) * lookup[(NUM_ACTL - 23)*ATTRS + 2]) + (frame_x - lookup[(NUM_ACTL - 23)*ATTRS]) + lookup[(NUM_ACTL - 23)*ATTRS + 4];
@@ -420,8 +420,7 @@ module generate_bram_overlay(
         union_tab_pic_1_1 || union_tab_pic_2_1 || union_tab_hdr_1 ||
         update_tab_pic_1_1 || update_tab_pic_2_1 || update_tab_hdr_1_1 || update_tab_hdr_2_1 ||
         filter_tab_pic_1_1 || filter_tab_pic_2_1 || filter_tab_hdr_1 ||
-        bb_tab_pic_1_1 || bb_tab_pic_2_1 || bb_tab_hdr_1_1 || bb_tab_hdr_2_1 ||
-        coin_1 || insert_coin_1 || tracking_title_1 || object_title_1
+        bb_tab_pic_1_1 || bb_tab_pic_2_1 || bb_tab_hdr_1_1 || bb_tab_hdr_2_1
     ) : 1'b0;
 
     // assign menu_write = en ? (coin_1 || insert_coin_1 || tracking_title_1 || object_title_1) : 1'b0;

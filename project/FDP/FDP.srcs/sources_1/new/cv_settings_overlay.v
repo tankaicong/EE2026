@@ -255,17 +255,17 @@ module cv_settings_overlay (
             end
 
             // Filled rectangles inside the left box
-            if ((px >= 10'd33) && (px < (10'd33 + 10'd44)) &&          // 0…43 px wide
-                (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin        // full height
-                overlay_en  = 1'b1;
-                overlay_rgb = {start_blue_val, start_green_val, start_red_val};
-            end
-            if ((px >= (10'd33 + 10'd44 + 1'b1)) &&                     // 45…88 px wide
-                (px < (10'd33 + 10'd89)) &&
-                (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
-                overlay_en  = 1'b1;
-                overlay_rgb = {end_blue_val, end_green_val, end_red_val};
-            end
+            // if ((px >= 10'd33) && (px < (10'd33 + 10'd44)) &&          // 0…43 px wide
+            //     (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin        // full height
+            //     overlay_en  = 1'b1;
+            //     overlay_rgb = {start_blue_val, start_green_val, start_red_val};
+            // end
+            // if ((px >= (10'd33 + 10'd44 + 1'b1)) &&                     // 45…88 px wide
+            //     (px < (10'd33 + 10'd89)) &&
+            //     (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+            //     overlay_en  = 1'b1;
+            //     overlay_rgb = {end_blue_val, end_green_val, end_red_val};
+            // end
 
             // External rectangle for camera
             if ((py == 435 || py == 468) && px >= 33 && px <= 79) begin      // Horizontal x2

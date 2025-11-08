@@ -1,2 +1,0 @@
-bitmap_mem.v,verilog,xil_defaultlib,../../../ip/bitmap_mem/sim/bitmap_mem.v,
-glbl.v,Verilog,xil_defaultlib,glbl.v

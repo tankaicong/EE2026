@@ -12,7 +12,13 @@ module generate_bram_overlay(
     input [1:0] final_out,          // which view/eye is active (00 CAM, 01 PRE, 10 BITMAP, 11 MORPH)
     input ufds_settings_mode,       // UFDS settings mode active
     output to_write,                // HIGH for write to VGA, LOW for no write
-    output [3:0] image_pixel        // BRAM color output (encoded, decode in Top.v)
+    output [3:0] image_pixel,        // BRAM color output (encoded, decode in Top.v)
+    output gauss_sq,
+    output med_sq,
+    output erode1_sq,
+    output erode2_sq,
+    output dilate1_sq,
+    output dilate2_sq
 );
     /* Takes in X and Y coordinate for movable boxes in order:
     Gaussian, Median, Erode 1, Erode 2, Dilate 1, Dilate 2

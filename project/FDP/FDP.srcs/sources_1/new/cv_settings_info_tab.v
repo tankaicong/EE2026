@@ -15,7 +15,7 @@ module cv_settings_info_tab (
     input wire [8:0] mouse_y, // VGA mouse Y (for tab clicks)
     input wire left_edge, // 1-cycle pulse on debounced left click
     // Pulses from overlay for bottom-row boxes
-    input wire cam_box_click,
+    // input wire cam_box_click,
     input wire bitmap_box_click,
     input wire ufds_box_click,
     // Pulses from drag-drop for movable boxes
@@ -50,14 +50,14 @@ module cv_settings_info_tab (
     // Info color index: 0=CAMERA,1=GAUSS,2=MEDIAN,3=ERODE,4=DILATE,5=BITMAP,6=UFDS
     // Default GAUSS
     // Map index to color
-    wire [11:0] info_color =
-        (info_idx == 3'd0) ? CYAN   :
-        (info_idx == 3'd1) ? BLUE   :
-        (info_idx == 3'd2) ? GREEN  :
-        (info_idx == 3'd3) ? RED    :
-        (info_idx == 3'd4) ? YELLOW :
-        (info_idx == 3'd5) ? WHITE  :
-                              MAGENTA;
+    // wire [11:0] info_color =
+    //     // (info_idx == 3'd0) ? CYAN   :
+    //     (info_idx == 3'd1) ? BLUE   :
+    //     (info_idx == 3'd2) ? GREEN  :
+    //     (info_idx == 3'd3) ? RED    :
+    //     (info_idx == 3'd4) ? YELLOW :
+    //     (info_idx == 3'd5) ? WHITE  :
+    //                           MAGENTA;
 
     // Top-Left pixel positions
     localparam [9:0] PIX_X = 10'd359; // fixed X
@@ -109,11 +109,11 @@ module cv_settings_info_tab (
                 else if (median_click) info_idx <= 3'd2;
                 else if (erode_click) info_idx <= 3'd3;
                 else if (dilate_click) info_idx <= 3'd4;
-                else if (cam_box_click) info_idx <= 3'd0;
+                // else if (cam_box_click) info_idx <= 3'd0;
                 else if (bitmap_box_click) info_idx <= 3'd5;
                 else if (ufds_box_click) info_idx <= 3'd6;
             end
-            pix_rgb <= info_color;
+            // pix_rgb <= info_color;
             case (state)
                 S_CLOSED: begin
                     step_cnt <= 0;

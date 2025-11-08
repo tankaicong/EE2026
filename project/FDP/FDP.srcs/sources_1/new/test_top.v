@@ -2,6 +2,8 @@ module test_top(
     input clk,
     input btnU,
     output [15:0] led,
+    output [7:0] seg,
+    output [3:0] an,
     input [15:0] sw,
 
     inout mouse_clk,
@@ -263,17 +265,22 @@ module test_top(
     // Education tabs text renderer (overlay strings)
     wire edu_en;
     wire [11:0] edu_rgb;
-    Education_Tabs_State gen_edu_tab (
+    // Education_Tabs_State gen_edu_tab (
+    Education_Tabs_ctr gen_edu_tab (
         .clk(clk),
         .clk25(clk25),
         .rst(btnU),
+        .seg(seg),
+        .an(an),
+        .led(led),
         .frame_x(frame_x),
         .frame_y(frame_y),
         .change_x(info_pix_x),
         .change_y(info_pix_y),
         .info_select(cv_settings_mode),
         .edu_rgb(edu_rgb),
-        .edu_pixel_en(edu_en)
+        .edu_pixel_en(edu_en),
+        .input_offset(sw[14:5])
     );
 
     wire [11:0] crosshair_rgb = 12'hF0F;
@@ -281,6 +288,19 @@ module test_top(
     // Generate edu tabs
     wire [4:0] cv_settings_mode;
     assign cv_settings_mode = sw[4:0];
+
+    reg  [11:0] edu_tab_addr_new = 12'd0;
+	wire bram_bit_new;
+	Single_Port_Buffer #(
+		.DATA_WIDTH(1),
+		.BUFFER_SIZE(2500),
+        .CHOICE(1)
+	) glyph_bram (
+		.clk(clk25),
+		.addr(edu_tab_addr_new),
+		.dout(bram_bit_new)
+	);
+
 
     // Generate edu tabs
     always @(posedge clk25) begin
@@ -313,6 +333,13 @@ module test_top(
         end
 
         if (within_cursor_vga_3x3) frame_pixel <= 12'h000;
-    end
 
+        if (frame_x > 100 && frame_x <= 105 && frame_y > 100 && frame_y <= 108) begin
+            frame_pixel <= bram_bit_new ? 12'hF00 : 12'h0FF;
+            edu_tab_addr_new <= edu_tab_addr_new + 1;
+        end
+        if (frame_x == 0 && frame_y == 0) begin
+            edu_tab_addr_new <= 12'd0;
+        end
+    end
 endmodule

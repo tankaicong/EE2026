@@ -13,28 +13,68 @@ module Education_Tabs_State #(
     input        clk,
 	input        clk25,
 	input        rst,
+
+    output [7:0] seg,
+    output [3:0] an,
+    output reg [15:0] led,
+
 	input [9:0]  frame_x,
 	input [9:0]  frame_y,
 	input [9:0]  change_x,
 	input [8:0]  change_y,
 	input [4:0]  info_select,
+	input signed [9:0]  input_offset, // signed vertical/horizontal address offset (+/-)
 	output reg   edu_pixel_en,
 	output [11:0] edu_rgb
 );
+    reg [15:0] ss_output; 
+    always @ (*) begin
+        // ss_output <= (rel_x == 94 && rel_y == 39) ? edu_tab_addr : ss_output;
+        ss_output[1:0] <= (rel_x == 94 && rel_y == 51) ? edu_tab_addr : ss_output[1:0];
+        ss_output[3:2] <= (rel_x == 94 && rel_y == 52) ? edu_tab_addr : ss_output[3:2];
+
+        // led[7:0] <= (rel_x == 94 && rel_y == 51) ? edu_tab_addr : led[7:0];
+        // led[15:8] <= (rel_x == 94 && rel_y == 52) ? edu_tab_addr : led[15:8];
+        led[7] <= (rel_x == 94 && rel_y == 51) ? bram_bit : led[7];
+        led[6] <= (rel_x == 95 && rel_y == 51) ? bram_bit : led[6];
+        led[5] <= (rel_x == 96 && rel_y == 51) ? bram_bit : led[5];
+        led[4] <= (rel_x == 97 && rel_y == 51) ? bram_bit : led[4];
+        led[3] <= (rel_x == 98 && rel_y == 51) ? bram_bit : led[3];
+        led[2] <= (rel_x == 99 && rel_y == 51) ? bram_bit : led[2];
+        led[1] <= (rel_x == 100 && rel_y == 51) ? bram_bit : led[1];
+        led[0] <= (rel_x == 101 && rel_y == 51) ? bram_bit : led[0];
+
+        led[15] <= (rel_x == 94 && rel_y == 52) ? bram_bit : led[15];
+        led[14] <= (rel_x == 95 && rel_y == 52) ? bram_bit : led[14];
+        led[13] <= (rel_x == 96 && rel_y == 52) ? bram_bit : led[13];
+        led[12] <= (rel_x == 97 && rel_y == 52) ? bram_bit : led[12];
+        led[11] <= (rel_x == 98 && rel_y == 52) ? bram_bit : led[11];
+        led[10] <= (rel_x == 99 && rel_y == 52) ? bram_bit : led[10];
+        led[9] <= (rel_x == 100 && rel_y == 52) ? bram_bit : led[9];
+        led[8] <= (rel_x == 101 && rel_y == 52) ? bram_bit : led[8];
+    end
+    Seven_Seg ssd (
+        .clk(clk),
+        .num(ss_output),
+        .dd(4'b0000),
+        .seg(seg),
+        .an(an)
+    );
 
 	// BRAM interface (embedded for self-contained module)
 	reg  [11:0] edu_tab_addr;
 	wire [0:0]  bram_bit;
 	Single_Port_Buffer #(
 		.DATA_WIDTH(1),
-		.BUFFER_SIZE(2500)
+		.BUFFER_SIZE(2500),
+        .CHOICE(1)
 	) glyph_bram (
 		.clk(clk25),
 		.addr(edu_tab_addr),
 		.dout(bram_bit)
 	);
 
-	assign edu_rgb = bram_bit ? 12'hF00 : 12'hFFF; // black foreground
+	assign edu_rgb = bram_bit ? 12'hF00 : 12'h0FF; // black foreground
 
 	// ---------------- Constants ----------------
 	localparam integer GLYPH_W    = 5;
@@ -203,6 +243,7 @@ module Education_Tabs_State #(
 	// Horizontal band gating
 	wire h_band_start = line_active_vert && (rel_x == active_start_x);
 	wire h_band_valid = line_active_vert && (rel_x >= active_start_x) && (rel_x < active_start_x + line_length*CELL_W);
+    wire h_band_valid_alt = line_active_vert && (rel_x > active_start_x) && (rel_x < active_start_x + line_length*CELL_W);
 
 	// Counters update
 	always @(posedge clk25 or posedge rst) begin
@@ -232,20 +273,32 @@ module Education_Tabs_State #(
 
 	// Inside glyph (exclude spacer)
 	wire inside_char = h_band_valid && (glyph_col_cnt < GLYPH_W) && (glyph_row_cnt < GLYPH_H) && (char_idx < line_length);
+    wire inside_char_alt = h_band_valid_alt && (glyph_col_cnt < GLYPH_W) && (glyph_row_cnt < GLYPH_H) && (char_idx < line_length);
 
 	// Address calculation
 	wire [11:0] glyph_base = CODE_IS_BASE ? glyph_code[11:0] : (glyph_code * GLYPH_SIZE);
 	wire [11:0] row_offset = ROW_MAJOR ? (glyph_row_cnt * GLYPH_W) : (glyph_col_cnt * GLYPH_H);
 	wire [11:0] col_offset = ROW_MAJOR ? glyph_col_cnt : glyph_row_cnt;
-	wire [11:0] addr_calc  = glyph_base + row_offset + col_offset;
+	// Signed offset addition with clamping to BRAM range (0 .. 2499)
+	localparam [11:0] BUF_LAST = 12'd2499;
+	wire [11:0] addr_base = glyph_base + row_offset + col_offset; // 0..(<2500)
+	wire signed [12:0] addr_signed = $signed({1'b0,addr_base}) + input_offset; // sign-extend base then add offset
+	wire [11:0] addr_calc = (addr_signed < 0) ? 12'd0 : (addr_signed > BUF_LAST) ? BUF_LAST : addr_signed[11:0];
+
+    reg [11:0] edu_tab_addr_next;
+    wire [11:0] addr_calc_next = addr_calc + 12'd1;
 
 	// Register outputs (align with synchronous BRAM)
 	always @(posedge clk25 or posedge rst) begin
 		if(rst) begin
 			edu_pixel_en <= 1'b0;
 			edu_tab_addr <= 12'd0;
+            edu_tab_addr_next <= 12'd0;
+        
 		end else begin
-			edu_pixel_en <= inside_char;
+			// edu_pixel_en <= inside_char_alt;
+            
+            edu_pixel_en <= inside_char;
 			edu_tab_addr <= inside_char ? addr_calc : 12'd0;
 		end
 	end

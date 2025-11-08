@@ -21,10 +21,12 @@ module generate_bram_overlay(
     en is used to turn on/off the overlay */
     // Access BRAM
     reg [17:0] overlay_addr;
-    Single_Port_Buffer single_buffer(
+    Single_Port_Buffer #(
+        .CHOICE(0)
+    ) single_buffer (
         .clk(clk25),
         .addr(overlay_addr),
-        .dout(image_pixel)
+        .dout(image_pixel)  
     );
 
     // Localparams for pixels

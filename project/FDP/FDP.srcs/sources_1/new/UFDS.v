@@ -780,7 +780,7 @@ always @(posedge clk) begin
             // snapshot one component per cycle to ease timing
             S_COMP0: begin
                 // (LSB chunk)
-                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA) begin
+                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
                     comp3210_left[9:0] = min_x[slot0];
                     comp3210_right[9:0] = max_x[slot0];
                     comp3210_top[8:0] = min_y[slot0];
@@ -877,7 +877,7 @@ always @(posedge clk) begin
                 state <= S_COMP1;
             end
             S_COMP1: begin
-                 if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA) begin
+                 if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
                     comp3210_left[19:10] = min_x[slot1];
                     comp3210_right[19:10] = max_x[slot1];
                     comp3210_top[17:9] = min_y[slot1];
@@ -939,7 +939,7 @@ always @(posedge clk) begin
                 state <= S_COMP2;
             end
             S_COMP2: begin
-                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA) begin
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
                     comp3210_left[29:20] = min_x[slot2];
                     comp3210_right[29:20] = max_x[slot2];
                     comp3210_top[26:18] = min_y[slot2];
@@ -1001,7 +1001,7 @@ always @(posedge clk) begin
             end
             S_COMP3: begin
                 // (MSB chunk)
-                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA) begin
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
                     comp3210_left[29:20] = min_x[slot2];
                     comp3210_right[29:20] = max_x[slot2];
                     comp3210_top[26:18] = min_y[slot2];
@@ -1758,7 +1758,7 @@ endmodule
 //                 end
 
 //                 // update leaderboard and filter out
-//                 if (ua_area_new >= MIN_AREA) begin
+//                 if (ua_area_new >= MIN_AREA_RT) begin
 //                     if      (slot0 == ua) slot0_area <= ua_area_new;
 //                     else if (slot1 == ua) slot1_area <= ua_area_new;
 //                     else if (slot2 == ua) slot2_area <= ua_area_new;

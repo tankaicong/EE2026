@@ -48,6 +48,8 @@ module Top(
     wire cv_settings_mode = (state == S_CV_SETTINGS);
     // wire user_settings_mode = (state == S_USER_SETTINGS);
     wire ufds_settings_mode = (state == S_UFDS_SETTINGS);
+
+    wire menu_mode = (state == S_MENU);
     
     // Crosshair color mapping from selection
     wire [11:0] crosshair_rgb = CYAN;
@@ -1315,6 +1317,7 @@ module Top(
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
         .px(frame_x), .py(frame_y),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
+        .info_tab_top_y(info_pix_y),
         .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
         .return_click(ufds_return_click),
         .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), 
@@ -1377,6 +1380,7 @@ module Top(
         .front_idx(front_idx),
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
+        .menu_mode(menu_mode),
         .morph_state(Morphology_State),
         .info_idx(ufds_tab_idx),
         .to_write(write_high),

@@ -62,8 +62,8 @@ module UFDS_Detector(
     output reg  [39:0] comp3210_cx,
     output reg  [35:0] comp3210_cy,
     output reg  [63:0] comp3210_area,
-    output wire ready_to_read
-
+    output wire ready_to_read,
+    output wire [8:0] next_unused_label
     );
 
 localparam integer WIDTH = 310;
@@ -108,7 +108,7 @@ localparam integer FIND_MAX_ITERATIONS = 8; // to prevent infinite loop in find,
 (* ram_style = "block" *) reg [3:0] rank [0:MAX_LABELS-1]; // C++ eq: vector<int> rank (MAX_LABELS); 
 (* ram_style = "block" *) reg active_root [0:MAX_LABELS-1]; // boolean array marking whether a component ID is in use as a root
 (* ram_style = "block" *) reg [label_bits-1:0] next_label; // next unused label n0.
-
+assign next_unused_label = next_label; // to read the next unused label
 // stats for each component (hence only store for root pixel, where parent[label] == label)
 // centroid_x = sum_x / area ; centroid_y = sum_y / area
 (* ram_style = "block" *) reg [16:0] area [0:MAX_LABELS-1]; // number of pixels in this component
@@ -801,15 +801,15 @@ always @(posedge clk) begin
                     prox_cx1 <= (min_x[slot1] + max_x[slot1]) >> 1; prox_cy1 <= (min_y[slot1] + max_y[slot1]) >> 1;
                     prox_cx2 <= (min_x[slot2] + max_x[slot2]) >> 1; prox_cy2 <= (min_y[slot2] + max_y[slot2]) >> 1;
                     prox_cx3 <= (min_x[slot3] + max_x[slot3]) >> 1; prox_cy3 <= (min_y[slot3] + max_y[slot3]) >> 1;
-              // Compute absolute deltas (blocking assigns for intra-cycle math)
-              dx0 = (prox_cx0 >= 155) ? (prox_cx0 - 155) : (155 - prox_cx0);
-              dy0 = ({1'b0,prox_cy0} >= 120) ? ({1'b0,prox_cy0} - 120) : (120 - {1'b0,prox_cy0});
-              dx1 = (prox_cx1 >= 155) ? (prox_cx1 - 155) : (155 - prox_cx1);
-              dy1 = ({1'b0,prox_cy1} >= 120) ? ({1'b0,prox_cy1} - 120) : (120 - {1'b0,prox_cy1});
-              dx2 = (prox_cx2 >= 155) ? (prox_cx2 - 155) : (155 - prox_cx2);
-              dy2 = ({1'b0,prox_cy2} >= 120) ? ({1'b0,prox_cy2} - 120) : (120 - {1'b0,prox_cy2});
-              dx3 = (prox_cx3 >= 155) ? (prox_cx3 - 155) : (155 - prox_cx3);
-              dy3 = ({1'b0,prox_cy3} >= 120) ? ({1'b0,prox_cy3} - 120) : (120 - {1'b0,prox_cy3});
+                    // Compute absolute deltas (blocking assigns for intra-cycle math)
+                    dx0 = (prox_cx0 >= 155) ? (prox_cx0 - 155) : (155 - prox_cx0);
+                    dy0 = ({1'b0,prox_cy0} >= 120) ? ({1'b0,prox_cy0} - 120) : (120 - {1'b0,prox_cy0});
+                    dx1 = (prox_cx1 >= 155) ? (prox_cx1 - 155) : (155 - prox_cx1);
+                    dy1 = ({1'b0,prox_cy1} >= 120) ? ({1'b0,prox_cy1} - 120) : (120 - {1'b0,prox_cy1});
+                    dx2 = (prox_cx2 >= 155) ? (prox_cx2 - 155) : (155 - prox_cx2);
+                    dy2 = ({1'b0,prox_cy2} >= 120) ? ({1'b0,prox_cy2} - 120) : (120 - {1'b0,prox_cy2});
+                    dx3 = (prox_cx3 >= 155) ? (prox_cx3 - 155) : (155 - prox_cx3);
+                    dy3 = ({1'b0,prox_cy3} >= 120) ? ({1'b0,prox_cy3} - 120) : (120 - {1'b0,prox_cy3});
                     // Manhattan distance (no multiplies) as proximity metric
                     d0 <= dx0 + dy0;
                     d1 <= dx1 + dy1;

@@ -2,7 +2,7 @@
 
 module Top(
     input clk, btnU,
-    // input btnC,
+    input btnC, btnR, btnL, btnD,
 
     output ov7670_pwdn, ov7670_reset, ov7670_xclk,
     input ov7670_href_pin, ov7670_pclk_pin, ov7670_vsync_pin,
@@ -164,8 +164,7 @@ module Top(
                     left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
                     left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
                     left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
-                    left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
-                end
+                    left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;                end
 
                 if (in_roi && (
                     // Comp 0
@@ -283,10 +282,10 @@ module Top(
     wire ov7670_pclk;
     wire ov7670_vsync;
     wire [7:0] ov7670_d;
-    assign ov7670_href = sw[13] ? 1'bz : ov7670_href_pin;
-    assign ov7670_pclk = sw[13] ? 1'bz : ov7670_pclk_pin;
-    assign ov7670_vsync = sw[13] ? 1'bz : ov7670_vsync_pin;
-    assign ov7670_d = sw[13] ? 8'bzzzzzzzz : ov7670_d_pin;
+    assign ov7670_href = sw[15] ? 1'bz : ov7670_href_pin;
+    assign ov7670_pclk = sw[15] ? 1'bz : ov7670_pclk_pin;
+    assign ov7670_vsync = sw[15] ? 1'bz : ov7670_vsync_pin;
+    assign ov7670_d = sw[15] ? 8'bzzzzzzzz : ov7670_d_pin;
 
 // ----------- OV7670 CAMERA ----------- //
     // Generate a single-cycle resend pulse in the 24 MHz camera clock domain
@@ -838,8 +837,6 @@ module Top(
                 end
             endcase
         end
-        B1_addr_off_col <= sw[3:0];
-        B1_addr_off_row <= sw[7:4];
     end
 
     // FROM UART
@@ -1000,7 +997,8 @@ module Top(
         .comp3210_cy(comp3210_cy),
         .comp3210_area(comp3210_area),
         .comp_count(comp_count),
-        .ready_o(ready_o)
+        .ready_o(ready_o),
+        .next_unused_label(next_unused_label)
     );
 
 
@@ -1052,6 +1050,8 @@ module Top(
     wire [8:0] cy1 = comp3210_cy[17:9];
     wire [8:0] cy2 = comp3210_cy[26:18];
     wire [8:0] cy3 = comp3210_cy[35:27];
+
+    wire [8:0] DELETE_THIS = next_unused_label;
 
     //FROM UART
     // wire [9:0] left0   = received_left_boxes[9:0];
@@ -1532,9 +1532,95 @@ module Top(
     wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
     wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
 
+
+// ----------- SERVO CONTROLLER ----------- //
     // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
-    wire servo_x_pwm;
-    wire servo_y_pwm;
+    wire signed [31:0] servo_x_angle;
+    reg signed [31:0] servo_y_angle = 32'd100_000;
+
+    // reg [9:0] btn_counter [4:0]; //loops around every 1024 counts --> ~ 1 sec to get 100_000 steps
+    // initial begin
+    //     btn_counter[0] = 10'd1;
+    //     btn_counter[1] = 10'd1;
+    //     btn_counter[2] = 10'd1;
+    //     btn_counter[3] = 10'd1;
+    // end
+
+    // // Simple button-controlled servo angle adjuster for testing
+    // always @(posedge clk) begin
+    //     if (btnU) begin
+    //         servo_x_angle <= 18'd100_000;
+    //         servo_y_angle <= 18'd100_000;
+    //         btn_counter[0] <= 10'd1;
+    //         btn_counter[1] <= 10'd1;
+    //         btn_counter[2] <= 10'd1;
+    //         btn_counter[3] <= 10'd1;
+    //     end
+
+    //     if(btnC) btn_counter[0] <= btn_counter[0] + 1;
+    //     else btn_counter[0] <= btn_counter[0];
+
+    //     if (btn_counter[0] == 10'd0) begin 
+    //         btn_counter[0] <= 10'd1;
+    //         servo_y_angle <= (servo_y_angle < 200_000) ? servo_y_angle + 1 : 200_000;
+    //     end
+
+    //     if(btnD) btn_counter[1] <= btn_counter[1] + 1;
+    //     else btn_counter[1] <= btn_counter[1];
+
+    //     if (btn_counter[1] == 10'd0) begin
+    //         btn_counter[1] <= 10'd1;
+    //         servo_y_angle <= (servo_y_angle > 0) ? servo_y_angle - 1 : 0;
+    //     end
+
+    //     if(btnL) btn_counter[2] <= btn_counter[2] + 1;
+    //     else btn_counter[2] <= btn_counter[2];
+
+    //     if (btn_counter[2] == 10'd0) begin
+    //         btn_counter[2] <= 10'd1;
+    //         servo_x_angle <= (servo_x_angle > 0) ? servo_x_angle - 1 : 0;
+    //     end
+
+    //     if(btnR) btn_counter[3] <= btn_counter[3] + 1;
+    //     else btn_counter[3] <= btn_counter[3];
+
+    //     if (btn_counter[3] == 10'd0) begin
+    //         btn_counter[3] <= 10'd1;
+    //         servo_x_angle <= (servo_x_angle < 200_000) ? servo_x_angle + 1 : 200_000;
+    //     end
+    // end
+
+    Servo_Controller servo_controller(
+        .clk(clk),
+        .reset(btnU),
+        .servo_en(1'b1),
+        .servo_x_angle(servo_x_angle),
+        .servo_y_angle(servo_y_angle),
+        .servo_x_pwm(servo_x_pwm),
+        .servo_y_pwm(servo_y_pwm)
+    );
+
+//----------- PID CONTROLLER ----------- //
+    wire pid_enable = sw[14] && (comp_count != 0); //enable PID only when at least one object is detected and switch is on
+    PID_Controller #(
+        .KP_BITSHIFT_LEFT(32'd1),   //bitshift values chosen to have good starting values at 6 out of 16
+        .KI_BITSHIFT_RIGHT(32'd10),
+        .KD_BITSHIFT_RIGHT(32'd10),
+        .INTEGRAL_LIMIT(32'd50_000)
+    )
+    pan_pid_controller(
+        .clk(clk),
+        .reset(btnU),
+        .enable(pid_enable),
+        .setpoint(32'sd155), //center of frame
+        .measurement(cx0_l), //current x position of object
+        .control_output(servo_x_angle),
+        .KP(sw[11:8]),
+        .KI(sw[7:4]),
+        .KD(sw[3:0]),
+        .SERVO_MAX(32'sd200_000),
+        .SERVO_MIN(32'sd0)
+    );
 
 
 // ----------- UART CONTROLLER ----------- //
@@ -1743,10 +1829,32 @@ module Top(
     //         ss_output[11:0] <= ss_output[11:0];
     //     end
     // end
-    wire [15:0] ss_output = {1'd0, Last_Stage, 2'd0, Last_Stage_RGB, 1'd0, Morph_Count, 4'd0};
-    assign led[15:10] = total_addr_off_col;
-    assign led[9:5] = total_addr_off_row;
-    assign led[4:3] = Final_Out_Control;
+    
+    // assign led[0] = pid_enable;
+    // assign led[3:1] = comp_count;
+    // assign led[15:0] = servo_x_angle[15:0];
+
+
+
+    reg [31:0] ssd_slow_cnt = 32'd0;
+    reg        ssd_slow_en = 1'b0;
+    always @(posedge clk) begin
+        ssd_slow_cnt <= ssd_slow_cnt + 1;
+        if (ssd_slow_cnt >= 32'd0) begin
+            ssd_slow_cnt <= 32'd0;
+            ssd_slow_en <= 1'b1;
+        end else begin
+            ssd_slow_en <= 1'b0;
+        end
+    end
+    reg [15:0] ss_output;
+    always @(*) begin
+        if (ssd_slow_en) begin
+            ss_output <= {7'd0, DELETE_THIS};
+        end else begin
+            ss_output <= ss_output;
+        end
+    end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

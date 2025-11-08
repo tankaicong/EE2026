@@ -11,8 +11,10 @@ module generate_bram_overlay(
     input [2:0] front_idx,          // which movable box is foreground (draw on top when overlapping)
     input [1:0] final_out,          // which view/eye is active (00 CAM, 01 PRE, 10 BITMAP, 11 MORPH)
     input ufds_settings_mode,       // UFDS settings mode active
+    input [3:0] morph_state,        // Morphology state (leftmost is left squares)
+    input [4:0] info_idx,           // Info tab index (0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate)
     output to_write,                // HIGH for write to VGA, LOW for no write
-    output [3:0] image_pixel,        // BRAM color output (encoded, decode in Top.v)
+    output [3:0] image_pixel,       // BRAM color output (encoded, decode in Top.v)
     output gauss_sq,
     output med_sq,
     output erode1_sq,
@@ -27,50 +29,21 @@ module generate_bram_overlay(
     en is used to turn on/off the overlay */
     // Access BRAM
     reg [17:0] overlay_addr;
-    Single_Port_Buffer single_buffer(
+    Single_Port_Buffer #(
+        .CHOICE(0)
+    ) single_buffer (
         .clk(clk25),
         .addr(overlay_addr),
-        .dout(image_pixel)
+        .dout(image_pixel)  
     );
 
     // Localparams for pixels
     localparam integer NUM_usr = 25;        // Number of user things to generate
     localparam integer NUM_ufds = 63;       // Number of UFDS things to generate
-    localparam integer NUM_ACTL = 94;       // (last index + 1) + 6 moving, just to store address of moving parts
+    localparam integer NUM_ACTL = 111;      // (last index + 1) + 6 moving, just to store address of moving parts
     localparam integer ATTRS = 5;           // Number of attributes per thing
     localparam integer lookup [0 : (NUM_ACTL * ATTRS) - 1] = {
         // X, Y, x-size, y-size, bram_offset            // Index, desc, start-end row in csv, start addr, num rows (= numpixels), next addr (start + rows)
-        // 128, 348, 12, 12, 0,            // 0 Red square
-        // 128, 363, 12, 12, 144,          // 1 Green square
-        // 128, 378, 12, 12, 288,          // 2 Blue square
-        // 33, 330, 81, 12, 432,           // 3 Text "Threshold"
-        // 39, 401, 36, 29, 1404,          // 4 Text "Raw Feed"
-        // 40, 446, 34, 12, 2448,          // 5 Text "Camera"
-        // 124, 410, 112, 18, 2856,        // 6 Text "Preprocessing"
-        // 80, 448, 25, 8, 4872,           // 7 Yellow arrow
-        // 253, 448, 25, 8, 4872,          // 8 Yellow arrow
-        // 350, 448, 25, 8, 4872,          // 9 Yellow arrow
-        // 539, 448, 25, 8, 4872,          // 10 Yellow arrow
-        // 106, 451, 146, 2, 5072,         // 11 Yellow short rectangle
-        // 376, 451, 162, 2, 5072,         // 12 Yellow long rectangle
-        // 85, 435, 15, 12, 5396,          // 13 Eye 1 (default open)
-        // 258, 435, 15, 12, 5576,         // 14 Eye 2 (default closed)
-        // 355, 435, 15, 12, 5576,         // 15 Eye 3 (default closed)
-        // 544, 435, 15, 12, 5576,         // 16 Eye 4 (default closed)
-        // 262, 410, 105, 18, 5756,        // 17 Text "Thresholding"
-        // 282, 446, 64, 12, 7646,         // 18 Text "BITMAP"
-        // 410, 410, 95, 18, 8414,         // 19 Text "Morphology"
-        // 558, 401, 77, 29, 10124,        // 20 Text "Object Detection"
-        // 578, 446, 38, 12, 12357,        // 21 Text "UFDS"
-        // 320, 330, 196, 18, 12813,       // 22 Text "Image Processing Blocks"
-        // 362, 296, 281, 319, 16341,      // 23 Gaussian Edu tab
-
-        // 322, 357, 68, 26, 105980,       // 24 Text "Gaussian" + square
-        // 402, 357, 56, 26, 107748,       // 25 Text "Median" + square
-        // 473, 364, 30, 9, 109204,        // 26 Text "Erode 1" + square
-        // 364, 364, 30, 9, 109204,        // 27 Text "Erode 2" + square
-        // 554, 364, 36, 9, 109474,        // 28 Text "Dilate 1" + square
-        // 596, 364, 36, 9, 109474         // 29 Text "Dilate 2" + square
         128,  348, 12, 12, 0, 	    // 0 red square
         128,  363, 12, 12, 144, 	// 1 green square
         128,  378, 12, 12, 288, 	// 2 blue square
@@ -160,13 +133,29 @@ module generate_bram_overlay(
         458,  391, 20, 21, 55950, 	// 85 big 16
         424,  421, 23, 21, 56370, 	// 86 big 36
         456,  421, 23, 21, 56853, 	// 87 big 64
-
-        322,  357, 68, 26, 57336, 	// 88 gaussian
-        402,  357, 56, 26, 59104, 	// 89 median
-        473,  364, 30, 9, 60560, 	// 90 erode 1
-        515,  364, 30, 9, 60560, 	// 91 erode 2
-        554,  364, 36, 9, 60830, 	// 92 dilate 1
-        596,  364, 36, 9, 60830 	// 93 dilate 2
+        3,  31, 88, 44, 34415, 	    // 88 FR tab pic 1 (FR)
+        18,  82, 55, 46, 57336, 	// 89 FR tab pic 2
+        149,  9, 83, 12, 32593, 	// 90 FR tab header
+        18,  32, 55, 46, 59866, 	// 91 Union pic 1
+        18,  82, 55, 46, 62396, 	// 92 Union pic 2
+        144,  9, 44, 12, 38327, 	// 93 Union tab header
+        17,  31, 55, 46, 64926, 	// 94 Update pic 1
+        17,  81, 55, 46, 67456, 	// 95 Update pic 2
+        116,  9, 55, 17, 38855, 	// 96 Update tab header
+        177,  9, 42, 12, 43952, 	// 97 stats tab header
+        18,  31, 57, 45, 69986, 	// 98 filter pic 1
+        18,  81, 57, 45, 72551, 	// 99 filter pic 2
+        149,  9, 42, 12, 49790, 	// 100 filter tab header
+        18,  31, 57, 45, 75116, 	// 101 bb pic 1
+        18,  81, 57, 45, 77681, 	// 102 bb pic 2
+        114,  7, 74, 18, 53042, 	// 103 bounding tab header
+        191,  9, 30, 12, 54374, 	// 104 box tab header
+        475,  204, 68, 26, 80246, 	// 105 gaussian
+        402,  357, 56, 26, 82014, 	// 106 median
+        469,  353, 40, 34, 83470, 	// 107 erode 1
+        511,  353, 40, 34, 83470, 	// 108 erode 2
+        553,  353, 40, 34, 84830, 	// 109 dilate 1
+        595,  353, 40, 34, 84830 	// 110 dilate 2
     };
 
     // User settings wires
@@ -202,12 +191,13 @@ module generate_bram_overlay(
     // assign gauss_tab_1 = (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < (gauss_tab_y + lookup[(NUM_ACTL - 7)*ATTRS + 3]));
     // assign gauss_tab = (~ufds_settings_mode) && (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < 320);
     // assign gauss_tab_1 = (~ufds_settings_mode) && (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < 320);
-    assign gauss_tab = (~ufds_settings_mode) && (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
-    assign gauss_tab_1 = (~ufds_settings_mode) && (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
+    assign gauss_tab = (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
+    assign gauss_tab_1 = (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
     assign gauss_sq = (~ufds_settings_mode) && (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
     assign gauss_sq_1 = (~ufds_settings_mode) && (frame_x > gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
     assign med_sq = (~ufds_settings_mode) && (frame_x >= med_x && frame_x <= (med_x + lookup[(NUM_ACTL - 5)*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[(NUM_ACTL - 5)*ATTRS + 3]));
     assign med_sq_1 = (~ufds_settings_mode) && (frame_x > med_x && frame_x <= (med_x + lookup[(NUM_ACTL - 5)*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[(NUM_ACTL - 5)*ATTRS + 3]));
+
     assign erode_1_sq = (~ufds_settings_mode) && (frame_x >= erode_1_x && frame_x <= (erode_1_x + lookup[(NUM_ACTL - 4)*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[(NUM_ACTL - 4)*ATTRS + 3]));
     assign erode_1_sq_1 = (~ufds_settings_mode) && (frame_x > erode_1_x && frame_x <= (erode_1_x + lookup[(NUM_ACTL - 4)*ATTRS + 2])) && (frame_y >= erode_1_y && frame_y < (erode_1_y + lookup[(NUM_ACTL - 4)*ATTRS + 3]));
     assign erode_2_sq = (~ufds_settings_mode) && (frame_x >= erode_2_x && frame_x <= (erode_2_x + lookup[(NUM_ACTL - 3)*ATTRS + 2])) && (frame_y >= erode_2_y && frame_y < (erode_2_y + lookup[(NUM_ACTL - 3)*ATTRS + 3]));
@@ -216,6 +206,54 @@ module generate_bram_overlay(
     assign dilate_1_sq_1 = (~ufds_settings_mode) && (frame_x > dilate_1_x && frame_x <= (dilate_1_x + lookup[(NUM_ACTL - 2)*ATTRS + 2])) && (frame_y >= dilate_1_y && frame_y < (dilate_1_y + lookup[(NUM_ACTL - 2)*ATTRS + 3]));
     assign dilate_2_sq = (~ufds_settings_mode) && (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
     assign dilate_2_sq_1 = (~ufds_settings_mode) && (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
+
+
+    // UFDS, Sample Neighbour/Find Roots
+    assign fr_tab_pic_1 = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x >= lookup[88*ATTRS] && frame_x <= (lookup[88*ATTRS] + lookup[88*ATTRS + 2])) && (frame_y >= (lookup[88*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[88 * ATTRS + 1] + lookup[88*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign fr_tab_pic_1_1 = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x > lookup[88*ATTRS] && frame_x <= (lookup[88*ATTRS] + lookup[88*ATTRS + 2])) && (frame_y >= (lookup[88*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[88 * ATTRS + 1] + lookup[88*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+
+    assign fr_tab_pic_2 = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x >= lookup[89*ATTRS] && frame_x <= (lookup[89*ATTRS] + lookup[89*ATTRS + 2])) && (frame_y >= (lookup[89*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[89 * ATTRS + 1] + lookup[89*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign fr_tab_pic_2_1 = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x > lookup[89*ATTRS] && frame_x <= (lookup[89*ATTRS] + lookup[89*ATTRS + 2])) && (frame_y >= (lookup[89*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[89 * ATTRS + 1] + lookup[89*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+
+    assign fr_tab_hdr = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x >= lookup[90*ATTRS] && frame_x <= (lookup[90*ATTRS] + lookup[90*ATTRS + 2])) && (frame_y >= (lookup[90*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[90*ATTRS + 1] + lookup[90*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign fr_tab_hdr_1 = (ufds_settings_mode) && (info_idx == 5'd0) && (frame_x > lookup[90*ATTRS] && frame_x <= (lookup[90*ATTRS] + lookup[90*ATTRS + 2])) && (frame_y >= (lookup[90*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[90*ATTRS + 1] + lookup[90*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+
+    // UFDS, Union Components
+    assign union_tab_pic_1 = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x >= lookup[91*ATTRS] && frame_x <= (lookup[91*ATTRS] + lookup[91*ATTRS + 2])) && (frame_y >= (lookup[91*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[91*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign union_tab_pic_1_1 = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x > lookup[91*ATTRS] && frame_x <= (lookup[91*ATTRS] + lookup[91*ATTRS + 2])) && (frame_y >= (lookup[91*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[91*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign union_tab_pic_2 = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x >= lookup[92*ATTRS] && frame_x <= (lookup[92*ATTRS] + lookup[92*ATTRS + 2])) && (frame_y >= (lookup[92*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[92*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign union_tab_pic_2_1 = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x > lookup[92*ATTRS] && frame_x <= (lookup[92*ATTRS] + lookup[92*ATTRS + 2])) && (frame_y >= (lookup[92*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[92*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign union_tab_hdr = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x >= lookup[93*ATTRS] && frame_x <= (lookup[93*ATTRS] + lookup[93*ATTRS + 2])) && (frame_y >= (lookup[93*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[93*ATTRS + 1] + lookup[93*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign union_tab_hdr_1 = (ufds_settings_mode) && (info_idx == 5'd1) && (frame_x > lookup[93*ATTRS] && frame_x <= (lookup[93*ATTRS] + lookup[93*ATTRS + 2])) && (frame_y >= (lookup[93*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[93*ATTRS + 1] + lookup[93*ATTRS + 3] + gauss_tab_y) && frame_y < 296);
+
+    // UFDS, Update Stats
+    assign update_tab_pic_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x >= lookup[94*ATTRS] && frame_x <= (lookup[94*ATTRS] + lookup[94*ATTRS + 2])) && (frame_y >= (lookup[94*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[94*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_pic_1_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x > lookup[94*ATTRS] && frame_x <= (lookup[94*ATTRS] + lookup[94*ATTRS + 2])) && (frame_y >= (lookup[94*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[94*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_pic_2 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x >= lookup[95*ATTRS] && frame_x <= (lookup[95*ATTRS] + lookup[95*ATTRS + 2])) && (frame_y >= (lookup[95*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[95*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_pic_2_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x > lookup[95*ATTRS] && frame_x <= (lookup[95*ATTRS] + lookup[95*ATTRS + 2])) && (frame_y >= (lookup[95*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[95*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_hdr_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x >= lookup[96*ATTRS] && frame_x <= (lookup[96*ATTRS] + lookup[96*ATTRS + 2])) && (frame_y >= (lookup[96*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[96*ATTRS + 1] + lookup[96*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_hdr_1_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x > lookup[96*ATTRS] && frame_x <= (lookup[96*ATTRS] + lookup[96*ATTRS + 2])) && (frame_y >= (lookup[96*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[96*ATTRS + 1] + lookup[96*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_hdr_2 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x >= lookup[97*ATTRS] && frame_x <= (lookup[97*ATTRS] + lookup[97*ATTRS + 2])) && (frame_y >= (lookup[97*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[97*ATTRS + 1] + lookup[97*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+    assign update_tab_hdr_2_1 = (ufds_settings_mode) && (info_idx == 5'd2) && (frame_x > lookup[97*ATTRS] && frame_x <= (lookup[97*ATTRS] + lookup[97*ATTRS + 2])) && (frame_y >= (lookup[97*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[97*ATTRS + 1] + lookup[97*ATTRS + 3] + gauss_tab_y)) && frame_y > 296;
+
+    // UFDS, Filter stats
+    assign filter_tab_pic_1 = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x >= lookup[98*ATTRS] && frame_x <= (lookup[98*ATTRS] + lookup[98*ATTRS + 2])) && (frame_y >= (lookup[98*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[98*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign filter_tab_pic_1_1 = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x > lookup[98*ATTRS] && frame_x <= (lookup[98*ATTRS] + lookup[98*ATTRS + 2])) && (frame_y >= (lookup[98*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[98*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign filter_tab_pic_2 = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x >= lookup[99*ATTRS] && frame_x <= (lookup[99*ATTRS] + lookup[99*ATTRS + 2])) && (frame_y >= (lookup[99*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[99*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign filter_tab_pic_2_1 = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x > lookup[99*ATTRS] && frame_x <= (lookup[99*ATTRS] + lookup[99*ATTRS + 2])) && (frame_y >= (lookup[99*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[99*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign filter_tab_hdr = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x >= lookup[100*ATTRS] && frame_x <= (lookup[100*ATTRS] + lookup[100*ATTRS + 2])) && (frame_y >= (lookup[100*ATTRS + 1] + gauss_tab_y) && frame_y < (med_y + lookup[100*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign filter_tab_hdr_1 = (ufds_settings_mode) && (info_idx == 5'd3) && (frame_x > lookup[100*ATTRS] && frame_x <= (lookup[100*ATTRS] + lookup[100*ATTRS + 2])) && (frame_y >= (lookup[100*ATTRS + 1] + gauss_tab_y) && frame_y < (med_y + lookup[100*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+
+    // UFDS, Bounding Box
+    assign bb_tab_pic_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x >= lookup[101*ATTRS] && frame_x <= (lookup[101*ATTRS] + lookup[101*ATTRS + 2])) && (frame_y >= (lookup[101*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[101*ATTRS + 3] + gauss_tab_y))  && frame_y < 296;
+    assign bb_tab_pic_1_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x > lookup[101*ATTRS] && frame_x <= (lookup[101*ATTRS] + lookup[101*ATTRS + 2])) && (frame_y >= (lookup[101*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[101*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_pic_2 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x >= lookup[102*ATTRS] && frame_x <= (lookup[102*ATTRS] + lookup[102*ATTRS + 2])) && (frame_y >= (lookup[102*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[102*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_pic_2_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x > lookup[102*ATTRS] && frame_x <= (lookup[102*ATTRS] + lookup[102*ATTRS + 2])) && (frame_y >= (lookup[102*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[102*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_hdr_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x >= lookup[103*ATTRS] && frame_x <= (lookup[103*ATTRS] + lookup[103*ATTRS + 2])) && (frame_y >= (lookup[103*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[103*ATTRS + 1] + lookup[103*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_hdr_1_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x > lookup[103*ATTRS] && frame_x <= (lookup[103*ATTRS] + lookup[103*ATTRS + 2])) && (frame_y >= (lookup[103*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[103*ATTRS + 1] + lookup[103*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_hdr_2 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x >= lookup[104*ATTRS] && frame_x <= (lookup[104*ATTRS] + lookup[104*ATTRS + 2])) && (frame_y >= (lookup[104*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[104*ATTRS + 1] + lookup[104*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+    assign bb_tab_hdr_2_1 = (ufds_settings_mode) && (info_idx == 5'd4) && (frame_x > lookup[104*ATTRS] && frame_x <= (lookup[104*ATTRS] + lookup[104*ATTRS + 2])) && (frame_y >= (lookup[104*ATTRS + 1] + gauss_tab_y) && frame_y < (lookup[104*ATTRS + 1] + lookup[104*ATTRS + 3] + gauss_tab_y)) && frame_y < 296;
+
 
     reg [9:0] gauss_tab_x, gauss_x, med_x, erode_1_x, erode_2_x, dilate_1_x, dilate_2_x;
     reg [8:0] gauss_tab_y, gauss_y, med_y, erode_1_y, erode_2_y, dilate_1_y, dilate_2_y;
@@ -243,6 +281,27 @@ module generate_bram_overlay(
     integer i, j;
     reg [2:0] sel; // 0:gauss 1:median 2:erode1 3:erode2 4:dilate1 5:dilate2 7:none
     always @ (*) begin
+        // Elements within info box as least priority
+        if (fr_tab_pic_1) overlay_addr = ((frame_y - (lookup[88*ATTRS + 1] + gauss_tab_y)) * lookup[88*ATTRS + 2]) + (frame_x - lookup[88*ATTRS]) + lookup[88*ATTRS + 4];
+        else if (fr_tab_pic_2) overlay_addr = ((frame_y - (lookup[89*ATTRS + 1] + gauss_tab_y)) * lookup[89*ATTRS + 2]) + (frame_x - lookup[89*ATTRS]) + lookup[89*ATTRS + 4];
+        else if (fr_tab_hdr)   overlay_addr = ((frame_y - (lookup[90*ATTRS + 1] + gauss_tab_y)) * lookup[90*ATTRS + 2]) + (frame_x - lookup[90*ATTRS]) + lookup[90*ATTRS + 4];
+        else if (union_tab_pic_1) overlay_addr = ((frame_y - (lookup[91*ATTRS + 1] + gauss_tab_y)) * lookup[91*ATTRS + 2]) + (frame_x - lookup[91*ATTRS]) + lookup[91*ATTRS + 4];
+        else if (union_tab_pic_2) overlay_addr = ((frame_y - (lookup[92*ATTRS + 1] + gauss_tab_y)) * lookup[92*ATTRS + 2]) + (frame_x - lookup[92*ATTRS]) + lookup[92*ATTRS + 4];
+        else if (union_tab_hdr)   overlay_addr = ((frame_y - (lookup[93*ATTRS + 1] + gauss_tab_y)) * lookup[93*ATTRS + 2]) + (frame_x - lookup[93*ATTRS]) + lookup[93*ATTRS + 4];
+        else if (update_tab_pic_1) overlay_addr = ((frame_y - (lookup[94*ATTRS + 1] + gauss_tab_y)) * lookup[94*ATTRS + 2]) + (frame_x - lookup[94*ATTRS]) + lookup[94*ATTRS + 4];
+        else if (update_tab_pic_2) overlay_addr = ((frame_y - (lookup[95*ATTRS + 1] + gauss_tab_y)) * lookup[95*ATTRS + 2]) + (frame_x - lookup[95*ATTRS]) + lookup[95*ATTRS + 4];
+        else if (update_tab_hdr_1) overlay_addr = ((frame_y - (lookup[96*ATTRS + 1] + gauss_tab_y)) * lookup[96*ATTRS + 2]) + (frame_x - lookup[96*ATTRS]) + lookup[96*ATTRS + 4];
+        else if (update_tab_hdr_2) overlay_addr = ((frame_y - (lookup[97*ATTRS + 1] + gauss_tab_y)) * lookup[97*ATTRS + 2]) + (frame_x - lookup[97*ATTRS]) + lookup[97*ATTRS + 4];
+        else if (filter_tab_pic_1) overlay_addr = ((frame_y - (lookup[98*ATTRS + 1] + gauss_tab_y)) * lookup[98*ATTRS + 2]) + (frame_x - lookup[98*ATTRS]) + lookup[98*ATTRS + 4];
+        else if (filter_tab_pic_2) overlay_addr = ((frame_y - (lookup[99*ATTRS + 1] + gauss_tab_y)) * lookup[99*ATTRS + 2]) + (frame_x - lookup[99*ATTRS]) + lookup[99*ATTRS + 4];
+        else if (filter_tab_hdr)   overlay_addr = ((frame_y - (lookup[100*ATTRS + 1] + gauss_tab_y)) * lookup[100*ATTRS + 2]) + (frame_x - lookup[100*ATTRS]) + lookup[100*ATTRS + 4];
+        else if (bb_tab_pic_1) overlay_addr = ((frame_y - (lookup[101*ATTRS + 1] + gauss_tab_y)) * lookup[101*ATTRS + 2]) + (frame_x - lookup[101*ATTRS]) + lookup[101*ATTRS + 4];
+        else if (bb_tab_pic_2) overlay_addr = ((frame_y - (lookup[102*ATTRS + 1] + gauss_tab_y)) * lookup[102*ATTRS + 2]) + (frame_x - lookup[102*ATTRS]) + lookup[102*ATTRS + 4];
+        else if (bb_tab_hdr_1)   overlay_addr = ((frame_y - (lookup[103*ATTRS + 1] + gauss_tab_y)) * lookup[103*ATTRS + 2]) + (frame_x - lookup[103*ATTRS]) + lookup[103*ATTRS + 4];
+        else if (bb_tab_hdr_2)   overlay_addr = ((frame_y - (lookup[104*ATTRS + 1] + gauss_tab_y)) * lookup[104*ATTRS + 2]) + (frame_x - lookup[104*ATTRS]) + lookup[104*ATTRS + 4];
+
+
+
         // Default: resolve static elements (non-overlapping)
         for (i = 0; i < NUM_usr; i = i + 1) begin
             if (gen[i]) begin
@@ -291,11 +350,41 @@ module generate_bram_overlay(
         case (sel)
             3'd0: overlay_addr = ((frame_y - gauss_y) * lookup[(NUM_ACTL - 6)*ATTRS + 2]) + (frame_x - gauss_x) + lookup[(NUM_ACTL - 6)*ATTRS + 4];
             3'd1: overlay_addr = ((frame_y - med_y) * lookup[(NUM_ACTL - 5)*ATTRS + 2]) + (frame_x - med_x) + lookup[(NUM_ACTL - 5)*ATTRS + 4];
-            3'd2: overlay_addr = ((frame_y - erode_1_y) * lookup[(NUM_ACTL - 4)*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[(NUM_ACTL - 4)*ATTRS + 4];
-            3'd3: overlay_addr = ((frame_y - erode_2_y) * lookup[(NUM_ACTL - 3)*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[(NUM_ACTL - 3)*ATTRS + 4];
-            3'd4: overlay_addr = ((frame_y - dilate_1_y) * lookup[(NUM_ACTL - 2)*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[(NUM_ACTL - 2)*ATTRS + 4];
-            3'd5: overlay_addr = ((frame_y - dilate_2_y) * lookup[(NUM_ACTL - 1)*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[(NUM_ACTL - 1)*ATTRS + 4];
+
+            3'd2: 
+            if (~morph_state[0]) begin
+                overlay_addr = ((frame_y - erode_1_y) * lookup[(NUM_ACTL - 4)*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[(NUM_ACTL - 4)*ATTRS + 4];
+            end else begin
+                overlay_addr = ((frame_y - erode_1_y) * lookup[(NUM_ACTL - 2)*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[(NUM_ACTL - 2)*ATTRS + 4];
+            end
+
+            3'd3:
+            if (~morph_state[1]) begin
+                overlay_addr = ((frame_y - erode_2_y) * lookup[(NUM_ACTL - 3)*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[(NUM_ACTL - 3)*ATTRS + 4];
+            end else begin
+                overlay_addr = ((frame_y - erode_2_y) * lookup[(NUM_ACTL - 1)*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[(NUM_ACTL - 1)*ATTRS + 4];
+            end
+
+            3'd4:
+            if (morph_state[2]) begin
+                overlay_addr = ((frame_y - dilate_1_y) * lookup[(NUM_ACTL - 2)*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[(NUM_ACTL - 2)*ATTRS + 4];
+            end else begin
+                overlay_addr = ((frame_y - dilate_1_y) * lookup[(NUM_ACTL - 4)*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[(NUM_ACTL - 4)*ATTRS + 4];
+            end
+
+            3'd5:
+            if (morph_state[3]) begin
+                overlay_addr = ((frame_y - dilate_2_y) * lookup[(NUM_ACTL - 1)*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[(NUM_ACTL - 1)*ATTRS + 4];
+            end else begin
+                overlay_addr = ((frame_y - dilate_2_y) * lookup[(NUM_ACTL - 3)*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[(NUM_ACTL - 3)*ATTRS + 4];
+            end
+
+            // 3'd2: overlay_addr = ((frame_y - erode_1_y) * lookup[(NUM_ACTL - 4)*ATTRS + 2]) + (frame_x - erode_1_x) + lookup[(NUM_ACTL - 4)*ATTRS + 4];
+            // 3'd3: overlay_addr = ((frame_y - erode_2_y) * lookup[(NUM_ACTL - 3)*ATTRS + 2]) + (frame_x - erode_2_x) + lookup[(NUM_ACTL - 3)*ATTRS + 4];
+            // 3'd4: overlay_addr = ((frame_y - dilate_1_y) * lookup[(NUM_ACTL - 2)*ATTRS + 2]) + (frame_x - dilate_1_x) + lookup[(NUM_ACTL - 2)*ATTRS + 4];
+            // 3'd5: overlay_addr = ((frame_y - dilate_2_y) * lookup[(NUM_ACTL - 1)*ATTRS + 2]) + (frame_x - dilate_2_x) + lookup[(NUM_ACTL - 1)*ATTRS + 4];
             // 3'd6: overlay_addr = ((frame_y - gauss_tab_y) * lookup[(NUM_ACTL - 7)*ATTRS + 2]) + (frame_x - gauss_tab_x) + lookup[(NUM_ACTL - 7)*ATTRS + 4];
+
             3'd6: overlay_addr = ((frame_y - gauss_tab_y) * lookup[24*ATTRS + 2]) + (frame_x - gauss_tab_x) + lookup[24*ATTRS + 4];
             default: /* keep last overlay_addr from static elements */ ;
         endcase
@@ -308,5 +397,11 @@ module generate_bram_overlay(
     // always @ (posedge clk25) begin
     //     to_write <= to_write_int;
     // end
-    assign to_write = en ? ((|gen_1) || (|ufds_1) || gauss_tab_1 || gauss_sq_1 || med_sq_1 || erode_1_sq_1 || erode_2_sq_1 || dilate_1_sq_1 || dilate_2_sq_1) : 1'b0;
+    assign to_write = en ? ((|gen_1) || (|ufds_1) || gauss_tab_1 || gauss_sq_1 || med_sq_1 || erode_1_sq_1 || erode_2_sq_1 || dilate_1_sq_1 || dilate_2_sq_1 ||
+        fr_tab_pic_1_1 || fr_tab_pic_2_1 || fr_tab_hdr_1 ||
+        union_tab_pic_1_1 || union_tab_pic_2_1 || union_tab_hdr_1 ||
+        update_tab_pic_1_1 || update_tab_pic_2_1 || update_tab_hdr_1_1 || update_tab_hdr_2_1 ||
+        filter_tab_pic_1_1 || filter_tab_pic_2_1 || filter_tab_hdr_1 ||
+        bb_tab_pic_1_1 || bb_tab_pic_2_1 || bb_tab_hdr_1_1 || bb_tab_hdr_2_1
+    ) : 1'b0;
 endmodule

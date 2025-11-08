@@ -25,7 +25,8 @@ module cv_settings_info_tab (
     input wire dilate_click,
     output reg [9:0] pix_x, // moving pixel X (VGA coords)
     output reg [8:0] pix_y, // moving pixel Y (VGA coords)
-    output reg [2:0] info_idx, // 0=CAMERA,1=GAUSS,2=MEDIAN,3=ERODE,4=DILATE,5=BITMAP,6=UFDS
+    // output reg [2:0] info_idx, // 0=CAMERA,1=GAUSS,2=MEDIAN,3=ERODE,4=DILATE,5=BITMAP,6=UFDS
+    output reg [3:0] info_idx, // 0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate
     output reg [11:0] pix_rgb // moving pixel color (RGB444)
 );
 
@@ -35,7 +36,7 @@ module cv_settings_info_tab (
     localparam [9:0] TAB_W = 10'd177;
     localparam [8:0] TAB_H = 9'd24;
     localparam [9:0] CLOSE_X = 10'd443;
-    localparam [8:0] CLOSE_Y = 9'd0;
+    localparam [8:0] CLOSE_Y = 9'd195;
 
     // --- Colors (RGB444 BGR order) ---
     localparam [11:0] BLACK = 12'h000;
@@ -62,7 +63,7 @@ module cv_settings_info_tab (
     // Top-Left pixel positions
     localparam [9:0] PIX_X = 10'd359; // fixed X
     localparam [8:0] PIX_Y_INIT = 9'd296; // depends on tab height
-    localparam [8:0] PIX_Y_TOP = 9'd1;
+    localparam [8:0] PIX_Y_TOP = 9'd195;
 
     // Movement timing: 1.5s at 25 MHz
     localparam integer CLK_HZ = 25000000;

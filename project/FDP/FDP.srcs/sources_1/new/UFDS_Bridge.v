@@ -30,7 +30,9 @@ module UFDS_Bridge (
     output wire [2:0]  comp_count,
 
     // Bridge ready (mirrors UFDS ready)
-    output wire ready_o
+    output wire ready_o,
+
+    output wire [8:0] next_unused_label
 );
 
     wire p_fs = (p_x==9'd0 && p_y==8'd0) ? 1'b1 : 1'b0; // frame start when x=0,y=0
@@ -96,7 +98,9 @@ module UFDS_Bridge (
         .comp3210_cx(comp3210_cx),
         .comp3210_cy(comp3210_cy),
         .comp3210_area(comp3210_area),
-        .comp_count(comp_count)
+        .comp_count(comp_count),
+
+        .next_unused_label(next_unused_label)
     );
 
     // Simple 1-word read buffer to align to UFDS ready

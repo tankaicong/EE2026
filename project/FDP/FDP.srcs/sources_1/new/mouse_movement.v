@@ -63,85 +63,85 @@ module mouse_movement(
     localparam MAX_MOVE = 20;// ignore fast delta movements
 
     // Update servo angles every smooth_tick
-    always @(posedge clk) begin
-        if (btnU) begin
-            prev_xpos <= xpos;
-            prev_ypos <= ypos;
-            delta_x <= 0;
-            delta_y <= 0;
-            servo_x_angle <= 90;
-            servo_y_angle <= 90;
-        end else if (new_event) begin
-            delta_x <= $signed(xpos) - $signed(prev_xpos);
-            delta_y <= $signed(ypos) - $signed(prev_ypos);
+    // always @(posedge clk) begin
+    //     if (btnU) begin
+    //         prev_xpos <= xpos;
+    //         prev_ypos <= ypos;
+    //         delta_x <= 0;
+    //         delta_y <= 0;
+    //         servo_x_angle <= 90;
+    //         servo_y_angle <= 90;
+    //     end else if (new_event) begin
+    //         delta_x <= $signed(xpos) - $signed(prev_xpos);
+    //         delta_y <= $signed(ypos) - $signed(prev_ypos);
 
-            prev_xpos <= xpos;
-            prev_ypos <= ypos;
-        end
+    //         prev_xpos <= xpos;
+    //         prev_ypos <= ypos;
+    //     end
 
     
-        if (new_event) begin
-            // Filter X (use scaled deltas so behavior matches original 12-bit inputs)
-            if (scaled_delta_x > MIN_MOVE)
-                filtered_x = (scaled_delta_x > MAX_MOVE) ? MAX_MOVE : scaled_delta_x;
-            else if (scaled_delta_x < -MIN_MOVE)
-                filtered_x = (scaled_delta_x < -MAX_MOVE) ? -MAX_MOVE : scaled_delta_x;
-            else
-                filtered_x = 0;
+    //     if (new_event) begin
+    //         // Filter X (use scaled deltas so behavior matches original 12-bit inputs)
+    //         if (scaled_delta_x > MIN_MOVE)
+    //             filtered_x = (scaled_delta_x > MAX_MOVE) ? MAX_MOVE : scaled_delta_x;
+    //         else if (scaled_delta_x < -MIN_MOVE)
+    //             filtered_x = (scaled_delta_x < -MAX_MOVE) ? -MAX_MOVE : scaled_delta_x;
+    //         else
+    //             filtered_x = 0;
 
-            // Filter Y
-            if (scaled_delta_y > MIN_MOVE)
-                filtered_y = (scaled_delta_y > MAX_MOVE) ? MAX_MOVE : scaled_delta_y;
-            else if (scaled_delta_y < -MIN_MOVE)
-                filtered_y = (scaled_delta_y < -MAX_MOVE) ? -MAX_MOVE : scaled_delta_y;
-            else
-                filtered_y = 0;
+    //         // Filter Y
+    //         if (scaled_delta_y > MIN_MOVE)
+    //             filtered_y = (scaled_delta_y > MAX_MOVE) ? MAX_MOVE : scaled_delta_y;
+    //         else if (scaled_delta_y < -MIN_MOVE)
+    //             filtered_y = (scaled_delta_y < -MAX_MOVE) ? -MAX_MOVE : scaled_delta_y;
+    //         else
+    //             filtered_y = 0;
 
-            // Apply filtered deltas
-            servo_x_angle <= servo_x_angle + filtered_x;
-            servo_y_angle <= servo_y_angle + filtered_y;
+    //         // Apply filtered deltas
+    //         servo_x_angle <= servo_x_angle + filtered_x;
+    //         servo_y_angle <= servo_y_angle + filtered_y;
 
-            // Clamp angles
-            if ((servo_x_angle + filtered_x) < 0) servo_x_angle <= 1;
-            else if ((servo_x_angle + filtered_x) > 180) servo_x_angle <= 179;
+    //         // Clamp angles
+    //         if ((servo_x_angle + filtered_x) < 0) servo_x_angle <= 1;
+    //         else if ((servo_x_angle + filtered_x) > 180) servo_x_angle <= 179;
 
-            if ((servo_y_angle + filtered_y) < 0) servo_y_angle <= 1;
-            else if ((servo_y_angle + filtered_y) > 180) servo_y_angle <= 179;
-        end
-    end
-    
-    // Servo PWM generation (50 Hz, 20 ms period)
-    reg [20:0] pwm_counter = 0;  // counts up to 1,000,000 for 20 ms at 50 MHz clock
-    reg servo_x_out;
-    reg servo_y_out;
-
-    // reg [20:0] pulse_widths [0:180];
-
-    // integer i = 0;
-    // initial begin
-    //     for (i = 0; i <= 180; i = i + 1) begin
-    //         pulse_widths[i] = 100_000 + (i * 100_000 / 180);
+    //         if ((servo_y_angle + filtered_y) < 0) servo_y_angle <= 1;
+    //         else if ((servo_y_angle + filtered_y) > 180) servo_y_angle <= 179;
     //     end
     // end
-    // Convert servo angle (0–180 degrees) to pulse width (1 ms – 2 ms)
-    wire [20:0] pulse_width_x = 50000 + ((180 - servo_x_angle) << 10 );
-    wire [20:0] pulse_width_y = 100_000 + (servo_y_angle << 9);
+    
+    // // Servo PWM generation (50 Hz, 20 ms period)
+    // reg [20:0] pwm_counter = 0;  // counts up to 1,000,000 for 20 ms at 50 MHz clock
+    // reg servo_x_out;
+    // reg servo_y_out;
 
-    always @(posedge clk) begin
-        // Reset counter every 20 ms as most servo motors works with such
-        if (pwm_counter >= 2_000_000 - 1)
-            pwm_counter <= 0;
-        else
-            pwm_counter <= pwm_counter + 1;
-        servo_x_out <= (pwm_counter < pulse_width_x);
-        servo_y_out <= (pwm_counter < pulse_width_y);
-    end
+    // // reg [20:0] pulse_widths [0:180];
 
-    // wire [20:0] pulse_width_x = pulse_widths[(180 - servo_x_angle)];
-    // wire [20:0] pulse_width_y = pulse_widths[servo_y_angle];
+    // // integer i = 0;
+    // // initial begin
+    // //     for (i = 0; i <= 180; i = i + 1) begin
+    // //         pulse_widths[i] = 100_000 + (i * 100_000 / 180);
+    // //     end
+    // // end
+    // // Convert servo angle (0–180 degrees) to pulse width (1 ms – 2 ms)
+    // wire [20:0] pulse_width_x = 50000 + ((180 - servo_x_angle) << 10 );
+    // wire [20:0] pulse_width_y = 100_000 + (servo_y_angle << 9);
 
-    assign servo_x_pwm = servo_x_out;
-    assign servo_y_pwm = servo_y_out;
+    // always @(posedge clk) begin
+    //     // Reset counter every 20 ms as most servo motors works with such
+    //     if (pwm_counter >= 2_000_000 - 1)
+    //         pwm_counter <= 0;
+    //     else
+    //         pwm_counter <= pwm_counter + 1;
+    //     servo_x_out <= (pwm_counter < pulse_width_x);
+    //     servo_y_out <= (pwm_counter < pulse_width_y);
+    // end
+
+    // // wire [20:0] pulse_width_x = pulse_widths[(180 - servo_x_angle)];
+    // // wire [20:0] pulse_width_y = pulse_widths[servo_y_angle];
+
+    // assign servo_x_pwm = servo_x_out;
+    // assign servo_y_pwm = servo_y_out;
 
 
 

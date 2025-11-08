@@ -62,8 +62,8 @@ module UFDS_Detector(
     output reg  [39:0] comp3210_cx,
     output reg  [35:0] comp3210_cy,
     output reg  [63:0] comp3210_area,
-    output wire ready_to_read
-
+    output wire ready_to_read,
+    output wire [8:0] next_unused_label
     );
 
 localparam integer WIDTH = 310;
@@ -108,7 +108,7 @@ localparam integer FIND_MAX_ITERATIONS = 8; // to prevent infinite loop in find,
 (* ram_style = "block" *) reg [3:0] rank [0:MAX_LABELS-1]; // C++ eq: vector<int> rank (MAX_LABELS); 
 (* ram_style = "block" *) reg active_root [0:MAX_LABELS-1]; // boolean array marking whether a component ID is in use as a root
 (* ram_style = "block" *) reg [label_bits-1:0] next_label; // next unused label n0.
-
+assign next_unused_label = next_label; // to read the next unused label
 // stats for each component (hence only store for root pixel, where parent[label] == label)
 // centroid_x = sum_x / area ; centroid_y = sum_y / area
 (* ram_style = "block" *) reg [16:0] area [0:MAX_LABELS-1]; // number of pixels in this component
@@ -169,6 +169,14 @@ reg [label_bits-1:0] slot0, slot1, slot2, slot3; // to hold the best 4 labels
 reg [16:0] slot0_area, slot1_area, slot2_area, slot3_area; // since we are comparing based on area
 reg [16:0] min_area_tmp; // temp
 reg [1:0] min_idx_tmp; // temp
+
+// runtime-configurable allowed output boxes derived from UI selection
+reg [2:0] allowed_n; // 1..4 derived from max_boxes_sel
+
+always @(*) begin
+    // convert 2-bit sel (00..11) to allowed_n = 1..4
+    allowed_n = {1'b0, max_boxes_sel} + 3'd1;
+end
 
 // Proximity ordering helpers (among current 4 slots)
 // reg [label_bits-1:0] v0, v1, v2, v3;
@@ -1059,16 +1067,41 @@ always @(posedge clk) begin
             end
             S_COMPS_DONE: begin
                 // compute comp_count
-                // if (!sort_by_prox) begin
-                    comp_count <=
-                        ((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
-                        ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
-                        ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
-                        ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT));
-                // end else begin
-                //     // clamp by allowed_n in proximity mode
-                //     comp_count <= (prox_valid_n > allowed_n) ? allowed_n : prox_valid_n;
-                // end
+                // count valid slots first (0..4) then clamp by allowed_n (1..4)
+                // compute raw count of valid slots (0..4) and clamp to allowed_n in one cycle
+                comp_count <= (
+                    (((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
+                    ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
+                    ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
+                    ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT))) > allowed_n
+                ) ? allowed_n : (
+                    ((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
+                    ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
+                    ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
+                    ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT)) );
+
+                // zero outputs beyond allowed_n so display layers don't see disabled slots
+                if (allowed_n < 3'd4) begin
+                    // clear slot3 fields (bits 39:30 etc.)
+                    comp3210_left[39:30]  <= 10'd0; comp3210_right[39:30] <= 10'd0;
+                    comp3210_top[35:27]   <= 9'd0;  comp3210_bottom[35:27] <= 9'd0;
+                    comp3210_cx[39:30]    <= 10'd0; comp3210_cy[35:27] <= 9'd0;
+                    comp3210_area[63:48]  <= 16'd0;
+                end
+                if (allowed_n < 3'd3) begin
+                    // clear slot2 fields (bits 29:20 etc.)
+                    comp3210_left[29:20]  <= 10'd0; comp3210_right[29:20] <= 10'd0;
+                    comp3210_top[26:18]   <= 9'd0;  comp3210_bottom[26:18] <= 9'd0;
+                    comp3210_cx[29:20]    <= 10'd0; comp3210_cy[26:18] <= 9'd0;
+                    comp3210_area[47:32]  <= 16'd0;
+                end
+                if (allowed_n < 3'd2) begin
+                    // clear slot1 fields (bits 19:10 etc.)
+                    comp3210_left[19:10]  <= 10'd0; comp3210_right[19:10] <= 10'd0;
+                    comp3210_top[17:9]    <= 9'd0;  comp3210_bottom[17:9]  <= 9'd0;
+                    comp3210_cx[19:10]    <= 10'd0; comp3210_cy[17:9]  <= 9'd0;
+                    comp3210_area[31:16]  <= 16'd0;
+                end
                 state <= S_READY;
             end
 

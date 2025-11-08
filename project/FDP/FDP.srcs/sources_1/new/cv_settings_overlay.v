@@ -21,6 +21,11 @@ module cv_settings_overlay (
     input  wire [8:0]  mouse_y,
     input  wire        left_edge,
 
+    // Info-tab animation state: current top Y of the info tab (in VGA coords).
+    // When >= 322, the tab is fully closed (below), so no barrier is drawn.
+    // As it moves up (decreasing Y), the GREEN barrier grows from y=322 up to y=222.
+    input  wire [8:0]  info_tab_top_y,
+
     // Box top-left positions in VGA coords (from drag/drop)
     input  wire [59:0] boxes_x,  // 6 x 10-bit
     input  wire [53:0] boxes_y,  // 6 x 9-bit
@@ -43,6 +48,8 @@ module cv_settings_overlay (
     // output wire        cam_box_click,
     output wire        bitmap_box_click,
     output wire        ufds_box_click,
+    // Per-pixel dimming mask for the info tab area (to be applied on camera feed in Top)
+    output wire        info_dim_en,
     // Drop zones (overlay is the single source of truth)
     output wire [9:0]  pre_x_o,
     output wire [8:0]  pre_y_o,
@@ -89,6 +96,12 @@ module cv_settings_overlay (
     localparam [11:0] BUMBLEBEE   = 12'hFC0; // 14
   
 
+    // Info-tab barrier geometry (growing GREEN vertical line at x=362, thickness=3)
+    localparam [9:0] INFO_BAR_X       = 10'd362;   // left edge of 3px barrier
+    localparam [9:0] INFO_BAR_W       = 10'd3;     // thickness (px)
+    localparam [8:0] INFO_BAR_Y_BOT   = 9'd322;    // bottom (fixed)
+    localparam [8:0] INFO_BAR_Y_TOP   = 9'd222;    // min top when fully opened
+
 
     // Box sizes in VGA
     localparam [9:0] W_PRE = 10'd72;
@@ -118,6 +131,17 @@ module cv_settings_overlay (
     assign morph_y_o = MORPH_Y;
     assign morph_w_o = MORPH_W;
     assign morph_h_o = MORPH_H;
+
+    // Info-tab barrier visibility and clamped top Y
+    wire        info_bar_visible = (info_tab_top_y < INFO_BAR_Y_BOT);
+    wire [8:0]  info_y_top_clamp = (info_tab_top_y < INFO_BAR_Y_TOP) ? INFO_BAR_Y_TOP : info_tab_top_y;
+
+    // Dimming mask for the info tab content area (to the right of the barrier)
+    // Active only while settings_active and while the tab is above y=322.
+    // Region: x >= (INFO_BAR_X + INFO_BAR_W) .. 639, y in [info_y_top_clamp .. INFO_BAR_Y_BOT]
+    assign info_dim_en = /* independent of settings_active so UFDS can use it */ info_bar_visible &&
+                         (px >= (INFO_BAR_X + INFO_BAR_W)) &&
+                         (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT);
 
 
     // Drop zone borders (1px)
@@ -221,6 +245,15 @@ module cv_settings_overlay (
             end
             if ((py >= 9'd324) && (py <= 9'd393) && (px == 10'd315)) begin
                 overlay_en  = 1'b1; overlay_rgb = DARKBLUE;
+            end
+
+            // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
+            // Draw after the separator lines so it visually overrides them at y=322.
+            if (info_bar_visible) begin
+                if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
+                    (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
+                    overlay_en = 1'b1; overlay_rgb = GREEN;
+                end
             end
             
             // // Vertical black lines downwards from (93,395), (262,395), (373,395), (548,395)

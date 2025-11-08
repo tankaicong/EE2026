@@ -16,6 +16,7 @@ module ufds_settings_overlay (
     input wire [8:0] mouse_y,
     input wire left_edge,
 
+    input  wire [8:0]  info_tab_top_y,
     output reg  overlay_en,
     output reg [11:0] overlay_rgb,
 
@@ -223,6 +224,15 @@ module ufds_settings_overlay (
     wire mouse_in_btn32_1 = (mouse_x >= btn32_x0 && mouse_x <= btn32_x1 && mouse_y >= btn32_y0 && mouse_y <= btn32_y1);
     wire mouse_in_btn64_1 = (mouse_x >= btn64_x0 && mouse_x <= btn64_x1 && mouse_y >= btn64_y0 && mouse_y <= btn64_y1);
 
+
+    wire        info_bar_visible = (info_tab_top_y < INFO_BAR_Y_BOT);
+    wire [8:0]  info_y_top_clamp = (info_tab_top_y < INFO_BAR_Y_TOP) ? INFO_BAR_Y_TOP : info_tab_top_y;
+    // Info-tab barrier geometry (growing GREEN vertical line at x=362, thickness=3)
+    localparam [9:0] INFO_BAR_X       = 10'd362;   // left edge of 3px barrier
+    localparam [9:0] INFO_BAR_W       = 10'd3;     // thickness (px)
+    localparam [8:0] INFO_BAR_Y_BOT   = 9'd322;    // bottom (fixed)
+    localparam [8:0] INFO_BAR_Y_TOP   = 9'd322;    // min top when fully opened
+
     // Latch clicks for tabs and settings
     always @(posedge clk) begin
         if (reset) begin
@@ -233,6 +243,20 @@ module ufds_settings_overlay (
             return_click  <= 1'b0;
         end else begin
             return_click <= 1'b0; // default pulse low
+            if (settings_active) begin
+                // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
+                // Draw after the separator lines so it visually overrides them at y=322.
+                if (info_bar_visible) begin
+                    if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
+                        (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
+                        overlay_en = 1'b1; overlay_rgb = GREEN;
+                    end
+                    if ((px >= 10'd446) && (px <= 10'd639) &&
+                        (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
+                        overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+                    end
+                end
+            end
             if (settings_active && left_edge) begin
                 if (mouse_in_box1) begin
                     return_click <= 1'b1;

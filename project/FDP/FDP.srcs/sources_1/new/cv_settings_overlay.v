@@ -100,7 +100,7 @@ module cv_settings_overlay (
     localparam [9:0] INFO_BAR_X       = 10'd362;   // left edge of 3px barrier
     localparam [9:0] INFO_BAR_W       = 10'd3;     // thickness (px)
     localparam [8:0] INFO_BAR_Y_BOT   = 9'd322;    // bottom (fixed)
-    localparam [8:0] INFO_BAR_Y_TOP   = 9'd222;    // min top when fully opened
+    localparam [8:0] INFO_BAR_Y_TOP   = 9'd322;    // min top when fully opened
 
 
     // Box sizes in VGA
@@ -221,14 +221,14 @@ module cv_settings_overlay (
         overlay_rgb = 12'h000;
 
         if (settings_active) begin
-            // OFFWHITE background fill (growing upward with info_tab_top_y)
-            // Draw first so separator line at y=322 stays visible above it.
-            if (info_bar_visible) begin
-                if ((px >= 10'd446) && (px <= 10'd639) &&
-                    (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
-                    overlay_en = 1'b1; overlay_rgb = OFFWHITE;
-                end
-            end
+            // // OFFWHITE background fill (growing upward with info_tab_top_y)
+            // // Draw first so separator line at y=322 stays visible above it.
+            // if (info_bar_visible) begin
+            //     if ((px >= 10'd446) && (px <= 10'd639) &&
+            //         (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
+            //         overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+            //     end
+            // end
             // Separating lines at y = 322 and y = 396 (full width)
             if ((py == 9'd322) || (py == 9'd396)) begin
                 overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;
@@ -259,13 +259,13 @@ module cv_settings_overlay (
             end
 
             // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
-            // Draw after the separator lines so it visually overrides them at y=322.
-            if (info_bar_visible) begin
-                if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
-                    (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
-                    overlay_en = 1'b1; overlay_rgb = GREEN;
-                end
-            end
+            // // Draw after the separator lines so it visually overrides them at y=322.
+            // if (info_bar_visible) begin
+            //     if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
+            //         (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
+            //         overlay_en = 1'b1; overlay_rgb = GREEN;
+            //     end
+            // end
             
             // // Vertical black lines downwards from (93,395), (262,395), (373,395), (548,395)
             // if (((py >= 9'd396 && py <= 9'd441) || py >= 470) && 

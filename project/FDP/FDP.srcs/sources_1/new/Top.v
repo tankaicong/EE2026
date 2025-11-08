@@ -76,6 +76,25 @@ module Top(
                 if (left_click_edge || right_click_edge || coin_input) begin
                     state <= S_CV_SETTINGS;
                 end
+
+                if ((menu_write) && (overlay_pixel != 4'hF)) begin
+                    if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
+                    else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
+                    else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
+                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                    else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
+                    else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
+                    else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                    else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
+                    else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
+                    else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
+                    else if (overlay_pixel == 4'hB) frame_pixel <= 12'hBEE;
+                    else if (overlay_pixel == 4'hC) frame_pixel <= 12'hC70;
+                    else if (overlay_pixel == 4'hD) frame_pixel <= 12'hFB0;
+                    else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
+                    // 4'hF is transparent (ignored), anything else unmapped: do nothing
+                end
                 // else begin
                 //     // // Display box for start game manual
                 //     // if ((frame_x >= 33) && (frame_x <= 87) && (frame_y >= 123) && (frame_y <= 177)) begin
@@ -1198,7 +1217,7 @@ module Top(
         .start_green_val(start_green_val), .end_green_val(end_green_val), 
         .start_blue_val(start_blue_val), .end_blue_val(end_blue_val),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
-        .info_tab_top_y(info_pix_y),
+        // .info_tab_top_y(info_pix_y),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
@@ -1206,7 +1225,7 @@ module Top(
         .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
         .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
-        .info_dim_en(info_dim_en),
+        // .info_dim_en(info_dim_en),
         .final_out(final_out)
     );
 
@@ -1319,6 +1338,7 @@ module Top(
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .info_tab_top_y(info_pix_y),
         .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
+        .info_dim_en(info_dim_en),
         .return_click(ufds_return_click),
         .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), 
         // .sort_by_prox(ufds_sort_by_prox), 
@@ -1367,6 +1387,7 @@ module Top(
     // reg [53:0] move_y = 54'h2C160B0582C160;
     wire write_high;
     wire [3:0] overlay_pixel;
+    wire menu_write;
     generate_bram_overlay gen_ovrly (
         .clk(clk),        // 100MHz clock (used for position updates)
         .clk25(clk25),    // 25MHz VGA clock for BRAM reads
@@ -1390,7 +1411,8 @@ module Top(
         .erode1_sq(erode1_sq),
         .erode2_sq(erode2_sq),
         .dilate1_sq(dilate1_sq),
-        .dilate2_sq(dilate2_sq)
+        .dilate2_sq(dilate2_sq),
+        .menu_write(menu_write)
     );
 
 

@@ -21,11 +21,6 @@ module cv_settings_overlay (
     input  wire [8:0]  mouse_y,
     input  wire        left_edge,
 
-    // Info-tab animation state: current top Y of the info tab (in VGA coords).
-    // When >= 322, the tab is fully closed (below), so no barrier is drawn.
-    // As it moves up (decreasing Y), the GREEN barrier grows from y=322 up to y=222.
-    input  wire [8:0]  info_tab_top_y,
-
     // Box top-left positions in VGA coords (from drag/drop)
     input  wire [59:0] boxes_x,  // 6 x 10-bit
     input  wire [53:0] boxes_y,  // 6 x 9-bit
@@ -49,7 +44,7 @@ module cv_settings_overlay (
     output wire        bitmap_box_click,
     output wire        ufds_box_click,
     // Per-pixel dimming mask for the info tab area (to be applied on camera feed in Top)
-    output wire        info_dim_en,
+    // output wire        info_dim_en,
     // Drop zones (overlay is the single source of truth)
     output wire [9:0]  pre_x_o,
     output wire [8:0]  pre_y_o,
@@ -136,15 +131,15 @@ module cv_settings_overlay (
     assign morph_h_o = MORPH_H;
 
     // Info-tab barrier visibility and clamped top Y
-    wire        info_bar_visible = (info_tab_top_y < INFO_BAR_Y_BOT);
-    wire [8:0]  info_y_top_clamp = (info_tab_top_y < INFO_BAR_Y_TOP) ? INFO_BAR_Y_TOP : info_tab_top_y;
+    // wire        info_bar_visible = (info_tab_top_y < INFO_BAR_Y_BOT);
+    // wire [8:0]  info_y_top_clamp = (info_tab_top_y < INFO_BAR_Y_TOP) ? INFO_BAR_Y_TOP : info_tab_top_y;
 
     // Dimming mask for the info tab content area (to the right of the barrier)
     // Active only while settings_active and while the tab is above y=322.
     // Region: x >= (INFO_BAR_X + INFO_BAR_W) .. 639, y in [info_y_top_clamp .. INFO_BAR_Y_BOT]
-    assign info_dim_en = /* independent of settings_active so UFDS can use it */ info_bar_visible &&
-                         (px >= (INFO_BAR_X + INFO_BAR_W)) &&
-                         (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT);
+    // assign info_dim_en = /* independent of settings_active so UFDS can use it */ info_bar_visible &&
+    //                      (px >= (INFO_BAR_X + INFO_BAR_W)) &&
+    //                      (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT);
 
 
     // Drop zone borders (1px)

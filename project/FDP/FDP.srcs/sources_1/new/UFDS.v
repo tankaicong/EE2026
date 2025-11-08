@@ -170,6 +170,14 @@ reg [16:0] slot0_area, slot1_area, slot2_area, slot3_area; // since we are compa
 reg [16:0] min_area_tmp; // temp
 reg [1:0] min_idx_tmp; // temp
 
+// runtime-configurable allowed output boxes derived from UI selection
+reg [2:0] allowed_n; // 1..4 derived from max_boxes_sel
+
+always @(*) begin
+    // convert 2-bit sel (00..11) to allowed_n = 1..4
+    allowed_n = {1'b0, max_boxes_sel} + 3'd1;
+end
+
 // Proximity ordering helpers (among current 4 slots)
 // reg [label_bits-1:0] v0, v1, v2, v3;
 // reg [9:0]  prox_cx0, prox_cx1, prox_cx2, prox_cx3;
@@ -1059,16 +1067,41 @@ always @(posedge clk) begin
             end
             S_COMPS_DONE: begin
                 // compute comp_count
-                // if (!sort_by_prox) begin
-                    comp_count <=
-                        ((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
-                        ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
-                        ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
-                        ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT));
-                // end else begin
-                //     // clamp by allowed_n in proximity mode
-                //     comp_count <= (prox_valid_n > allowed_n) ? allowed_n : prox_valid_n;
-                // end
+                // count valid slots first (0..4) then clamp by allowed_n (1..4)
+                // compute raw count of valid slots (0..4) and clamp to allowed_n in one cycle
+                comp_count <= (
+                    (((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
+                    ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
+                    ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
+                    ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT))) > allowed_n
+                ) ? allowed_n : (
+                    ((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
+                    ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
+                    ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
+                    ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT)) );
+
+                // zero outputs beyond allowed_n so display layers don't see disabled slots
+                if (allowed_n < 3'd4) begin
+                    // clear slot3 fields (bits 39:30 etc.)
+                    comp3210_left[39:30]  <= 10'd0; comp3210_right[39:30] <= 10'd0;
+                    comp3210_top[35:27]   <= 9'd0;  comp3210_bottom[35:27] <= 9'd0;
+                    comp3210_cx[39:30]    <= 10'd0; comp3210_cy[35:27] <= 9'd0;
+                    comp3210_area[63:48]  <= 16'd0;
+                end
+                if (allowed_n < 3'd3) begin
+                    // clear slot2 fields (bits 29:20 etc.)
+                    comp3210_left[29:20]  <= 10'd0; comp3210_right[29:20] <= 10'd0;
+                    comp3210_top[26:18]   <= 9'd0;  comp3210_bottom[26:18] <= 9'd0;
+                    comp3210_cx[29:20]    <= 10'd0; comp3210_cy[26:18] <= 9'd0;
+                    comp3210_area[47:32]  <= 16'd0;
+                end
+                if (allowed_n < 3'd2) begin
+                    // clear slot1 fields (bits 19:10 etc.)
+                    comp3210_left[19:10]  <= 10'd0; comp3210_right[19:10] <= 10'd0;
+                    comp3210_top[17:9]    <= 9'd0;  comp3210_bottom[17:9]  <= 9'd0;
+                    comp3210_cx[19:10]    <= 10'd0; comp3210_cy[17:9]  <= 9'd0;
+                    comp3210_area[31:16]  <= 16'd0;
+                end
                 state <= S_READY;
             end
 

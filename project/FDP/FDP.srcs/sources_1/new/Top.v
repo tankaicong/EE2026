@@ -12,6 +12,8 @@ module Top(
     output reg [15:0] led,
     input [15:0] sw,
 
+    input coin_input,
+
     inout mouse_clk,
     inout mouse_data,
     output servo_x_pwm,
@@ -37,6 +39,7 @@ module Top(
     reg[2:0] prev_state = 0; // remember previous state
     localparam S_MENU = 0;
     localparam S_CV_SETTINGS = 1; // CV settings (right-click toggle)
+    wire info_dim_en; // dim mask from CV settings overlay (info tab region)
     // localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
     // localparam S_GAME_MANUAL_MODE = 3;
     localparam S_GAME_AUTO_MODE = 4;
@@ -68,7 +71,7 @@ module Top(
         // State machine for different overlays
         case (state)
             S_MENU: begin
-                if (left_click_edge || right_click_edge) begin
+                if (left_click_edge || right_click_edge || coin_input) begin
                     state <= S_CV_SETTINGS;
                 end
                 // else begin
@@ -154,10 +157,15 @@ module Top(
                 end
 
                 // Dim camera feed under the settings region (rows >= 324)
-                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove unwritten borders from convolutions
+                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   // remove unwritten borders from convolutions
                     frame_pixel <= BLACK;
+                end 
+                if (info_dim_en) begin
+                    // Dim only inside info tab region (to the right of GREEN barrier during animation)
+                    frame_pixel <= { (bram_final_pixel_out[11:8] >> 2), (bram_final_pixel_out[7:4] >> 2), (bram_final_pixel_out[3:0] >> 2) };
                 end
-                else if (frame_y >= 9'd324) begin
+                if (frame_y >= 9'd324) begin
+                    // Fallback: dim entire bottom settings strip
                     frame_pixel <= { (bram_final_pixel_out[11:8] >> 2), (bram_final_pixel_out[7:4] >> 2), (bram_final_pixel_out[3:0] >> 2) };
                 end
 
@@ -1188,6 +1196,7 @@ module Top(
         .start_green_val(start_green_val), .end_green_val(end_green_val), 
         .start_blue_val(start_blue_val), .end_blue_val(end_blue_val),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
+        .info_tab_top_y(info_pix_y),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
@@ -1195,6 +1204,7 @@ module Top(
         .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
         .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
+        .info_dim_en(info_dim_en),
         .final_out(final_out)
     );
 

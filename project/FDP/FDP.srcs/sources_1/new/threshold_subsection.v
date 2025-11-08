@@ -140,7 +140,7 @@ module threshold_subsection (
     // Eyedropper display rectangle
     localparam EYE_X   = 10'd230;
     localparam EYE_Y   = 9'd330;
-    localparam EYE_W   = 10'd50;
+    localparam EYE_W   = 10'd15;
     localparam EYE_H   = 9'd15;
     // Eyedropper toggle square
     localparam EYE_TOG_X = 10'd290;

@@ -361,15 +361,15 @@ module ufds_settings_overlay (
             // nothing
         end else begin
             // Separating lines at y = 322 (full width)
-            if ((py == 322)) begin
-                overlay_en  = 1'b1; overlay_rgb = GREEN;
-            end
-            if ((py == 323)) begin
-                overlay_en  = 1'b1; overlay_rgb = 12'h1A1;
-            end
-            if ((py == 324)) begin
-                overlay_en  = 1'b1; overlay_rgb = 12'h181;
-            end
+            // if ((py == 322)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = GREEN;
+            // end
+            // if ((py == 323)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = 12'h1A1;
+            // end
+            // if ((py == 324)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = 12'h181;
+            // end
             // if ((py == 323) || (py == 321) || (py == 323) || (py == 395) || (py == 397)) begin
             //     overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
             // end

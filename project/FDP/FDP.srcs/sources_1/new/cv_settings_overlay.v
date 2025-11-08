@@ -329,42 +329,42 @@ module cv_settings_overlay (
             if ((px == x1 || px == (x1 + W_PRE - 1)) && py >= y1 && py <= (y1 + H_ALL - 1)) begin
                 overlay_en = 1'b1; overlay_rgb = CYAN;
             end
-            // External rectangle for EA
-            // if ((py == 352 || py == 385) && px >= 468 && px <= 507) begin
-            if ((py == y2 || py == (y2 + H_ALL - 1)) && px >= x2 && px <= (x2 + W_MOR - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // if ((px == 468 || px == 507) && py >= 352 && py <= 385) begin
-            if ((px == x2 || px == (x2 + W_MOR - 1)) && py >= y2 && py <= (y2 + H_ALL - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // External rectangle for EB
-            // if ((py == 352 || py == 385) && px >= 510 && px <= 549) begin
-            if ((py == y3 || py == (y3 + H_ALL - 1)) && px >= x3 && px <= (x3 + W_MOR - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // if ((px == 510 || px == 549) && py >= 352 && py <= 385) begin
-            if ((px == x3 || px == (x3 + W_MOR - 1)) && py >= y3 && py <= (y3 + H_ALL - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // External rectangle for DA
-            // if ((py == 352 || py == 385) && px >= 552 && px <= 591) begin
-            if ((py == y4 || py == (y4 + H_ALL - 1)) && px >= x4 && px <= (x4 + W_MOR - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // if ((px == 552 || px == 591) && py >= 352 && py <= 385) begin
-            if ((px == x4 || px == (x4 + W_MOR - 1)) && py >= y4 && py <= (y4 + H_ALL - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // External rectangle for DB
-            // if ((py == 352 || py == 385) && px >= 594 && px <= 633) begin
-            if ((py == y5 || py == (y5 + H_ALL - 1)) && px >= x5 && px <= (x5 + W_MOR - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            // if ((px == 594 || px == 633) && py >= 352 && py <= 385) begin
-            if ((px == x5 || px == (x5 + W_MOR - 1)) && py >= y5 && py <= (y5 + H_ALL - 1)) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
+            // // External rectangle for EA
+            // // if ((py == 352 || py == 385) && px >= 468 && px <= 507) begin
+            // if ((py == y2 || py == (y2 + H_ALL - 1)) && px >= x2 && px <= (x2 + W_MOR - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // if ((px == 468 || px == 507) && py >= 352 && py <= 385) begin
+            // if ((px == x2 || px == (x2 + W_MOR - 1)) && py >= y2 && py <= (y2 + H_ALL - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // External rectangle for EB
+            // // if ((py == 352 || py == 385) && px >= 510 && px <= 549) begin
+            // if ((py == y3 || py == (y3 + H_ALL - 1)) && px >= x3 && px <= (x3 + W_MOR - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // if ((px == 510 || px == 549) && py >= 352 && py <= 385) begin
+            // if ((px == x3 || px == (x3 + W_MOR - 1)) && py >= y3 && py <= (y3 + H_ALL - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // External rectangle for DA
+            // // if ((py == 352 || py == 385) && px >= 552 && px <= 591) begin
+            // if ((py == y4 || py == (y4 + H_ALL - 1)) && px >= x4 && px <= (x4 + W_MOR - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // if ((px == 552 || px == 591) && py >= 352 && py <= 385) begin
+            // if ((px == x4 || px == (x4 + W_MOR - 1)) && py >= y4 && py <= (y4 + H_ALL - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // External rectangle for DB
+            // // if ((py == 352 || py == 385) && px >= 594 && px <= 633) begin
+            // if ((py == y5 || py == (y5 + H_ALL - 1)) && px >= x5 && px <= (x5 + W_MOR - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // // if ((px == 594 || px == 633) && py >= 352 && py <= 385) begin
+            // if ((px == x5 || px == (x5 + W_MOR - 1)) && py >= y5 && py <= (y5 + H_ALL - 1)) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
             
 
             // Hover interior coloring removed; interiors now filled in Top.v for correct z-layering.
@@ -374,18 +374,18 @@ module cv_settings_overlay (
             if (in1 && in1_mouse) begin
                 overlay_en = 1'b1; overlay_rgb = CYAN;
             end
-            if (in2 && in2_mouse) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            if (in3 && in3_mouse) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            if (in4 && in4_mouse) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
-            if (in5 && in5_mouse) begin
-                overlay_en = 1'b1; overlay_rgb = MAGENTA;
-            end
+            // if (in2 && in2_mouse) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // if (in3 && in3_mouse) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // if (in4 && in4_mouse) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
+            // if (in5 && in5_mouse) begin
+            //     overlay_en = 1'b1; overlay_rgb = MAGENTA;
+            // end
             // eyedropper reactangle to show color clicked and box to toggle eyedropper mode
             // Rectangle at (150,330) size 50x15
             // if ((px >= 230) && (px < (230 + 50)) &&

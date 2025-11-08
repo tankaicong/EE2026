@@ -277,6 +277,55 @@ module Top(
                 // Renamed manual mode
                 // --- Crosshair drawing with user-selected color ---
                 // === Bottom vertical arm ===
+
+                if (frame_addr == 74399) begin
+                    // snapshot UFDS results once per VGA frame
+                    left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
+                    left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
+                    left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
+                    left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;                end
+
+                if (in_roi && (
+                    // Comp 0
+                    (
+                        (frame_x[9:1]-10 == left0_l  && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                        (frame_x[9:1]-10 == right0_l && frame_y[9:1] >= top0_l    && frame_y[9:1] <= bottom0_l) ||
+                        (frame_y[9:1] == top0_l      && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                        (frame_y[9:1] == bottom0_l   && frame_x[9:1]-10 >= left0_l  && frame_x[9:1]-10 <= right0_l) ||
+                        (frame_x[9:1]-10 == cx0_l    && frame_y[9:1] >= cy0_l-2 && frame_y[9:1] <= cy0_l+2) ||
+                        (frame_y[9:1] == cy0_l       && frame_x[9:1]-10 >= cx0_l-2 && frame_x[9:1]-10 <= cx0_l+2)
+                    ) ||
+                    // Comp 1
+                    (
+                        (frame_x[9:1]-10 == left1_l  && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                        (frame_x[9:1]-10 == right1_l && frame_y[9:1] >= top1_l    && frame_y[9:1] <= bottom1_l) ||
+                        (frame_y[9:1] == top1_l      && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                        (frame_y[9:1] == bottom1_l   && frame_x[9:1]-10 >= left1_l  && frame_x[9:1]-10 <= right1_l) ||
+                        (frame_x[9:1]-10 == cx1_l    && frame_y[9:1] >= cy1_l-2 && frame_y[9:1] <= cy1_l+2) ||
+                        (frame_y[9:1] == cy1_l       && frame_x[9:1]-10 >= cx1_l-2 && frame_x[9:1]-10 <= cx1_l+2)
+                    ) ||
+                    // Comp 2
+                    (
+                        (frame_x[9:1]-10 == left2_l  && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                        (frame_x[9:1]-10 == right2_l && frame_y[9:1] >= top2_l    && frame_y[9:1] <= bottom2_l) ||
+                        (frame_y[9:1] == top2_l      && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                        (frame_y[9:1] == bottom2_l   && frame_x[9:1]-10 >= left2_l  && frame_x[9:1]-10 <= right2_l) ||
+                        (frame_x[9:1]-10 == cx2_l    && frame_y[9:1] >= cy2_l-2 && frame_y[9:1] <= cy2_l+2) ||
+                        (frame_y[9:1] == cy2_l       && frame_x[9:1]-10 >= cx2_l-2 && frame_x[9:1]-10 <= cx2_l+2)
+                    ) ||
+                    // Comp 3
+                    (
+                        (frame_x[9:1]-10 == left3_l  && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                        (frame_x[9:1]-10 == right3_l && frame_y[9:1] >= top3_l    && frame_y[9:1] <= bottom3_l) ||
+                        (frame_y[9:1] == top3_l      && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                        (frame_y[9:1] == bottom3_l   && frame_x[9:1]-10 >= left3_l  && frame_x[9:1]-10 <= right3_l) ||
+                        (frame_x[9:1]-10 == cx3_l    && frame_y[9:1] >= cy3_l-2 && frame_y[9:1] <= cy3_l+2) ||
+                        (frame_y[9:1] == cy3_l       && frame_x[9:1]-10 >= cx3_l-2 && frame_x[9:1]-10 <= cx3_l+2)
+                    )
+                )) begin
+                    frame_pixel <= GREEN;
+                end
+                
                 if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+5) begin
                     frame_pixel <= crosshair_rgb;
                 end

@@ -56,7 +56,9 @@ module cv_settings_dragdrop (
 
     // concatenated top-left positions (send to BRAM)
     output wire [59:0] boxes_x, // 6 x 10 bit, {box5..box0}
-    output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0} 
+    output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0}
+    output wire [59:0] boxes_x_test,
+    output wire [53:0] boxes_y_test,
 
     // hover flags: 1 when mouse is currently over the box (for educational box to pop out)
     // output wire [5:0] hover, // box0..box5
@@ -75,10 +77,11 @@ module cv_settings_dragdrop (
     // output reg [1:0] pre_order0,
     // output reg [1:0] pre_order1,
     // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
-    output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
+    // output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
+    output wire [3:0] morph_vector,
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
     // New: 4-bit morphology vector by left-to-right order. 1=DILATE, 0=ERODE or not placed
-    output wire [3:0] morph_vector,
+    
     // z-order control: index of box to render on top (foreground)
     output reg  [2:0] front_idx,
     // debug/telemetry (optional): expose dragging and drop reasons
@@ -89,6 +92,7 @@ module cv_settings_dragdrop (
     output wire       median_click,
     output wire       erode_click,
     output wire       dilate_click
+    // output wire hov2, hov3, hov4, hov5
 );
 
     reg [1:0] pre_order0, pre_order1;
@@ -446,6 +450,43 @@ module cv_settings_dragdrop (
     // outputs
     assign boxes_x = {x5[9:0], x4[9:0], x3[9:0], x2[9:0], x1[9:0], x0[9:0]};
     assign boxes_y = {y5[8:0], y4[8:0], y3[8:0], y2[8:0], y1[8:0], y0[8:0]};
+
+    assign boxes_y_test[53:45] = (r5 == 0) ? y2[8:0] :
+                                (r5 == 1) ? y3[8:0] :
+                                (r5 == 2) ? y4[8:0] :
+                                (r5 == 3) ? y5[8:0] : 8'd0;
+    assign boxes_y_test[44:36] = (r4 == 0) ? y2[8:0] :
+                                (r4 == 1) ? y3[8:0] : 
+                                (r4 == 2) ? y4[8:0] :
+                                (r4 == 3) ? y5[8:0] : 8'd0;
+    assign boxes_y_test[35:27] = (r3 == 0) ? y2[8:0] :
+                                (r3 == 1) ? y3[8:0] :
+                                (r3 == 2) ? y4[8:0] :
+                                (r3 == 3) ? y5[8:0] : 8'd0;
+    assign boxes_y_test[26:18] = (r2 == 0) ? y2[8:0] :
+                                (r2 == 1) ? y3[8:0] : 
+                                (r2 == 2) ? y4[8:0] :
+                                (r2 == 3) ? y5[8:0] : 8'd0;
+    assign boxes_y_test[17:0] = {y1[8:0], y0[8:0]};
+
+    assign boxes_x_test[59:50] = (r5 == 0) ? x2[9:0] :
+                                (r5 == 1) ? x3[9:0] :
+                                (r5 == 2) ? x4[9:0] :
+                                (r5 == 3) ? x5[9:0] : 9'd0;
+    assign boxes_x_test[49:40] = (r4 == 0) ? x2[9:0] :
+                                (r4 == 1) ? x3[9:0] :
+                                (r4 == 2) ? x4[9:0] :
+                                (r4 == 3) ? x5[9:0] : 9'd0;
+    assign boxes_x_test[39:30] = (r3 == 0) ? x2[9:0] :
+                                (r3 == 1) ? x3[9:0] :
+                                (r3 == 2) ? x4[9:0] :
+                                (r3 == 3) ? x5[9:0] : 9'd0;
+    assign boxes_x_test[29:20] = (r2 == 0) ? x2[9:0] :
+                                (r2 == 1) ? x3[9:0] :
+                                (r2 == 2) ? x4[9:0] :
+                                (r2 == 3) ? x5[9:0] : 9'd0;
+    assign boxes_x_test[19:0] = {x1[9:0], x0[9:0]};
+
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
     // 4-bit morphology vector (LSB = leftmost placed morph box). Bit=1 for DILATE, 0 for ERODE or not placed.

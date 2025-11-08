@@ -9,7 +9,7 @@ module Top(
     inout ov7670_siod,
     output ov7670_sioc,
     input [7:0] ov7670_d_pin,
-    output [15:0] led,
+    output reg [15:0] led,
     input [15:0] sw,
 
     inout mouse_clk,
@@ -290,10 +290,14 @@ module Top(
     wire ov7670_pclk;
     wire ov7670_vsync;
     wire [7:0] ov7670_d;
-    assign ov7670_href = sw[15] ? 1'bz : ov7670_href_pin;
-    assign ov7670_pclk = sw[15] ? 1'bz : ov7670_pclk_pin;
-    assign ov7670_vsync = sw[15] ? 1'bz : ov7670_vsync_pin;
-    assign ov7670_d = sw[15] ? 8'bzzzzzzzz : ov7670_d_pin;
+    // assign ov7670_href = sw[15] ? 1'bz : ov7670_href_pin;
+    // assign ov7670_pclk = sw[15] ? 1'bz : ov7670_pclk_pin;
+    // assign ov7670_vsync = sw[15] ? 1'bz : ov7670_vsync_pin;
+    // assign ov7670_d = sw[15] ? 8'bzzzzzzzz : ov7670_d_pin;
+    assign ov7670_href = ov7670_href_pin;
+    assign ov7670_pclk = ov7670_pclk_pin;
+    assign ov7670_vsync = ov7670_vsync_pin;
+    assign ov7670_d = ov7670_d_pin;
 
 // ----------- OV7670 CAMERA ----------- //
     // Generate a single-cycle resend pulse in the 24 MHz camera clock domain
@@ -1632,7 +1636,7 @@ module Top(
 // ----------- SERVO CONTROLLER ----------- //
     // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
     wire signed [31:0] servo_x_angle;
-    reg signed [31:0] servo_y_angle = 32'd100_000;
+    wire signed [31:0] servo_y_angle;
 
     // reg [9:0] btn_counter [4:0]; //loops around every 1024 counts --> ~ 1 sec to get 100_000 steps
     // initial begin
@@ -1689,7 +1693,7 @@ module Top(
     Servo_Controller servo_controller(
         .clk(clk),
         .reset(btnU),
-        .servo_en(1'b1),
+        .servo_en(servo_en),
         .servo_x_angle(servo_x_angle),
         .servo_y_angle(servo_y_angle),
         .servo_x_pwm(servo_x_pwm),
@@ -1697,11 +1701,18 @@ module Top(
     );
 
 //----------- PID CONTROLLER ----------- //
-    wire pid_enable = sw[14] && (comp_count != 0); //enable PID only when at least one object is detected and switch is on
+    //Actual PID stuff
+    wire pid_enable = (comp_count != 0); //enable PID only when at least one object is detected and switch is on
+    reg [7:0] pan_kp = 8'd0;
+    reg [7:0] pan_kd = 8'd0;
+
+    reg [7:0] tilt_kp = 8'd0;
+    reg [7:0] tilt_kd = 8'd0;
+
     PID_Controller #(
-        .KP_BITSHIFT_LEFT(32'd1),   //bitshift values chosen to have good starting values at 6 out of 16
-        .KI_BITSHIFT_RIGHT(32'd10),
-        .KD_BITSHIFT_RIGHT(32'd10),
+        .KP_BITSHIFT_LEFT(32'd0),   //bitshift values chosen to have good starting values at 6 out of 16
+        .KI_BITSHIFT_RIGHT(32'd0),
+        .KD_BITSHIFT_RIGHT(32'd6),
         .INTEGRAL_LIMIT(32'd50_000)
     )
     pan_pid_controller(
@@ -1710,13 +1721,78 @@ module Top(
         .enable(pid_enable),
         .setpoint(32'sd155), //center of frame
         .measurement(cx0_l), //current x position of object
+        .invert_error(1'b1), //invert error for pan axis
         .control_output(servo_x_angle),
-        .KP(sw[11:8]),
-        .KI(sw[7:4]),
-        .KD(sw[3:0]),
+        .KP(pan_kp),
+        .KI(31'b0),
+        .KD(pan_kd),
         .SERVO_MAX(32'sd200_000),
         .SERVO_MIN(32'sd0)
     );
+
+    PID_Controller #(
+        .KP_BITSHIFT_LEFT(32'd0),   //bitshift values chosen to have good starting values at 6 out of 16
+        .KI_BITSHIFT_RIGHT(32'd0),
+        .KD_BITSHIFT_RIGHT(32'd6),
+        .INTEGRAL_LIMIT(32'd50_000)
+    )
+    tilt_pid_controller(
+        .clk(clk),
+        .reset(btnU),
+        .enable(pid_enable),
+        .setpoint(32'sd120), //center of frame
+        .measurement(cx0_l), //current x position of object
+        .invert_error(1'b1), //do not invert error for tilt axis
+        .control_output(servo_y_angle),
+        .KP(tilt_kp),
+        .KI(31'b0),
+        .KD(tilt_kd),
+        .SERVO_MAX(32'sd133_333),
+        .SERVO_MIN(32'sd50_000)
+    );
+
+    //Simple state machine for PID pan and tilt tuning
+    reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
+    reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    always @(*) begin
+        case (PID_Tuning_State)
+            2'b00: begin
+                led[15:14] <= 2'b00;    //indicate idle state
+                ss_output <= 16'd0;
+            end
+            2'b01: begin
+                pan_kp <= sw[15:8];
+                pan_kd <= sw[7:0];
+                led[15:14] <= 2'b10;    //indicate tuning pan
+                ss_output <= {pan_kp, pan_kd};
+            end
+            2'b10: begin
+                tilt_kp <= sw[15:8];
+                tilt_kd <= sw[7:0];
+                led[15:14] <= 2'b01;    //indicate tuning tilt
+                ss_output <= {tilt_kp, tilt_kd};
+            end
+        endcase
+    end
+
+    //debounced btnL,C,R to switch between pan and tilt tuning
+    reg [2:0] btnR_sync = 3'b000;
+    reg [2:0] btnC_sync = 3'b000;
+    reg [2:0] btnL_sync = 3'b000;
+    always @(posedge clk25) begin
+        btnR_sync <= {btnR_sync[1:0], btnR};
+        btnC_sync <= {btnC_sync[1:0], btnC};
+        btnL_sync <= {btnL_sync[1:0], btnL};
+        if (btnL_sync == 3'b001) begin
+            PID_Tuning_State <= 2'b01; //tune pan
+        end
+        else if (btnR_sync == 3'b001) begin
+            PID_Tuning_State <= 2'b10; //tune tilt
+        end
+        else if (btnC_sync == 3'b001) begin
+            PID_Tuning_State <= 2'b00; //idle
+        end
+    end
 
 
 // ----------- UART CONTROLLER ----------- //
@@ -1932,25 +2008,25 @@ module Top(
 
 
 
-    reg [31:0] ssd_slow_cnt = 32'd0;
-    reg        ssd_slow_en = 1'b0;
-    always @(posedge clk) begin
-        ssd_slow_cnt <= ssd_slow_cnt + 1;
-        if (ssd_slow_cnt >= 32'd0) begin
-            ssd_slow_cnt <= 32'd0;
-            ssd_slow_en <= 1'b1;
-        end else begin
-            ssd_slow_en <= 1'b0;
-        end
-    end
-    reg [15:0] ss_output;
-    always @(*) begin
-        if (ssd_slow_en) begin
-            ss_output <= {7'd0, DELETE_THIS};
-        end else begin
-            ss_output <= ss_output;
-        end
-    end
+    // reg [31:0] ssd_slow_cnt = 32'd0;
+    // reg        ssd_slow_en = 1'b0;
+    // always @(posedge clk) begin
+    //     ssd_slow_cnt <= ssd_slow_cnt + 1;
+    //     if (ssd_slow_cnt >= 32'd1) begin
+    //         ssd_slow_cnt <= 32'd0;
+    //         ssd_slow_en <= 1'b1;
+    //     end else begin
+    //         ssd_slow_en <= 1'b0;
+    //     end
+    // end
+    // reg [15:0] ss_output;
+    // always @(*) begin
+    //     if (ssd_slow_en) begin
+    //         ss_output <= {7'd0, DELETE_THIS};
+    //     end else begin
+    //         ss_output <= ss_output;
+    //     end
+    // end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

@@ -838,6 +838,8 @@ module Top(
                 end
             endcase
         end
+        B1_addr_off_col <= sw[3:0];
+        B1_addr_off_row <= sw[7:4];
     end
 
     // FROM UART
@@ -951,9 +953,10 @@ module Top(
     assign final_pixel_we  = (Final_Out_Control[0]) ? rgb_pixel_valid : we;
     assign final_addr_out  = (Final_Out_Control[0]) ? rgb_addr_out : addr;
 
-    assign final_bmp_pixel_out = (~Final_Out_Control[1] | Final_Out_Control[0]) ? bmp_pixel_out : threshold_pixel;
-    assign final_bmp_pixel_we  = (~Final_Out_Control[1] | Final_Out_Control[0]) ? bmp_pixel_valid : rgb_pixel_valid;
-    assign final_bmp_addr_out  = (~Final_Out_Control[1] | Final_Out_Control[0]) ? bmp_addr_out : rgb_addr_out;
+    //"HOTFIX": use raw bitmap for all modes except 2'b11 final bitmap mode
+    assign final_bmp_pixel_out = (Final_Out_Control == 2'b11) ? bmp_pixel_out : threshold_pixel;
+    assign final_bmp_pixel_we  = (Final_Out_Control == 2'b11) ? bmp_pixel_valid : rgb_pixel_valid;
+    assign final_bmp_addr_out  = (Final_Out_Control == 2'b11) ? bmp_addr_out : rgb_addr_out;
 
 
 

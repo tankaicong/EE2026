@@ -57,8 +57,8 @@ module Education_Tabs (
 
     // Start coords of neighbor paragraphs
     localparam integer neighbor_stats [0 : (neighbor_paragraphs * 3) - 1] = {
-        90, 38, 3,     // X start, Y start, num lines 1st paragraph
-        90, 90, 3      // X start, Y start, num lines 2nd paragraph 
+        88, 38, 3,     // X start, Y start, num lines 1st paragraph
+        88, 90, 3      // X start, Y start, num lines 2nd paragraph 
     };
 
     // NOTE: removed a stray/incorrect block that referenced PIX_Y_TOP/PIX_X.
@@ -179,7 +179,7 @@ module Education_Tabs (
     };
     localparam integer building1_num = 11;
     localparam integer building2_num = 16;
-    localparam integer building3_num = 17;
+    localparam integer building3_num = 19;
     localparam integer building4_num = 22;
     localparam integer building5_num = 19;
     localparam integer building6_num = 17;
@@ -192,7 +192,7 @@ module Education_Tabs (
     };
 
     localparam integer building3 [0 : (building3_num - 1)] = {
-        47, 26, 37, 34, 29, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 54
+        37, 26, 43, 32, 30, 44, 45, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 54
     };
     localparam integer building4 [0 : (building4_num - 1)] = {
         20, 44, 34, 39, 32, 52, 38, 34, 39, 53, 52, 38, 26, 49, 53, 52, 28, 30, 39, 45, 43, 30

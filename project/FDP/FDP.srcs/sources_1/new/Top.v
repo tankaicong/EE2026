@@ -1571,8 +1571,8 @@ module Top(
     localparam VGA_CUR_SIZE = 7; // arrow height and width 
     localparam VGA_BORDER   = 1;  // outline thickness in VGA pixels
     localparam diagonal_from_left = 5; // tail starts here (unused)
-    localparam signed [11:0] VGA_TAIL_WIDTH  = 12'sd4;   // tail width (doubled from 2)
-    localparam signed [11:0] VGA_TAIL_LENGTH = 12'sd4;   // tail length (doubled from 3)
+    localparam signed [11:0] VGA_TAIL_WIDTH  = 12'sd3;   // tail width (doubled from 2)
+    localparam signed [11:0] VGA_TAIL_LENGTH = 12'sd3;   // tail length (doubled from 3)
 
     wire signed [10:0] dx_s = $signed({1'b0, frame_x}) - $signed({1'b0, mouse_x_vga});
     wire signed [10:0] dy_s = $signed({1'b0, frame_y}) - $signed({1'b0, mouse_y_vga});
@@ -1589,7 +1589,7 @@ module Top(
     wire arrow_border = arrow_fill & ~arrow_inner;
 
     // Tail rectangle directly beneath the arrow base
-    wire arrow_tail_vga = (dx_s >= 0) && (dx_s < VGA_TAIL_WIDTH) &&
+    wire arrow_tail_vga = (dx_s >= 2) && (dx_s < VGA_TAIL_WIDTH + 3) &&
                           (dy_s >= VGA_CUR_SIZE) && (dy_s < (VGA_CUR_SIZE + VGA_TAIL_LENGTH));
     // Erode tail to form a 1px outline (same VGA_BORDER thickness)
     wire tail_inner = (dx_s >= VGA_BORDER) && (dx_s < (VGA_TAIL_WIDTH - VGA_BORDER)) &&

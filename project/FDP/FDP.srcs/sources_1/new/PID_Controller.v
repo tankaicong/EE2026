@@ -36,6 +36,7 @@ module PID_Controller
     input enable,
     input signed [31:0] setpoint,
     input signed [31:0] measurement,
+    input invert_error, //1 to invert error (for pan axis), 0 to not invert (tilt axis)
     output reg signed [31:0] control_output,
     input signed [31:0] KP,
     input signed [31:0] KI,
@@ -73,7 +74,7 @@ module PID_Controller
 
             if (clock_enable_pid_freq) begin
                 // Compute error
-                error = setpoint - measurement;
+                error = invert_error ? (setpoint - measurement) : (measurement - setpoint);
 
                 // Compute integral
                 integral = integral + error;
@@ -97,7 +98,7 @@ module PID_Controller
 
 
                 // Update previous error
-                prev_error = error;
+                prev_error <= error;
             end
         end
     end

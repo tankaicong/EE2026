@@ -7,8 +7,11 @@
 //  - ROW_MAJOR: 1 if BRAM stores glyphs row-major; 0 if column-major.
 
 module Education_Tabs_State #(
-	parameter CODE_IS_BASE = 1'b0,
-	parameter ROW_MAJOR    = 1'b1
+	parameter CODE_IS_BASE   = 1'b0,
+	parameter ROW_MAJOR      = 1'b1,
+	// Number of cycles between address present and valid BRAM data
+	// Set to 1 for typical inferred ROM/BRAM, 2 if an extra output reg is enabled
+	parameter integer BRAM_LATENCY = 2
 ) (
     input        clk,
 	input        clk25,
@@ -294,9 +297,8 @@ module Education_Tabs_State #(
 
 	wire line_active_vert = (line_idx != 4'hF) && (rel_y >= active_start_y);
 
-    wire [3:0] temp = (rel_y - (active_start_y + line_idx*LINE_PITCH));
-    wire [2:0] temp2 = temp [2:0];
-	wire [2:0] glyph_row_now = line_active_vert ? temp : 3'd0;
+	wire [3:0] temp = (rel_y - (active_start_y + line_idx*LINE_PITCH));
+	wire [2:0] glyph_row_now = line_active_vert ? temp[2:0] : 3'd0;
 
 	// Line length & glyph code from counters
 	reg [7:0] line_length; reg [7:0] glyph_code;
@@ -351,7 +353,6 @@ module Education_Tabs_State #(
 	// Horizontal band gating
 	wire h_band_start = line_active_vert && (rel_x == active_start_x);
 	wire h_band_valid = line_active_vert && (rel_x >= active_start_x) && (rel_x < active_start_x + line_length*CELL_W);
-    wire h_band_valid_alt = line_active_vert && (rel_x > active_start_x) && (rel_x < active_start_x + line_length*CELL_W);
 
 	// Counters update
 	always @(posedge clk25 or posedge rst) begin
@@ -392,14 +393,23 @@ module Education_Tabs_State #(
 	wire signed [12:0] addr_signed = $signed({1'b0,addr_base}) + input_offset; // sign-extend base then add offset
 	wire [11:0] addr_calc = (addr_signed < 0) ? 12'd0 : (addr_signed > BUF_LAST) ? BUF_LAST : addr_signed[11:0];
 
-	// Register outputs (align with synchronous BRAM)
+	// Align outputs with synchronous BRAM latency
+	reg inside_char_d1, inside_char_d2;
+	wire inside_char_aligned = (BRAM_LATENCY==2) ? inside_char_d2 : inside_char_d1;
+
 	always @(posedge clk25 or posedge rst) begin
 		if(rst) begin
-			edu_pixel_en <= 1'b0;
-			edu_tab_addr <= 12'd0;        
+			edu_pixel_en   <= 1'b0;
+			edu_tab_addr   <= 12'd0;
+			inside_char_d1 <= 1'b0;
+			inside_char_d2 <= 1'b0;
 		end else begin
-            edu_pixel_en <= inside_char;
-			edu_tab_addr <= inside_char ? (addr_calc + 1) : 12'd0;
+			// present address this cycle; data will be valid next cycle(s)
+			edu_tab_addr   <= inside_char ? addr_calc : 12'd0;
+			// pipeline enable to match BRAM latency
+			inside_char_d1 <= inside_char;
+			inside_char_d2 <= inside_char_d1;
+			edu_pixel_en   <= inside_char_aligned;
 		end
 	end
 

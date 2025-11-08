@@ -337,7 +337,7 @@ module Education_Tabs (
     reg drive_pixel_d;
 
     // Expand 1-bit BRAM pixel to 12-bit RGB (white/black)
-    assign edu_rgb = bram_px4[0] ? 12'hFFF : 12'h000;
+    assign edu_rgb = bram_px4[0] ? 12'hBEE : 12'h000;
 
     // Helper: compute which line is active for a given y, paragraph base, and num lines
     // Returns: active flag, local line index (0..), glyph_row (0..7)

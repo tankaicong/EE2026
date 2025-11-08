@@ -46,10 +46,10 @@ module Education_Tabs_ctr (
         4, 26, 28, 33, 52, 48, 33, 34, 45, 30, 52, 41, 34, 49, 30, 37, 57, 53, 58, 52, 34, 44, 52, 26, 52, 39, 40, 29, 30
     };
     localparam integer neighbor2 [0: (neighbor2_num - 1)] = {
-        34, 13, 52, 0, 52, 6, 17, 8, 3, 55, 52, 13, 4, 8, 6, 7, 1, 14, 20, 17, 18, 52, 5, 14, 17, 12
+        34, 39, 52, 26, 52, 32, 43, 34, 29, 55, 52, 39, 30, 34, 32, 33, 27, 40, 46, 43, 44, 52, 31, 40, 43, 38
     };
     localparam integer neighbor3 [0: (neighbor3_num - 1)] = {
-        30, 3, 6, 4, 18, 56
+        30, 29, 32, 30, 44, 56
     };
     localparam integer neighbor4 [0: (neighbor4_num - 1)] = {
         5, 40, 43, 52, 11, 30, 31, 45, 55, 52, 20, 41, 41, 30, 43, 52, 11, 30, 31, 45, 55, 52, 20, 41, 41, 30, 43, 52, 26, 39, 29
@@ -251,7 +251,7 @@ module Education_Tabs_ctr (
     // Text layout constants
     // ----------------------------------------------------------------
     localparam integer CHAR_W = 5;         // glyph width in pixels
-    localparam integer CHAR_H = 8;         // glyph height in pixels
+    localparam integer CHAR_H = 9;         // glyph height in pixels
     localparam integer CELL_W = 6;         // 5 pixels + 1 spacer column
     localparam integer LINE_PITCH = 12;    // vertical distance between line tops
     localparam integer area = CHAR_W * CHAR_H;
@@ -280,7 +280,7 @@ module Education_Tabs_ctr (
     reg drive_pixel_d;
 
     // Expand 1-bit BRAM pixel to 12-bit RGB (white/black)
-    assign edu_rgb = bram_px4[0] ? 12'hF00 : 12'h0FF;
+    assign edu_rgb = bram_px4[0] ? 12'hFFF : 12'h000;
 
     // Helper: compute which line is active for a given y, paragraph base, and num lines
     // Returns: active flag, local line index (0..), glyph_row (0..7)
@@ -354,6 +354,23 @@ module Education_Tabs_ctr (
                 // Compute line selection based on info_select
                 // Helper for neighbors: two paragraphs
                 if (info_select == 5'd0) begin
+                    // Paragraph 1 takes precedence if it matches (lower on screen)
+                    if (int_y_ctr >= neighbor_stats[1*3 + 1]) begin
+                        d1 = int_y_ctr - neighbor_stats[1*3 + 1];
+                        if (d1 < CHAR_H) begin
+                            line_active   <= 1'b1; line_idx <= 8'd0; act_row <= d1[3:0]; act_li <= 3'd0; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
+                        end else if (d1 < (LINE_PITCH + CHAR_H)) begin
+                            if (d1 >= LINE_PITCH) begin
+                                d1_m1 = d1 - LINE_PITCH;
+                                line_active   <= 1'b1; line_idx <= 8'd1; act_row <= d1_m1[3:0]; act_li <= 3'd1; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
+                            end
+                        end else if (d1 < (2*LINE_PITCH + CHAR_H)) begin
+                            if (d1 >= (2*LINE_PITCH)) begin
+                                d1_m2 = d1 - (2*LINE_PITCH);
+                                line_active   <= 1'b1; line_idx <= 8'd2; act_row <= d1_m2[3:0]; act_li <= 3'd2; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
+                            end
+                        end
+                    end
                     // Paragraph 0
                     if (int_y_ctr >= neighbor_stats[0*3 + 1]) begin
                         // delta from paragraph 0 top
@@ -371,23 +388,6 @@ module Education_Tabs_ctr (
                             if (d0 >= (2*LINE_PITCH)) begin
                                 d0_m2 = d0 - (2*LINE_PITCH);
                                 line_active   <= 1'b1; line_idx <= 8'd2; act_row <= d0_m2[3:0]; act_li <= 3'd2; act_flag <= 1'b1; use_par1 <= 1'b0; x_start_reg <= neighbor_stats[0*3 + 0];
-                            end
-                        end
-                    end
-                    // Paragraph 1 takes precedence if it matches (lower on screen)
-                    if (!line_active && (int_y_ctr >= neighbor_stats[1*3 + 1])) begin
-                        d1 = int_y_ctr - neighbor_stats[1*3 + 1];
-                        if (d1 < CHAR_H) begin
-                            line_active   <= 1'b1; line_idx <= 8'd0; act_row <= d1[3:0]; act_li <= 3'd0; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
-                        end else if (d1 < (LINE_PITCH + CHAR_H)) begin
-                            if (d1 >= LINE_PITCH) begin
-                                d1_m1 = d1 - LINE_PITCH;
-                                line_active   <= 1'b1; line_idx <= 8'd1; act_row <= d1_m1[3:0]; act_li <= 3'd1; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
-                            end
-                        end else if (d1 < (2*LINE_PITCH + CHAR_H)) begin
-                            if (d1 >= (2*LINE_PITCH)) begin
-                                d1_m2 = d1 - (2*LINE_PITCH);
-                                line_active   <= 1'b1; line_idx <= 8'd2; act_row <= d1_m2[3:0]; act_li <= 3'd2; act_flag <= 1'b1; use_par1 <= 1'b1; x_start_reg <= neighbor_stats[1*3 + 0];
                             end
                         end
                     end
@@ -422,6 +422,9 @@ module Education_Tabs_ctr (
                             end
                         end
                     end
+                    if (line_active) begin
+                        glyph_row_cnt <= act_row;
+                    end
                     use_par1 <= 1'b0;
                 end else if (info_select == 5'd2) begin
                     // Statistics: 1 paragraph, 5 lines
@@ -450,6 +453,9 @@ module Education_Tabs_ctr (
                                 line_active <= 1'b1; line_idx <= 8'd4; glyph_row_cnt <= d_m4[3:0]; x_start_reg <= statistics_stats[0*3 + 0];
                             end
                         end
+                    end
+                    if (line_active) begin
+                        glyph_row_cnt <= act_row;
                     end
                     use_par1 <= 1'b0;
                 end else if (info_select == 5'd3) begin
@@ -485,6 +491,9 @@ module Education_Tabs_ctr (
                             end
                         end
                     end
+                    if (line_active) begin
+                        glyph_row_cnt <= act_row;
+                    end
                     use_par1 <= 1'b0;
                 end else if (info_select == 5'd4) begin
                     // Buildings: 1 paragraph, 2 lines
@@ -498,6 +507,9 @@ module Education_Tabs_ctr (
                                 line_active <= 1'b1; line_idx <= 8'd1; glyph_row_cnt <= d_m1[3:0]; x_start_reg <= building_stats[0*3 + 0];
                             end
                         end
+                    end
+                    if (line_active) begin
+                        glyph_row_cnt <= act_row;
                     end
                     use_par1 <= 1'b0;
                 end else begin

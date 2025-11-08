@@ -267,12 +267,13 @@ module test_top(
     wire [11:0] edu_rgb;
     // Education_Tabs_State gen_edu_tab (
     Education_Tabs_ctr gen_edu_tab (
+    // Education_Tab gen_edu_tab (
         .clk(clk),
         .clk25(clk25),
         .rst(btnU),
-        .seg(seg),
-        .an(an),
-        .led(led),
+        .seg(0),
+        .an(0),
+        .led(0),
         .frame_x(frame_x),
         .frame_y(frame_y),
         .change_x(info_pix_x),
@@ -283,24 +284,56 @@ module test_top(
         .input_offset(sw[14:5])
     );
 
+
+    // Education tabs text renderer (overlay strings)
+    wire edu_en_1;
+    wire [11:0] edu_rgb_1;
+    Education_Tabs_State gen_edu_tab1 (
+    // Education_Tabs_ctr gen_edu_tab (
+    // Education_Tab gen_edu_tab (
+        .clk(clk),
+        .clk25(clk25),
+        .rst(btnU),
+        .seg(0),
+        .an(0),
+        .led(0),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .change_x(info_pix_x - 300),
+        .change_y(info_pix_y),
+        .info_select(cv_settings_mode),
+        .edu_rgb(edu_rgb_1),
+        .edu_pixel_en(edu_en_1),
+        .input_offset(sw[14:5])
+    );
+
+    // Education tabs text renderer (overlay strings)
+    wire edu_en_2;
+    wire [11:0] edu_rgb_2;
+    // Education_Tabs_State gen_edu_tab (
+    // Education_Tabs_ctr gen_edu_tab (
+    Education_Tab gen_edu_tab2 (
+        .clk(clk),
+        .clk25(clk25),
+        .rst(btnU),
+        .seg(0),
+        .an(0),
+        .led(0),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .change_x(info_pix_x),
+        .change_y(info_pix_y - 150),
+        .info_select(cv_settings_mode),
+        .edu_rgb(edu_rgb_2),
+        .edu_pixel_en(edu_en_2),
+        .input_offset(sw[14:5])
+    );
+
     wire [11:0] crosshair_rgb = 12'hF0F;
 
     // Generate edu tabs
     wire [4:0] cv_settings_mode;
     assign cv_settings_mode = sw[4:0];
-
-    reg  [11:0] edu_tab_addr_new = 12'd0;
-	wire bram_bit_new;
-	Single_Port_Buffer #(
-		.DATA_WIDTH(1),
-		.BUFFER_SIZE(2500),
-        .CHOICE(1)
-	) glyph_bram (
-		.clk(clk25),
-		.addr(edu_tab_addr_new),
-		.dout(bram_bit_new)
-	);
-
 
     // Generate edu tabs
     always @(posedge clk25) begin
@@ -332,14 +365,22 @@ module test_top(
             frame_pixel <= edu_rgb;
         end
 
+        if (edu_en_1) begin
+            frame_pixel <= edu_rgb_1;
+        end
+
+        if (edu_en_2) begin
+            frame_pixel <= edu_rgb_2;
+        end
+
         if (within_cursor_vga_3x3) frame_pixel <= 12'h000;
 
-        if (frame_x > 100 && frame_x <= 105 && frame_y > 100 && frame_y <= 108) begin
-            frame_pixel <= bram_bit_new ? 12'hF00 : 12'h0FF;
-            edu_tab_addr_new <= edu_tab_addr_new + 1;
-        end
-        if (frame_x == 0 && frame_y == 0) begin
-            edu_tab_addr_new <= 12'd0;
-        end
+        // if (frame_x > 100 && frame_x <= 105 && frame_y > 100 && frame_y <= 108) begin
+        //     frame_pixel <= bram_bit_new ? 12'hF00 : 12'h0FF;
+        //     edu_tab_addr_new <= edu_tab_addr_new + 1;
+        // end
+        // if (frame_x == 0 && frame_y == 0) begin
+        //     edu_tab_addr_new <= 12'd0;
+        // end
     end
 endmodule

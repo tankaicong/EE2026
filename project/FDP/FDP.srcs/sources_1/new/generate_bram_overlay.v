@@ -42,7 +42,7 @@ module generate_bram_overlay(
     // Localparams for pixels
     localparam integer NUM_usr = 25;        // Number of user things to generate
     localparam integer NUM_ufds = 65;       // Number of UFDS things to generate
-    localparam integer NUM_ACTL = 113;      // (last index + 1) + 6 moving, just to store address of moving parts
+    localparam integer NUM_ACTL = 111;      // (last index + 1) + 6 moving, just to store address of moving parts
     localparam integer ATTRS = 5;           // Number of attributes per thing
     localparam integer lookup [0 : (NUM_ACTL * ATTRS) - 1] = {
         // X, Y, x-size, y-size, bram_offset            // Index, desc, start-end row in csv, start addr, num rows (= numpixels), next addr (start + rows)
@@ -133,33 +133,31 @@ module generate_bram_overlay(
         458,  391, 20, 21, 54150, 	// 83 big 16
         424,  421, 23, 21, 54570, 	// 84 big 36
         456,  421, 23, 21, 55053, 	// 85 big 64
-        164,  115, 332, 60, 55536, 	// 86 object title
-        112,  187, 416, 60, 75456, 	// 87 tracking title
-        181,  270, 159, 26, 100416, // 88 Insert
-        363,  270, 104, 26, 104550, // 89 Coin
-        3,  31, 88, 44, 34415, 	    // 90 FR tab pic 1 (FR)
-        18,  82, 55, 46, 107254, 	// 91 FR tab pic 2
-        149,  9, 83, 12, 32593, 	// 92 FR tab header
-        18,  32, 55, 46, 109784, 	// 93 Union pic 1
-        18,  82, 55, 46, 112314, 	// 94 Union pic 2
-        144,  9, 44, 12, 38327, 	// 95 Union tab header
-        17,  31, 55, 46, 114844, 	// 96 Update pic 1
-        17,  81, 55, 46, 117374, 	// 97 Update pic 2
-        116,  9, 55, 17, 38855, 	// 98 Update tab header
-        177,  9, 42, 12, 43952, 	// 99 stats tab header
-        18,  31, 57, 45, 119904, 	// 100 filter pic 1
-        18,  81, 57, 45, 122469, 	// 101 filter pic 2
-        149,  9, 42, 12, 49790, 	// 102 filter tab header
-        18,  31, 57, 45, 125034, 	// 103 bb pic 1
-        18,  81, 57, 45, 127599, 	// 104 bb pic 2
-        114,  7, 74, 18, 51242, 	// 105 bounding tab header
-        191,  9, 30, 12, 52574, 	// 106 box tab header
-        475,  204, 68, 26, 130164, 	// 107 gaussian
-        402,  357, 56, 26, 131932, 	// 108 median
-        468,  352, 40, 34, 133388, 	// 109 erode 1
-        510,  352, 40, 34, 133388, 	// 110 erode 2
-        552,  352, 40, 34, 134748, 	// 111 dilate 1
-        595,  352, 40, 34, 134748 	// 112 dilate 2
+        181,  270, 159, 26, 55536, 	// 86 Insert
+        363,  270, 104, 26, 59670, 	// 87 Coin
+        3,  31, 88, 44, 34415, 	// 88 FR tab pic 1 (FR)
+        18,  82, 55, 46, 62374, 	// 89 FR tab pic 2
+        149,  9, 83, 12, 32593, 	// 90 FR tab header
+        18,  32, 55, 46, 64904, 	// 91 Union pic 1
+        18,  82, 55, 46, 67434, 	// 92 Union pic 2
+        144,  9, 44, 12, 38327, 	// 93 Union tab header
+        17,  31, 55, 46, 69964, 	// 94 Update pic 1
+        17,  81, 55, 46, 72494, 	// 95 Update pic 2
+        116,  9, 55, 17, 38855, 	// 96 Update tab header
+        177,  9, 42, 12, 43952, 	// 97 stats tab header
+        18,  31, 57, 45, 75024, 	// 98 filter pic 1
+        18,  81, 57, 45, 77589, 	// 99 filter pic 2
+        149,  9, 42, 12, 49790, 	// 100 filter tab header
+        18,  31, 57, 45, 80154, 	// 101 bb pic 1
+        18,  81, 57, 45, 82719, 	// 102 bb pic 2
+        114,  7, 74, 18, 51242, 	// 103 bounding tab header
+        191,  9, 30, 12, 52574, 	// 104 box tab header
+        475,  204, 68, 26, 85284, 	// 105 gaussian
+        402,  357, 56, 26, 87052, 	// 106 median
+        468,  352, 40, 34, 88508, 	// 107 erode 1
+        510,  352, 40, 34, 88508, 	// 108 erode 2
+        552,  352, 40, 34, 89868, 	// 109 dilate 1
+        595,  352, 40, 34, 89868, 	// 110 dilate 2
     };
 
     // User settings wires
@@ -204,10 +202,10 @@ module generate_bram_overlay(
     assign dilate_2_sq = (~ufds_settings_mode) && (frame_x >= dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
     assign dilate_2_sq_1 = (~ufds_settings_mode) && (frame_x > dilate_2_x && frame_x <= (dilate_2_x + lookup[(NUM_ACTL - 1)*ATTRS + 2])) && (frame_y >= dilate_2_y && frame_y < (dilate_2_y + lookup[(NUM_ACTL - 1)*ATTRS + 3]));
 
-    assign object_title = (menu_mode) && (frame_x >= lookup[86*ATTRS] && frame_x <= (lookup[86*ATTRS] + lookup[86*ATTRS + 2])) && (frame_y >= lookup[86*ATTRS + 1] && frame_y < (lookup[86*ATTRS + 1] + lookup[86*ATTRS + 3]));
-    assign object_title_1 = (menu_mode) && (frame_x > lookup[86*ATTRS] && frame_x <= (lookup[86*ATTRS] + lookup[86*ATTRS + 2])) && (frame_y >= lookup[86*ATTRS + 1] && frame_y < (lookup[86*ATTRS + 1] + lookup[86*ATTRS + 3]));
-    assign tracking_title = (menu_mode) && (frame_x >= lookup[87*ATTRS] && frame_x <= (lookup[87*ATTRS] + lookup[87*ATTRS + 2])) && (frame_y >= lookup[87*ATTRS + 1] && frame_y < (lookup[87*ATTRS + 1] + lookup[87*ATTRS + 3]));
-    assign tracking_title_1 = (menu_mode) && (frame_x > lookup[87*ATTRS] && frame_x <= (lookup[87*ATTRS] + lookup[87*ATTRS + 2])) && (frame_y >= lookup[87*ATTRS + 1] && frame_y < (lookup[87*ATTRS + 1] + lookup[87*ATTRS + 3]));
+    // assign object_title = (menu_mode) && (frame_x >= lookup[86*ATTRS] && frame_x <= (lookup[86*ATTRS] + lookup[86*ATTRS + 2])) && (frame_y >= lookup[86*ATTRS + 1] && frame_y < (lookup[86*ATTRS + 1] + lookup[86*ATTRS + 3]));
+    // assign object_title_1 = (menu_mode) && (frame_x > lookup[86*ATTRS] && frame_x <= (lookup[86*ATTRS] + lookup[86*ATTRS + 2])) && (frame_y >= lookup[86*ATTRS + 1] && frame_y < (lookup[86*ATTRS + 1] + lookup[86*ATTRS + 3]));
+    // assign tracking_title = (menu_mode) && (frame_x >= lookup[87*ATTRS] && frame_x <= (lookup[87*ATTRS] + lookup[87*ATTRS + 2])) && (frame_y >= lookup[87*ATTRS + 1] && frame_y < (lookup[87*ATTRS + 1] + lookup[87*ATTRS + 3]));
+    // assign tracking_title_1 = (menu_mode) && (frame_x > lookup[87*ATTRS] && frame_x <= (lookup[87*ATTRS] + lookup[87*ATTRS + 2])) && (frame_y >= lookup[87*ATTRS + 1] && frame_y < (lookup[87*ATTRS + 1] + lookup[87*ATTRS + 3]));
     assign insert_coin = (menu_mode) && (frame_x >= lookup[88*ATTRS] && frame_x <= (lookup[88*ATTRS] + lookup[88*ATTRS + 2])) && (frame_y >= lookup[88*ATTRS + 1] && frame_y < (lookup[88*ATTRS + 1] + lookup[88*ATTRS + 3]));
     assign insert_coin_1 = (menu_mode) && (frame_x > lookup[88*ATTRS] && frame_x <= (lookup[88*ATTRS] + lookup[88*ATTRS + 2])) && (frame_y >= lookup[88*ATTRS + 1] && frame_y < (lookup[88*ATTRS + 1] + lookup[88*ATTRS + 3]));
     assign coin = (menu_mode) && (frame_x >= lookup[89*ATTRS] && frame_x <= (lookup[89*ATTRS] + lookup[89*ATTRS + 2])) && (frame_y >= lookup[89*ATTRS + 1] && frame_y < (lookup[89*ATTRS + 1] + lookup[89*ATTRS + 3]));
@@ -426,5 +424,6 @@ module generate_bram_overlay(
         coin_1 || insert_coin_1 || tracking_title_1 || object_title_1
     ) : 1'b0;
 
-    assign menu_write = en ? (coin_1 || insert_coin_1 || tracking_title_1 || object_title_1) : 1'b0;
+    // assign menu_write = en ? (coin_1 || insert_coin_1 || tracking_title_1 || object_title_1) : 1'b0;
+    assign menu_write = en ? (coin_1 || insert_coin_1) : 1'b0;
 endmodule

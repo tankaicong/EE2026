@@ -1777,8 +1777,8 @@ module Top(
         .reset(btnU),
         .enable(pid_enable),
         .setpoint(32'sd120), //center of frame
-        .measurement(cx0_l), //current x position of object
-        .invert_error(1'b1), //do not invert error for tilt axis
+        .measurement(cy0_l), //current y position of object
+        .invert_error(1'b1), //invert error for tilt axis
         .control_output(servo_y_angle),
         .KP(tilt_kp),
         .KI(31'b0),

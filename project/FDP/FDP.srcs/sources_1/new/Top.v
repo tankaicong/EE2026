@@ -73,7 +73,7 @@ module Top(
         // State machine for different overlays
         case (state)
             S_MENU: begin
-                if (left_click_edge || right_click_edge || coin_input) begin
+                if (left_click_edge || right_click_edge || coin_input_edge) begin
                     state <= S_CV_SETTINGS;
                 end
 
@@ -325,7 +325,7 @@ module Top(
                 )) begin
                     frame_pixel <= GREEN;
                 end
-                
+
                 if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+5) begin
                     frame_pixel <= crosshair_rgb;
                 end
@@ -1515,6 +1515,23 @@ module Top(
         mouse_rst_sync <= {mouse_rst_sync[1:0], btnU};
     end
     wire mouse_reset = mouse_rst_sync[2];
+
+    // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a low
+    reg [2:0] coin_sync = 3'b000;
+    reg       coin_seen_low = 1'b0;
+    always @(posedge clk25) begin
+        if (vga_reset) begin
+            coin_sync     <= 3'b000;
+            coin_seen_low <= 1'b0;
+        end else begin
+            coin_sync <= {coin_sync[1:0], coin_input};
+            // Arm edge detect only after observing at least one low post-reset
+            if (!coin_seen_low && (coin_sync[1] == 1'b0)) begin
+                coin_seen_low <= 1'b1;
+            end
+        end
+    end
+    wire coin_input_edge = coin_seen_low && (coin_sync[1] & ~coin_sync[2]);
 
 
     wire left_click, right_click, new_event;

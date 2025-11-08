@@ -547,14 +547,14 @@
       </Config>
     </FileSet>
     <FileSet Name="bitmap_mem" Type="BlockSrcs" RelSrcDir="$PSRCDIR/bitmap_mem">
-      <File Path="$PSRCDIR/sources_1/ip/bitmap_mem.xcix">
+      <File Path="$PSRCDIR/sources_1/ip/bitmap_mem_1.xcix">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PSRCDIR/sources_1/ip/bitmap_mem/bitmap_mem.xci">
+      <File Path="$PSRCDIR/sources_1/ip/bitmap_mem_1/bitmap_mem.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>

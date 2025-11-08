@@ -122,6 +122,9 @@ module cv_settings_overlay (
     localparam [9:0] MORPH_W = 10'd164;
     localparam [8:0] MORPH_H = 9'd34;
 
+    // Info-tab OFFWHITE text box background region target (x=446..639, y=224..322)
+    // Dynamic fill added in always block: y spans info_y_top_clamp..321 while tab is open.
+
     // Export constants to Top/drag-drop
     assign pre_x_o   = PRE_X;
     assign pre_y_o   = PRE_Y;
@@ -218,6 +221,14 @@ module cv_settings_overlay (
         overlay_rgb = 12'h000;
 
         if (settings_active) begin
+            // OFFWHITE background fill (growing upward with info_tab_top_y)
+            // Draw first so separator line at y=322 stays visible above it.
+            if (info_bar_visible) begin
+                if ((px >= 10'd446) && (px <= 10'd639) &&
+                    (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
+                    overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+                end
+            end
             // Separating lines at y = 322 and y = 396 (full width)
             if ((py == 9'd322) || (py == 9'd396)) begin
                 overlay_en  = 1'b1; overlay_rgb = BRIGHTBLUE;

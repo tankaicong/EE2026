@@ -228,7 +228,7 @@ module ufds_settings_overlay (
         if (reset) begin
             tab_idx       <= 1;
             min_area_sel  <= 2'b00; // 4
-            sort_by_prox  <= 1'b0;  // area
+            // sort_by_prox  <= 1'b0;  // area
             max_boxes_sel <= 2'b11; // 4
             return_click  <= 1'b0;
         end else begin

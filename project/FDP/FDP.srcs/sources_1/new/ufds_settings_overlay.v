@@ -21,6 +21,7 @@ module ufds_settings_overlay (
     output reg [11:0] overlay_rgb,
 
     output reg return_click,
+    output wire info_dim_en,
 
     // Settings
     output reg [2:0] tab_idx,          // 1..5
@@ -29,6 +30,13 @@ module ufds_settings_overlay (
     output reg [1:0] max_boxes_sel,       // 00=1, 01=2, 10=3, 11=4
     output reg         servo           // servo mode on/off
 );
+
+    // Dimming mask for the info tab content area (to the right of the barrier)
+    // Active only while settings_active and while the tab is above y=322.
+    // Region: x >= (INFO_BAR_X + INFO_BAR_W) .. 639, y in [info_y_top_clamp .. INFO_BAR_Y_BOT]
+    assign info_dim_en = /* independent of settings_active so UFDS can use it */ info_bar_visible &&
+                         (px >= (INFO_BAR_X + INFO_BAR_W)) &&
+                         (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT);
 
     // Colors
     localparam [11:0] BLACK   = 12'h000; // 0
@@ -243,20 +251,6 @@ module ufds_settings_overlay (
             return_click  <= 1'b0;
         end else begin
             return_click <= 1'b0; // default pulse low
-            if (settings_active) begin
-                // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
-                // Draw after the separator lines so it visually overrides them at y=322.
-                if (info_bar_visible) begin
-                    if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
-                        (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
-                        overlay_en = 1'b1; overlay_rgb = GREEN;
-                    end
-                    if ((px >= 10'd446) && (px <= 10'd639) &&
-                        (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
-                        overlay_en = 1'b1; overlay_rgb = OFFWHITE;
-                    end
-                end
-            end
             if (settings_active && left_edge) begin
                 if (mouse_in_box1) begin
                     return_click <= 1'b1;
@@ -384,6 +378,18 @@ module ufds_settings_overlay (
         if (!settings_active) begin
             // nothing
         end else begin
+                // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
+                // Draw after the separator lines so it visually overrides them at y=322.
+                if (info_bar_visible) begin
+                    if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
+                        (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
+                        overlay_en = 1'b1; overlay_rgb = GREEN;
+                    end
+                    if ((px >= 10'd446) && (px <= 10'd639) &&
+                        (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
+                        overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+                    end
+                end
             // Separating lines at y = 322 (full width)
             // if ((py == 322)) begin
             //     overlay_en  = 1'b1; overlay_rgb = GREEN;

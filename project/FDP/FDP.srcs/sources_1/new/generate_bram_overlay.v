@@ -15,6 +15,7 @@ module generate_bram_overlay(
     input [4:0] info_idx,           // Info tab index (0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate)
     input menu_mode,                // Menu mode active
     output to_write,                // HIGH for write to VGA, LOW for no write
+    output menu_write,              // HIGH for menu write to VGA
     output [3:0] image_pixel,       // BRAM color output (encoded, decode in Top.v)
     output gauss_sq,
     output med_sq,
@@ -273,20 +274,20 @@ module generate_bram_overlay(
 
     always @ (posedge clk) begin
         gauss_tab_x <= gauss_t_x;
-        dilate_2_x <= x[59:50] + 1;
-        dilate_1_x <= x[49:40] + 1;
-        erode_2_x <= x[39:30] + 4;
-        erode_1_x<= x[29:20] + 4;
-        med_x <= x[19:10] + 7;
-        gauss_x <= x[9:0] + 1;
+        dilate_2_x <= x[59:50];
+        dilate_1_x <= x[49:40];
+        erode_2_x <= x[39:30];
+        erode_1_x<= x[29:20];
+        med_x <= x[19:10];
+        gauss_x <= x[9:0];
 
         gauss_tab_y <= gauss_t_y;
-        dilate_2_y <= y[53:45] + 11;
-        dilate_1_y <= y[44:36] + 11;
-        erode_2_y <= y[35:27] + 11;
-        erode_1_y <= y[26:18] + 11;
-        med_y <= y[17:9] + 4;
-        gauss_y <= y[8:0] + 4;
+        dilate_2_y <= y[53:45];
+        dilate_1_y <= y[44:36];
+        erode_2_y <= y[35:27];
+        erode_1_y <= y[26:18];
+        med_y <= y[17:9];
+        gauss_y <= y[8:0];
     end
 
     integer eye_i_idx;
@@ -296,7 +297,7 @@ module generate_bram_overlay(
     always @ (*) begin
 
         if (coin) overlay_addr = ((frame_y - lookup[89*ATTRS + 1]) * lookup[89*ATTRS + 2]) + (frame_x - lookup[89*ATTRS]) + lookup[89*ATTRS + 4];
-        else if (insert) overlay_addr = ((frame_y - lookup[88*ATTRS + 1]) * lookup[88*ATTRS + 2]) + (frame_x - lookup[88*ATTRS]) + lookup[88*ATTRS + 4];
+        else if (insert_coin) overlay_addr = ((frame_y - lookup[88*ATTRS + 1]) * lookup[88*ATTRS + 2]) + (frame_x - lookup[88*ATTRS]) + lookup[88*ATTRS + 4];
         else if (tracking_title) overlay_addr = ((frame_y - lookup[87*ATTRS + 1]) * lookup[87*ATTRS + 2]) + (frame_x - lookup[87*ATTRS]) + lookup[87*ATTRS + 4];
         else if (object_title) overlay_addr = ((frame_y - lookup[86*ATTRS + 1]) * lookup[86*ATTRS + 2]) + (frame_x - lookup[86*ATTRS]) + lookup[86*ATTRS + 4];
         
@@ -422,6 +423,8 @@ module generate_bram_overlay(
         update_tab_pic_1_1 || update_tab_pic_2_1 || update_tab_hdr_1_1 || update_tab_hdr_2_1 ||
         filter_tab_pic_1_1 || filter_tab_pic_2_1 || filter_tab_hdr_1 ||
         bb_tab_pic_1_1 || bb_tab_pic_2_1 || bb_tab_hdr_1_1 || bb_tab_hdr_2_1 ||
-        coin_1 || insert_1 || tracking_title_1 || object_title_1
+        coin_1 || insert_coin_1 || tracking_title_1 || object_title_1
     ) : 1'b0;
+
+    assign menu_write = en ? (coin_1 || insert_coin_1 || tracking_title_1 || object_title_1) : 1'b0;
 endmodule

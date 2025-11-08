@@ -36,7 +36,7 @@ module cv_settings_info_tab (
     localparam [9:0] TAB_W = 10'd177;
     localparam [8:0] TAB_H = 9'd24;
     localparam [9:0] CLOSE_X = 10'd443;
-    localparam [8:0] CLOSE_Y = 9'd0;
+    localparam [8:0] CLOSE_Y = 9'd195;
 
     // --- Colors (RGB444 BGR order) ---
     localparam [11:0] BLACK = 12'h000;
@@ -63,7 +63,7 @@ module cv_settings_info_tab (
     // Top-Left pixel positions
     localparam [9:0] PIX_X = 10'd359; // fixed X
     localparam [8:0] PIX_Y_INIT = 9'd296; // depends on tab height
-    localparam [8:0] PIX_Y_TOP = 9'd1;
+    localparam [8:0] PIX_Y_TOP = 9'd195;
 
     // Movement timing: 1.5s at 25 MHz
     localparam integer CLK_HZ = 25000000;

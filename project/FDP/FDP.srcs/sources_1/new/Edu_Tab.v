@@ -1,18 +1,12 @@
-module Education_Tabs_ctr (
+module Education_Tabs (
     input clk,
     input clk25,
     input rst,
-
-    output [7:0] seg,
-    output [3:0] an,
-    output reg [15:0] led,
-
     input [9:0] frame_x,                    // VGA current x coord
     input [9:0] frame_y,                    // VGA current y coord
     input [9:0] change_x,                   // X from info_tab
     input [8:0] change_y,                   // Y from info_tab
     input [4:0] info_select,                // Which info tab to show 0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate
-    input signed [9:0] input_offset,
     output [11:0] edu_rgb,                  // 12-bit pixel data from edu tabs (black/white)
     output reg edu_pixel_en                 // High when this module wants top.v to overwrite pixel with edu_rgb
 );
@@ -63,8 +57,8 @@ module Education_Tabs_ctr (
 
     // Start coords of neighbor paragraphs
     localparam integer neighbor_stats [0 : (neighbor_paragraphs * 3) - 1] = {
-        93, 38, 3,     // X start, Y start, num lines 1st paragraph
-        93, 90, 3      // X start, Y start, num lines 2nd paragraph 
+        90, 38, 3,     // X start, Y start, num lines 1st paragraph
+        90, 90, 3      // X start, Y start, num lines 2nd paragraph 
     };
 
     // NOTE: removed a stray/incorrect block that referenced PIX_Y_TOP/PIX_X.
@@ -77,8 +71,8 @@ module Education_Tabs_ctr (
     // Start of Union components paragraphs
     localparam integer union_paragraphs = 2;
     localparam integer union_stats [0 : (union_paragraphs * 3) - 1] = {
-        93, 38, 3,     // X start, Y start, num lines 1st paragraph
-        93, 90, 3      // X start, Y start, num lines 2nd paragraph
+        90, 38, 3,     // X start, Y start, num lines 1st paragraph
+        90, 90, 3      // X start, Y start, num lines 2nd paragraph
     };
 
     localparam integer union1_num = 25,
@@ -111,7 +105,7 @@ module Education_Tabs_ctr (
 // ---------- Statistics ----------
     localparam integer statistics_paragraphs = 2;
     localparam integer statistics_stats [0 : (statistics_paragraphs * 3) - 1] = {
-        93, 38, 3,    // X start, Y start 1st paragraph
+        93, 37, 3,    // X start, Y start 1st paragraph
         93, 90, 3     // X start, Y start 2nd paragraph
     };
 
@@ -146,8 +140,8 @@ module Education_Tabs_ctr (
 
     localparam integer filter_paragraphs = 2;
     localparam integer filter_stats [0 : (filter_paragraphs * 3) - 1] = {
-        93, 38, 3,    // X start, Y start 1st paragraph
-        93, 90, 3     // X start, Y start 2nd paragraph
+        75, 37, 3,    // X start, Y start 1st paragraph
+        75, 89, 3     // X start, Y start 2nd paragraph
     };
 
     localparam integer filter1_num = 31;

@@ -216,7 +216,7 @@ module cv_settings_dragdrop (
             front_idx <= 3'd0;
 
             // Default types: keep initial semantics (2,3 start as ERODE; 4,5 start as DILATE)
-            is_erode2 <= 1'b1; is_erode3 <= 1'b1; is_erode4 <= 1'b0; is_erode5 <= 1'b0;
+            is_erode2 <= 1'b0; is_erode3 <= 1'b0; is_erode4 <= 1'b1; is_erode5 <= 1'b1;
         end else begin
             // sample left button
             left_q <= mouse_left;
@@ -240,16 +240,16 @@ module cv_settings_dragdrop (
                 // Hover + scroll to set type (not while dragging)
                 if (!dragging) begin
                     if (scroll_up) begin // set to ERODE
-                        if (hov2) is_erode2 <= 1'b1;
-                        else if (hov3) is_erode3 <= 1'b1;
-                        else if (hov4) is_erode4 <= 1'b1;
-                        else if (hov5) is_erode5 <= 1'b1;
-                    end
-                    if (scroll_down) begin // set to DILATE
                         if (hov2) is_erode2 <= 1'b0;
                         else if (hov3) is_erode3 <= 1'b0;
                         else if (hov4) is_erode4 <= 1'b0;
                         else if (hov5) is_erode5 <= 1'b0;
+                    end
+                    if (scroll_down) begin // set to DILATE
+                        if (hov2) is_erode2 <= 1'b1;
+                        else if (hov3) is_erode3 <= 1'b1;
+                        else if (hov4) is_erode4 <= 1'b1;
+                        else if (hov5) is_erode5 <= 1'b1;
                     end
                 end
 

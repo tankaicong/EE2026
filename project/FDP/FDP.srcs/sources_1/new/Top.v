@@ -209,6 +209,10 @@ module Top(
                 )) begin
                     frame_pixel <= GREEN;
                 end
+
+
+                // Info tab overlay
+                if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
@@ -397,8 +401,8 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(rgb_pixel_valid),
-            .pixel_in(threshold_pixel),
-            .op_dilate(Morphology_State[0]),                 // Morphology_State bit now directly 1 = DILATE
+        .pixel_in(threshold_pixel),
+        .op_dilate(Morphology_State[0]),                 // Morphology_State bit now directly 1 = DILATE
         .addr_off_col(B1_addr_off_col),
         .addr_off_row(B1_addr_off_row),
         .pixel_out(B1_pixel_out),
@@ -414,7 +418,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B1_pixel_valid),
         .pixel_in(B1_pixel_out),
-            .op_dilate(Morphology_State[1]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[1]),                 // 1 = DILATE
         .addr_off_col(B2_addr_off_col),
         .addr_off_row(B2_addr_off_row),
         .pixel_out(B2_pixel_out),
@@ -431,7 +435,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B2_pixel_valid),
         .pixel_in(B2_pixel_out),
-            .op_dilate(Morphology_State[2]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[2]),                 // 1 = DILATE
         .addr_off_col(B3_addr_off_col),
         .addr_off_row(B3_addr_off_row),
         .pixel_out(B3_pixel_out),
@@ -447,7 +451,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B3_pixel_valid),
         .pixel_in(B3_pixel_out),
-            .op_dilate(Morphology_State[3]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[3]),                 // 1 = DILATE
         .addr_off_col(B4_addr_off_col),
         .addr_off_row(B4_addr_off_row),
         .pixel_out(B4_pixel_out),
@@ -1197,7 +1201,7 @@ module Top(
     wire [2:0] info_idx;
     wire [11:0] info_pix_rgb;
     cv_settings_info_tab info_tab (
-        .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
+        .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode || ufds_settings_mode),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         // .cam_box_click(cam_box_clicked), 
         .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
@@ -1358,6 +1362,8 @@ module Top(
         .front_idx(front_idx),
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
+        .morph_state(Morphology_State),
+        .info_idx(ufds_tab_idx),
         .to_write(write_high),
         .image_pixel(overlay_pixel),
         .gauss_sq(gauss_sq),
@@ -1366,6 +1372,23 @@ module Top(
         .erode2_sq(erode2_sq),
         .dilate1_sq(dilate1_sq),
         .dilate2_sq(dilate2_sq)
+    );
+
+
+// ----------- INFORMATION TABS ----------- //
+    wire tab_en;
+    wire [11:0] tab_rgb;
+    Education_Tabs tabs (
+        .clk(clk),
+        .clk25(clk25),
+        .rst(btnU),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .change_x(info_pix_x),
+        .change_y(info_pix_y),
+        .info_select(ufds_tab_idx),
+        .edu_rgb(tab_rgb),
+        .edu_pixel_en(tab_en)
     );
 
 // ----------- VGA CONTROLLER ----------- //

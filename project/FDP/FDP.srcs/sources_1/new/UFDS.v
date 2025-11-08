@@ -170,11 +170,11 @@ reg [16:0] slot0_area, slot1_area, slot2_area, slot3_area; // cached areas for q
 reg [16:0] min_area_tmp; // temp for replace-min
 reg [1:0]  min_idx_tmp;  // temp for replace-min index
 
-// area-based selection ordering helpers (deterministic top-N by area each frame)
-reg        v0, v1, v2, v3;          // validity flags for slots at output time
-reg [16:0] a0, a1, a2, a3;          // areas for slots at output time
-reg [16:0] curr_max_a;              // current argmax area while selecting
-reg [1:0]  curr_sel;                // selected slot index for this rank
+// // area-based selection ordering helpers (deterministic top-N by area each frame)
+// reg        v0, v1, v2, v3;          // validity flags for slots at output time
+// reg [16:0] a0, a1, a2, a3;          // areas for slots at output time
+// reg [16:0] curr_max_a;              // current argmax area while selecting
+// reg [1:0]  curr_sel;                // selected slot index for this rank
 
 // runtime-configurable allowed output boxes derived from UI selection
 reg [2:0] allowed_n; // 1..4 derived from max_boxes_sel
@@ -793,197 +793,57 @@ always @(posedge clk) begin
 
             // snapshot one component per cycle to ease timing
             S_COMP0: begin
-                // Prepare validity and areas for area-based top-N selection
-                v0 <= (slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT);
-                v1 <= (slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT);
-                v2 <= (slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT);
-                v3 <= (slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT);
-                a0 <= area[slot0]; a1 <= area[slot1]; a2 <= area[slot2]; a3 <= area[slot3];
-
-                // Pick 1st (largest area)
-                curr_max_a <= 17'd0; curr_sel <= 2'd0;
-                if (v0 && a0 > curr_max_a) begin curr_max_a <= a0; curr_sel <= 2'd0; end
-                if (v1 && a1 > curr_max_a) begin curr_max_a <= a1; curr_sel <= 2'd1; end
-                if (v2 && a2 > curr_max_a) begin curr_max_a <= a2; curr_sel <= 2'd2; end
-                if (v3 && a3 > curr_max_a) begin curr_max_a <= a3; curr_sel <= 2'd3; end
-
-                case (curr_sel)
-                    2'd0: begin
-                        if (v0) begin
-                            comp3210_left[9:0]   = min_x[slot0]; comp3210_right[9:0]  = max_x[slot0];
-                            comp3210_top[8:0]    = min_y[slot0]; comp3210_bottom[8:0] = max_y[slot0];
-                            comp3210_cx[9:0]    <= (min_x[slot0] + max_x[slot0]) >> 1;
-                            comp3210_cy[8:0]    <= (min_y[slot0] + max_y[slot0]) >> 1;
-                            comp3210_area[15:0] <= area[slot0][15:0];
-                            v0 <= 1'b0;
-                        end
-                    end
-                    2'd1: begin
-                        if (v1) begin
-                            comp3210_left[9:0]   = min_x[slot1]; comp3210_right[9:0]  = max_x[slot1];
-                            comp3210_top[8:0]    = min_y[slot1]; comp3210_bottom[8:0] = max_y[slot1];
-                            comp3210_cx[9:0]    <= (min_x[slot1] + max_x[slot1]) >> 1;
-                            comp3210_cy[8:0]    <= (min_y[slot1] + max_y[slot1]) >> 1;
-                            comp3210_area[15:0] <= area[slot1][15:0];
-                            v1 <= 1'b0;
-                        end
-                    end
-                    2'd2: begin
-                        if (v2) begin
-                            comp3210_left[9:0]   = min_x[slot2]; comp3210_right[9:0]  = max_x[slot2];
-                            comp3210_top[8:0]    = min_y[slot2]; comp3210_bottom[8:0] = max_y[slot2];
-                            comp3210_cx[9:0]    <= (min_x[slot2] + max_x[slot2]) >> 1;
-                            comp3210_cy[8:0]    <= (min_y[slot2] + max_y[slot2]) >> 1;
-                            comp3210_area[15:0] <= area[slot2][15:0];
-                            v2 <= 1'b0;
-                        end
-                    end
-                    default: begin
-                        if (v3) begin
-                            comp3210_left[9:0]   = min_x[slot3]; comp3210_right[9:0]  = max_x[slot3];
-                            comp3210_top[8:0]    = min_y[slot3]; comp3210_bottom[8:0] = max_y[slot3];
-                            comp3210_cx[9:0]    <= (min_x[slot3] + max_x[slot3]) >> 1;
-                            comp3210_cy[8:0]    <= (min_y[slot3] + max_y[slot3]) >> 1;
-                            comp3210_area[15:0] <= area[slot3][15:0];
-                            v3 <= 1'b0;
-                        end
-                    end
-                endcase
+                // (LSB chunk)
+                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
+                    comp3210_left[9:0] = min_x[slot0];
+                    comp3210_right[9:0] = max_x[slot0];
+                    comp3210_top[8:0] = min_y[slot0];
+                    comp3210_bottom[8:0] = max_y[slot0];
+                    comp3210_cx[9:0] <= (min_x[slot0] + max_x[slot0]) >> 1;
+                    comp3210_cy[8:0] <= (min_y[slot0] + max_y[slot0]) >> 1;
+                    comp3210_area[15:0] <= area[slot0][15:0];
+                end
 
                 state <= S_COMP1;
             end
             S_COMP1: begin
-                // Pick 2nd largest among remaining
-                curr_max_a <= 17'd0; curr_sel <= 2'd0;
-                if (v0 && a0 > curr_max_a) begin curr_max_a <= a0; curr_sel <= 2'd0; end
-                if (v1 && a1 > curr_max_a) begin curr_max_a <= a1; curr_sel <= 2'd1; end
-                if (v2 && a2 > curr_max_a) begin curr_max_a <= a2; curr_sel <= 2'd2; end
-                if (v3 && a3 > curr_max_a) begin curr_max_a <= a3; curr_sel <= 2'd3; end
-
-                case (curr_sel)
-                    2'd0: if (v0) begin
-                        comp3210_left[19:10]  = min_x[slot0]; comp3210_right[19:10] = max_x[slot0];
-                        comp3210_top[17:9]    = min_y[slot0]; comp3210_bottom[17:9] = max_y[slot0];
-                        comp3210_cx[19:10]   <= (min_x[slot0] + max_x[slot0]) >> 1;
-                        comp3210_cy[17:9]    <= (min_y[slot0] + max_y[slot0]) >> 1;
-                        comp3210_area[31:16] <= area[slot0][15:0];
-                        v0 <= 1'b0;
-                    end
-                    2'd1: if (v1) begin
-                        comp3210_left[19:10]  = min_x[slot1]; comp3210_right[19:10] = max_x[slot1];
-                        comp3210_top[17:9]    = min_y[slot1]; comp3210_bottom[17:9] = max_y[slot1];
-                        comp3210_cx[19:10]   <= (min_x[slot1] + max_x[slot1]) >> 1;
-                        comp3210_cy[17:9]    <= (min_y[slot1] + max_y[slot1]) >> 1;
-                        comp3210_area[31:16] <= area[slot1][15:0];
-                        v1 <= 1'b0;
-                    end
-                    2'd2: if (v2) begin
-                        comp3210_left[19:10]  = min_x[slot2]; comp3210_right[19:10] = max_x[slot2];
-                        comp3210_top[17:9]    = min_y[slot2]; comp3210_bottom[17:9] = max_y[slot2];
-                        comp3210_cx[19:10]   <= (min_x[slot2] + max_x[slot2]) >> 1;
-                        comp3210_cy[17:9]    <= (min_y[slot2] + max_y[slot2]) >> 1;
-                        comp3210_area[31:16] <= area[slot2][15:0];
-                        v2 <= 1'b0;
-                    end
-                    default: if (v3) begin
-                        comp3210_left[19:10]  = min_x[slot3]; comp3210_right[19:10] = max_x[slot3];
-                        comp3210_top[17:9]    = min_y[slot3]; comp3210_bottom[17:9] = max_y[slot3];
-                        comp3210_cx[19:10]   <= (min_x[slot3] + max_x[slot3]) >> 1;
-                        comp3210_cy[17:9]    <= (min_y[slot3] + max_y[slot3]) >> 1;
-                        comp3210_area[31:16] <= area[slot3][15:0];
-                        v3 <= 1'b0;
-                    end
-                endcase
+                if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
+                    comp3210_left[19:10] = min_x[slot1];
+                    comp3210_right[19:10] = max_x[slot1];
+                    comp3210_top[17:9] = min_y[slot1];
+                    comp3210_bottom[17:9] = max_y[slot1];
+                    comp3210_cx[19:10] <= (min_x[slot1] + max_x[slot1]) >> 1;
+                    comp3210_cy[17:9] <= (min_y[slot1] + max_y[slot1]) >> 1;
+                    comp3210_area[31:16] <= area[slot1][15:0];
+                end
+           
 
                 state <= S_COMP2;
             end
             S_COMP2: begin
-                // Pick 3rd largest among remaining
-                curr_max_a <= 17'd0; curr_sel <= 2'd0;
-                if (v0 && a0 > curr_max_a) begin curr_max_a <= a0; curr_sel <= 2'd0; end
-                if (v1 && a1 > curr_max_a) begin curr_max_a <= a1; curr_sel <= 2'd1; end
-                if (v2 && a2 > curr_max_a) begin curr_max_a <= a2; curr_sel <= 2'd2; end
-                if (v3 && a3 > curr_max_a) begin curr_max_a <= a3; curr_sel <= 2'd3; end
-
-                case (curr_sel)
-                    2'd0: if (v0) begin
-                        comp3210_left[29:20]  = min_x[slot0]; comp3210_right[29:20] = max_x[slot0];
-                        comp3210_top[26:18]   = min_y[slot0]; comp3210_bottom[26:18] = max_y[slot0];
-                        comp3210_cx[29:20]   <= (min_x[slot0] + max_x[slot0]) >> 1;
-                        comp3210_cy[26:18]   <= (min_y[slot0] + max_y[slot0]) >> 1;
-                        comp3210_area[47:32] <= area[slot0][15:0];
-                        v0 <= 1'b0;
-                    end
-                    2'd1: if (v1) begin
-                        comp3210_left[29:20]  = min_x[slot1]; comp3210_right[29:20] = max_x[slot1];
-                        comp3210_top[26:18]   = min_y[slot1]; comp3210_bottom[26:18] = max_y[slot1];
-                        comp3210_cx[29:20]   <= (min_x[slot1] + max_x[slot1]) >> 1;
-                        comp3210_cy[26:18]   <= (min_y[slot1] + max_y[slot1]) >> 1;
-                        comp3210_area[47:32] <= area[slot1][15:0];
-                        v1 <= 1'b0;
-                    end
-                    2'd2: if (v2) begin
-                        comp3210_left[29:20]  = min_x[slot2]; comp3210_right[29:20] = max_x[slot2];
-                        comp3210_top[26:18]   = min_y[slot2]; comp3210_bottom[26:18] = max_y[slot2];
-                        comp3210_cx[29:20]   <= (min_x[slot2] + max_x[slot2]) >> 1;
-                        comp3210_cy[26:18]   <= (min_y[slot2] + max_y[slot2]) >> 1;
-                        comp3210_area[47:32] <= area[slot2][15:0];
-                        v2 <= 1'b0;
-                    end
-                    default: if (v3) begin
-                        comp3210_left[29:20]  = min_x[slot3]; comp3210_right[29:20] = max_x[slot3];
-                        comp3210_top[26:18]   = min_y[slot3]; comp3210_bottom[26:18] = max_y[slot3];
-                        comp3210_cx[29:20]   <= (min_x[slot3] + max_x[slot3]) >> 1;
-                        comp3210_cy[26:18]   <= (min_y[slot3] + max_y[slot3]) >> 1;
-                        comp3210_area[47:32] <= area[slot3][15:0];
-                        v3 <= 1'b0;
-                    end
-                endcase
-
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
+                    comp3210_left[29:20] = min_x[slot2];
+                    comp3210_right[29:20] = max_x[slot2];
+                    comp3210_top[26:18] = min_y[slot2];
+                    comp3210_bottom[26:18] = max_y[slot2];
+                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
+                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
+                    comp3210_area[47:32] <= area[slot2][15:0];
+                end
+                
                 state <= S_COMP3;
             end
             S_COMP3: begin
-                // Pick 4th largest among remaining
-                curr_max_a <= 17'd0; curr_sel <= 2'd0;
-                if (v0 && a0 > curr_max_a) begin curr_max_a <= a0; curr_sel <= 2'd0; end
-                if (v1 && a1 > curr_max_a) begin curr_max_a <= a1; curr_sel <= 2'd1; end
-                if (v2 && a2 > curr_max_a) begin curr_max_a <= a2; curr_sel <= 2'd2; end
-                if (v3 && a3 > curr_max_a) begin curr_max_a <= a3; curr_sel <= 2'd3; end
-
-                case (curr_sel)
-                    2'd0: if (v0) begin
-                        comp3210_left[39:30]  = min_x[slot0]; comp3210_right[39:30] = max_x[slot0];
-                        comp3210_top[35:27]   = min_y[slot0]; comp3210_bottom[35:27] = max_y[slot0];
-                        comp3210_cx[39:30]   <= (min_x[slot0] + max_x[slot0]) >> 1;
-                        comp3210_cy[35:27]   <= (min_y[slot0] + max_y[slot0]) >> 1;
-                        comp3210_area[63:48] <= area[slot0][15:0];
-                        v0 <= 1'b0;
-                    end
-                    2'd1: if (v1) begin
-                        comp3210_left[39:30]  = min_x[slot1]; comp3210_right[39:30] = max_x[slot1];
-                        comp3210_top[35:27]   = min_y[slot1]; comp3210_bottom[35:27] = max_y[slot1];
-                        comp3210_cx[39:30]   <= (min_x[slot1] + max_x[slot1]) >> 1;
-                        comp3210_cy[35:27]   <= (min_y[slot1] + max_y[slot1]) >> 1;
-                        comp3210_area[63:48] <= area[slot1][15:0];
-                        v1 <= 1'b0;
-                    end
-                    2'd2: if (v2) begin
-                        comp3210_left[39:30]  = min_x[slot2]; comp3210_right[39:30] = max_x[slot2];
-                        comp3210_top[35:27]   = min_y[slot2]; comp3210_bottom[35:27] = max_y[slot2];
-                        comp3210_cx[39:30]   <= (min_x[slot2] + max_x[slot2]) >> 1;
-                        comp3210_cy[35:27]   <= (min_y[slot2] + max_y[slot2]) >> 1;
-                        comp3210_area[63:48] <= area[slot2][15:0];
-                        v2 <= 1'b0;
-                    end
-                    default: if (v3) begin
-                        comp3210_left[39:30]  = min_x[slot3]; comp3210_right[39:30] = max_x[slot3];
-                        comp3210_top[35:27]   = min_y[slot3]; comp3210_bottom[35:27] = max_y[slot3];
-                        comp3210_cx[39:30]   <= (min_x[slot3] + max_x[slot3]) >> 1;
-                        comp3210_cy[35:27]   <= (min_y[slot3] + max_y[slot3]) >> 1;
-                        comp3210_area[63:48] <= area[slot3][15:0];
-                        v3 <= 1'b0;
-                    end
-                endcase
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
+                    comp3210_left[29:20] = min_x[slot2];
+                    comp3210_right[29:20] = max_x[slot2];
+                    comp3210_top[26:18] = min_y[slot2];
+                    comp3210_bottom[26:18] = max_y[slot2];
+                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
+                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
+                    comp3210_area[47:32] <= area[slot2][15:0];
+                end
+                
 
                 state <= S_COMPS_DONE;
             end

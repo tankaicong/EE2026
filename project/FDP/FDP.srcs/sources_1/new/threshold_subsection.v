@@ -140,7 +140,7 @@ module threshold_subsection (
     // Eyedropper display rectangle
     localparam EYE_X   = 10'd230;
     localparam EYE_Y   = 9'd330;
-    localparam EYE_W   = 10'd50;
+    localparam EYE_W   = 10'd15;
     localparam EYE_H   = 9'd15;
     // Eyedropper toggle square
     localparam EYE_TOG_X = 10'd290;
@@ -182,7 +182,7 @@ module threshold_subsection (
     reg dragging;
     reg left_q;
     reg [21:0] drag_rel_cnt;
-    localparam DRAG_RELEASE_TH = 22'd2000000; // 80 ms sustained-low required to drop
+    localparam DRAG_RELEASE_TH = 22'd1000000; 
     reg dragging_r_min, dragging_r_max;
     reg dragging_g_min, dragging_g_max;
     reg dragging_b_min, dragging_b_max;

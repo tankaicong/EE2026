@@ -48,9 +48,9 @@ module UFDS_Detector(
     // output reg [9:0] centroid_x,
     // output reg [8:0] centroid_y,
 
-    // UI settings
+    // 4 component output (it will be the 4 largest components detected), lower bits is for component 0 - largest
     input  wire [1:0] min_area_sel,   // 00=4,01=16,10=32,11=64
-    input  wire       sort_by_prox,   // 0=area, 1=proximity among current top-4
+    // input  wire       sort_by_prox,   // 0=area, 1=proximity among current top-4
     input  wire [1:0] max_boxes_sel,  // 00=1,01=2,10=3,11=4
 
     // 4 component output (it will be the 4 largest components detected), lower bits is for component 0 - by chosen order
@@ -171,15 +171,15 @@ reg [16:0] min_area_tmp; // temp
 reg [1:0] min_idx_tmp; // temp
 
 // Proximity ordering helpers (among current 4 slots)
-reg        v0, v1, v2, v3;
-reg [9:0]  prox_cx0, prox_cx1, prox_cx2, prox_cx3;
-reg [8:0]  prox_cy0, prox_cy1, prox_cy2, prox_cy3;
-// Temp deltas for distance calculation (widen y to 10 bits during math)
-reg [9:0]  dx0, dx1, dx2, dx3;
-reg [9:0]  dy0, dy1, dy2, dy3;
-reg [19:0] d0, d1, d2, d3, curr_min_d;
-reg [1:0]  ord0, ord1, ord2, ord3, curr_sel;
-reg [2:0]  allowed_n, prox_valid_n;
+// reg [label_bits-1:0] v0, v1, v2, v3;
+// reg [9:0]  prox_cx0, prox_cx1, prox_cx2, prox_cx3;
+// reg [8:0]  prox_cy0, prox_cy1, prox_cy2, prox_cy3;
+// // Temp deltas for distance calculation (widen y to 10 bits during math)
+// reg [9:0]  dx0, dx1, dx2, dx3;
+// reg [9:0]  dy0, dy1, dy2, dy3;
+// reg [19:0] d0, d1, d2, d3, curr_min_d;
+// reg [1:0]  ord0, ord1, ord2, ord3, curr_sel;
+// reg [2:0]  allowed_n, prox_valid_n;
 
 // reg frame_end_accepted_pixel; 
 
@@ -780,261 +780,295 @@ always @(posedge clk) begin
             // snapshot one component per cycle to ease timing
             S_COMP0: begin
                 // (LSB chunk)
-                if (!sort_by_prox) begin
-                    if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
-                        comp3210_left[9:0] = min_x[slot0];
-                        comp3210_right[9:0] = max_x[slot0];
-                        comp3210_top[8:0] = min_y[slot0];
-                        comp3210_bottom[8:0] = max_y[slot0];
-                        comp3210_cx[9:0] <= (min_x[slot0] + max_x[slot0]) >> 1;
-                        comp3210_cy[8:0] <= (min_y[slot0] + max_y[slot0]) >> 1;
-                        comp3210_area[15:0] <= area[slot0][15:0];
-                    end
-                    state <= S_COMP1;
-                end else begin
-                    // Compute validity and distances
-                    v0 <= (slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT);
-                    v1 <= (slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT);
-                    v2 <= (slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT);
-                    v3 <= (slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT);
-                    prox_cx0 <= (min_x[slot0] + max_x[slot0]) >> 1; prox_cy0 <= (min_y[slot0] + max_y[slot0]) >> 1;
-                    prox_cx1 <= (min_x[slot1] + max_x[slot1]) >> 1; prox_cy1 <= (min_y[slot1] + max_y[slot1]) >> 1;
-                    prox_cx2 <= (min_x[slot2] + max_x[slot2]) >> 1; prox_cy2 <= (min_y[slot2] + max_y[slot2]) >> 1;
-                    prox_cx3 <= (min_x[slot3] + max_x[slot3]) >> 1; prox_cy3 <= (min_y[slot3] + max_y[slot3]) >> 1;
-                    // Compute absolute deltas (blocking assigns for intra-cycle math)
-                    dx0 = (prox_cx0 >= 155) ? (prox_cx0 - 155) : (155 - prox_cx0);
-                    dy0 = ({1'b0,prox_cy0} >= 120) ? ({1'b0,prox_cy0} - 120) : (120 - {1'b0,prox_cy0});
-                    dx1 = (prox_cx1 >= 155) ? (prox_cx1 - 155) : (155 - prox_cx1);
-                    dy1 = ({1'b0,prox_cy1} >= 120) ? ({1'b0,prox_cy1} - 120) : (120 - {1'b0,prox_cy1});
-                    dx2 = (prox_cx2 >= 155) ? (prox_cx2 - 155) : (155 - prox_cx2);
-                    dy2 = ({1'b0,prox_cy2} >= 120) ? ({1'b0,prox_cy2} - 120) : (120 - {1'b0,prox_cy2});
-                    dx3 = (prox_cx3 >= 155) ? (prox_cx3 - 155) : (155 - prox_cx3);
-                    dy3 = ({1'b0,prox_cy3} >= 120) ? ({1'b0,prox_cy3} - 120) : (120 - {1'b0,prox_cy3});
-                    // Manhattan distance (no multiplies) as proximity metric
-                    d0 <= dx0 + dy0;
-                    d1 <= dx1 + dy1;
-                    d2 <= dx2 + dy2;
-                    d3 <= dx3 + dy3;
-                    // Compute order indices by simple selection
-                    // Pick ord0
-                    curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
-                    if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
-                    if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
-                    if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
-                    if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
-                    ord0 <= curr_sel;
-                    // For ord1..ord3, a coarse approach: fixed precedence if equal; recompute masks
-                    // Mask out chosen and select next
-                    // Compute prox_valid_n and allowed_n
-                    prox_valid_n <= v0 + v1 + v2 + v3;
-                    allowed_n <= {1'b0, max_boxes_sel} + 3'd1;
+                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
+                    comp3210_left[9:0] = min_x[slot0];
+                    comp3210_right[9:0] = max_x[slot0];
+                    comp3210_top[8:0] = min_y[slot0];
+                    comp3210_bottom[8:0] = max_y[slot0];
+                    comp3210_cx[9:0] <= (min_x[slot0] + max_x[slot0]) >> 1;
+                    comp3210_cy[8:0] <= (min_y[slot0] + max_y[slot0]) >> 1;
+                    comp3210_area[15:0] <= area[slot0][15:0];
 
-                    // Write first output if within allowed range
-                    if (allowed_n >= 3'd1) begin
-                        case (curr_sel)
-                            2'd0: begin
-                                comp3210_left[9:0] = min_x[slot0]; comp3210_right[9:0] = max_x[slot0];
-                                comp3210_top[8:0] = min_y[slot0];  comp3210_bottom[8:0] = max_y[slot0];
-                                comp3210_cx[9:0] <= prox_cx0;      comp3210_cy[8:0] <= prox_cy0;
-                                comp3210_area[15:0] <= area[slot0][15:0];
-                                v0 <= 1'b0;
-                            end
-                            2'd1: begin
-                                comp3210_left[9:0] = min_x[slot1]; comp3210_right[9:0] = max_x[slot1];
-                                comp3210_top[8:0] = min_y[slot1];  comp3210_bottom[8:0] = max_y[slot1];
-                                comp3210_cx[9:0] <= prox_cx1;      comp3210_cy[8:0] <= prox_cy1;
-                                comp3210_area[15:0] <= area[slot1][15:0];
-                                v1 <= 1'b0;
-                            end
-                            2'd2: begin
-                                comp3210_left[9:0] = min_x[slot2]; comp3210_right[9:0] = max_x[slot2];
-                                comp3210_top[8:0] = min_y[slot2];  comp3210_bottom[8:0] = max_y[slot2];
-                                comp3210_cx[9:0] <= prox_cx2;      comp3210_cy[8:0] <= prox_cy2;
-                                comp3210_area[15:0] <= area[slot2][15:0];
-                                v2 <= 1'b0;
-                            end
-                            default: begin
-                                comp3210_left[9:0] = min_x[slot3]; comp3210_right[9:0] = max_x[slot3];
-                                comp3210_top[8:0] = min_y[slot3];  comp3210_bottom[8:0] = max_y[slot3];
-                                comp3210_cx[9:0] <= prox_cx3;      comp3210_cy[8:0] <= prox_cy3;
-                                comp3210_area[15:0] <= area[slot3][15:0];
-                                v3 <= 1'b0;
-                            end
-                        endcase
-                    end
-                    // Move on
-                    state <= S_COMP1;
+            //     if (!sort_by_prox) begin
+            //         if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
+            //             comp3210_left[9:0] = min_x[slot0];
+            //             comp3210_right[9:0] = max_x[slot0];
+            //             comp3210_top[8:0] = min_y[slot0];
+            //             comp3210_bottom[8:0] = max_y[slot0];
+            //             comp3210_cx[9:0] <= (min_x[slot0] + max_x[slot0]) >> 1;
+            //             comp3210_cy[8:0] <= (min_y[slot0] + max_y[slot0]) >> 1;
+            //             comp3210_area[15:0] <= area[slot0][15:0];
+            //         end
+            //         state <= S_COMP1;
+            //     end else begin
+            //         // Compute validity and distances
+            //         v0 <= (slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT);
+            //         v1 <= (slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT);
+            //         v2 <= (slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT);
+            //         v3 <= (slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT);
+            //         prox_cx0 <= (min_x[slot0] + max_x[slot0]) >> 1; prox_cy0 <= (min_y[slot0] + max_y[slot0]) >> 1;
+            //         prox_cx1 <= (min_x[slot1] + max_x[slot1]) >> 1; prox_cy1 <= (min_y[slot1] + max_y[slot1]) >> 1;
+            //         prox_cx2 <= (min_x[slot2] + max_x[slot2]) >> 1; prox_cy2 <= (min_y[slot2] + max_y[slot2]) >> 1;
+            //         prox_cx3 <= (min_x[slot3] + max_x[slot3]) >> 1; prox_cy3 <= (min_y[slot3] + max_y[slot3]) >> 1;
+            //   // Compute absolute deltas (blocking assigns for intra-cycle math)
+            //   dx0 = (prox_cx0 >= 155) ? (prox_cx0 - 155) : (155 - prox_cx0);
+            //   dy0 = ({1'b0,prox_cy0} >= 120) ? ({1'b0,prox_cy0} - 120) : (120 - {1'b0,prox_cy0});
+            //   dx1 = (prox_cx1 >= 155) ? (prox_cx1 - 155) : (155 - prox_cx1);
+            //   dy1 = ({1'b0,prox_cy1} >= 120) ? ({1'b0,prox_cy1} - 120) : (120 - {1'b0,prox_cy1});
+            //   dx2 = (prox_cx2 >= 155) ? (prox_cx2 - 155) : (155 - prox_cx2);
+            //   dy2 = ({1'b0,prox_cy2} >= 120) ? ({1'b0,prox_cy2} - 120) : (120 - {1'b0,prox_cy2});
+            //   dx3 = (prox_cx3 >= 155) ? (prox_cx3 - 155) : (155 - prox_cx3);
+            //   dy3 = ({1'b0,prox_cy3} >= 120) ? ({1'b0,prox_cy3} - 120) : (120 - {1'b0,prox_cy3});
+            //         // Manhattan distance (no multiplies) as proximity metric
+            //         d0 <= dx0 + dy0;
+            //         d1 <= dx1 + dy1;
+            //         d2 <= dx2 + dy2;
+            //         d3 <= dx3 + dy3;
+            //         // Compute order indices by simple selection
+            //         // Pick ord0
+            //         curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
+            //         if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
+            //         if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
+            //         if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
+            //         if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
+            //         ord0 <= curr_sel;
+            //         // For ord1..ord3, a coarse approach: fixed precedence if equal; recompute masks
+            //         // Mask out chosen and select next
+            //         // Compute prox_valid_n and allowed_n
+            //         prox_valid_n <= v0 + v1 + v2 + v3;
+            //         allowed_n <= {1'b0, max_boxes_sel} + 3'd1;
+
+            //         // Write first output if within allowed range
+            //         if (allowed_n >= 3'd1) begin
+            //             case (curr_sel)
+            //                 2'd0: begin
+            //                     comp3210_left[9:0] = min_x[slot0]; comp3210_right[9:0] = max_x[slot0];
+            //                     comp3210_top[8:0] = min_y[slot0];  comp3210_bottom[8:0] = max_y[slot0];
+            //                     comp3210_cx[9:0] <= prox_cx0;      comp3210_cy[8:0] <= prox_cy0;
+            //                     comp3210_area[15:0] <= area[slot0][15:0];
+            //                     v0 <= 1'b0;
+            //                 end
+            //                 2'd1: begin
+            //                     comp3210_left[9:0] = min_x[slot1]; comp3210_right[9:0] = max_x[slot1];
+            //                     comp3210_top[8:0] = min_y[slot1];  comp3210_bottom[8:0] = max_y[slot1];
+            //                     comp3210_cx[9:0] <= prox_cx1;      comp3210_cy[8:0] <= prox_cy1;
+            //                     comp3210_area[15:0] <= area[slot1][15:0];
+            //                     v1 <= 1'b0;
+            //                 end
+            //                 2'd2: begin
+            //                     comp3210_left[9:0] = min_x[slot2]; comp3210_right[9:0] = max_x[slot2];
+            //                     comp3210_top[8:0] = min_y[slot2];  comp3210_bottom[8:0] = max_y[slot2];
+            //                     comp3210_cx[9:0] <= prox_cx2;      comp3210_cy[8:0] <= prox_cy2;
+            //                     comp3210_area[15:0] <= area[slot2][15:0];
+            //                     v2 <= 1'b0;
+            //                 end
+            //                 default: begin
+            //                     comp3210_left[9:0] = min_x[slot3]; comp3210_right[9:0] = max_x[slot3];
+            //                     comp3210_top[8:0] = min_y[slot3];  comp3210_bottom[8:0] = max_y[slot3];
+            //                     comp3210_cx[9:0] <= prox_cx3;      comp3210_cy[8:0] <= prox_cy3;
+            //                     comp3210_area[15:0] <= area[slot3][15:0];
+            //                     v3 <= 1'b0;
+            //                 end
+            //             endcase
+            //         end
+            //         // Move on
+            //         state <= S_COMP1;
                 end
+                state <= S_COMP1;
             end
             S_COMP1: begin
-                if (!sort_by_prox) begin
-                    if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
-                        comp3210_left[19:10] = min_x[slot1];
-                        comp3210_right[19:10] = max_x[slot1];
-                        comp3210_top[17:9] = min_y[slot1];
-                        comp3210_bottom[17:9] = max_y[slot1];
-                        comp3210_cx[19:10] <= (min_x[slot1] + max_x[slot1]) >> 1;
-                        comp3210_cy[17:9] <= (min_y[slot1] + max_y[slot1]) >> 1;
-                        comp3210_area[31:16] <= area[slot1][15:0];
-                    end
-                end else begin
-                    if (allowed_n >= 3'd2) begin
-                        // Pick next among remaining v*
-                        curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
-                        if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
-                        if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
-                        if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
-                        if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
-                        ord1 <= curr_sel;
-                        case (curr_sel)
-                            2'd0: begin
-                                comp3210_left[19:10] = min_x[slot0]; comp3210_right[19:10] = max_x[slot0];
-                                comp3210_top[17:9] = min_y[slot0];  comp3210_bottom[17:9] = max_y[slot0];
-                                comp3210_cx[19:10] <= prox_cx0;     comp3210_cy[17:9] <= prox_cy0;
-                                comp3210_area[31:16] <= area[slot0][15:0];
-                                v0 <= 1'b0;
-                            end
-                            2'd1: begin
-                                comp3210_left[19:10] = min_x[slot1]; comp3210_right[19:10] = max_x[slot1];
-                                comp3210_top[17:9] = min_y[slot1];  comp3210_bottom[17:9] = max_y[slot1];
-                                comp3210_cx[19:10] <= prox_cx1;     comp3210_cy[17:9] <= prox_cy1;
-                                comp3210_area[31:16] <= area[slot1][15:0];
-                                v1 <= 1'b0;
-                            end
-                            2'd2: begin
-                                comp3210_left[19:10] = min_x[slot2]; comp3210_right[19:10] = max_x[slot2];
-                                comp3210_top[17:9] = min_y[slot2];  comp3210_bottom[17:9] = max_y[slot2];
-                                comp3210_cx[19:10] <= prox_cx2;     comp3210_cy[17:9] <= prox_cy2;
-                                comp3210_area[31:16] <= area[slot2][15:0];
-                                v2 <= 1'b0;
-                            end
-                            default: begin
-                                comp3210_left[19:10] = min_x[slot3]; comp3210_right[19:10] = max_x[slot3];
-                                comp3210_top[17:9] = min_y[slot3];  comp3210_bottom[17:9] = max_y[slot3];
-                                comp3210_cx[19:10] <= prox_cx3;     comp3210_cy[17:9] <= prox_cy3;
-                                comp3210_area[31:16] <= area[slot3][15:0];
-                                v3 <= 1'b0;
-                            end
-                        endcase
-                    end
+                 if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
+                    comp3210_left[19:10] = min_x[slot1];
+                    comp3210_right[19:10] = max_x[slot1];
+                    comp3210_top[17:9] = min_y[slot1];
+                    comp3210_bottom[17:9] = max_y[slot1];
+                    comp3210_cx[19:10] <= (min_x[slot1] + max_x[slot1]) >> 1;
+                    comp3210_cy[17:9] <= (min_y[slot1] + max_y[slot1]) >> 1;
+                    comp3210_area[31:16] <= area[slot1][15:0];
+                // if (!sort_by_prox) begin
+                //     if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
+                //         comp3210_left[19:10] = min_x[slot1];
+                //         comp3210_right[19:10] = max_x[slot1];
+                //         comp3210_top[17:9] = min_y[slot1];
+                //         comp3210_bottom[17:9] = max_y[slot1];
+                //         comp3210_cx[19:10] <= (min_x[slot1] + max_x[slot1]) >> 1;
+                //         comp3210_cy[17:9] <= (min_y[slot1] + max_y[slot1]) >> 1;
+                //         comp3210_area[31:16] <= area[slot1][15:0];
+                //     end
+                // end else begin
+                //     if (allowed_n >= 3'd2) begin
+                //         // Pick next among remaining v*
+                //         curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
+                //         if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
+                //         if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
+                //         if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
+                //         if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
+                //         ord1 <= curr_sel;
+                //         case (curr_sel)
+                //             2'd0: begin
+                //                 comp3210_left[19:10] = min_x[slot0]; comp3210_right[19:10] = max_x[slot0];
+                //                 comp3210_top[17:9] = min_y[slot0];  comp3210_bottom[17:9] = max_y[slot0];
+                //                 comp3210_cx[19:10] <= prox_cx0;     comp3210_cy[17:9] <= prox_cy0;
+                //                 comp3210_area[31:16] <= area[slot0][15:0];
+                //                 v0 <= 1'b0;
+                //             end
+                //             2'd1: begin
+                //                 comp3210_left[19:10] = min_x[slot1]; comp3210_right[19:10] = max_x[slot1];
+                //                 comp3210_top[17:9] = min_y[slot1];  comp3210_bottom[17:9] = max_y[slot1];
+                //                 comp3210_cx[19:10] <= prox_cx1;     comp3210_cy[17:9] <= prox_cy1;
+                //                 comp3210_area[31:16] <= area[slot1][15:0];
+                //                 v1 <= 1'b0;
+                //             end
+                //             2'd2: begin
+                //                 comp3210_left[19:10] = min_x[slot2]; comp3210_right[19:10] = max_x[slot2];
+                //                 comp3210_top[17:9] = min_y[slot2];  comp3210_bottom[17:9] = max_y[slot2];
+                //                 comp3210_cx[19:10] <= prox_cx2;     comp3210_cy[17:9] <= prox_cy2;
+                //                 comp3210_area[31:16] <= area[slot2][15:0];
+                //                 v2 <= 1'b0;
+                //             end
+                //             default: begin
+                //                 comp3210_left[19:10] = min_x[slot3]; comp3210_right[19:10] = max_x[slot3];
+                //                 comp3210_top[17:9] = min_y[slot3];  comp3210_bottom[17:9] = max_y[slot3];
+                //                 comp3210_cx[19:10] <= prox_cx3;     comp3210_cy[17:9] <= prox_cy3;
+                //                 comp3210_area[31:16] <= area[slot3][15:0];
+                //                 v3 <= 1'b0;
+                //             end
+                //         endcase
+                //     end
                 end
                 state <= S_COMP2;
             end
             S_COMP2: begin
-                if (!sort_by_prox) begin
-                    if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
-                        comp3210_left[29:20] = min_x[slot2];
-                        comp3210_right[29:20] = max_x[slot2];
-                        comp3210_top[26:18] = min_y[slot2];
-                        comp3210_bottom[26:18] = max_y[slot2];
-                        comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
-                        comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
-                        comp3210_area[47:32] <= area[slot2][15:0];
-                    end
-                end else begin
-                    if (allowed_n >= 3'd3) begin
-                        curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
-                        if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
-                        if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
-                        if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
-                        if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
-                        ord2 <= curr_sel;
-                        case (curr_sel)
-                            2'd0: begin
-                                comp3210_left[29:20] = min_x[slot0]; comp3210_right[29:20] = max_x[slot0];
-                                comp3210_top[26:18] = min_y[slot0];  comp3210_bottom[26:18] = max_y[slot0];
-                                comp3210_cx[29:20] <= prox_cx0;     comp3210_cy[26:18] <= prox_cy0;
-                                comp3210_area[47:32] <= area[slot0][15:0];
-                                v0 <= 1'b0;
-                            end
-                            2'd1: begin
-                                comp3210_left[29:20] = min_x[slot1]; comp3210_right[29:20] = max_x[slot1];
-                                comp3210_top[26:18] = min_y[slot1];  comp3210_bottom[26:18] = max_y[slot1];
-                                comp3210_cx[29:20] <= prox_cx1;     comp3210_cy[26:18] <= prox_cy1;
-                                comp3210_area[47:32] <= area[slot1][15:0];
-                                v1 <= 1'b0;
-                            end
-                            2'd2: begin
-                                comp3210_left[29:20] = min_x[slot2]; comp3210_right[29:20] = max_x[slot2];
-                                comp3210_top[26:18] = min_y[slot2];  comp3210_bottom[26:18] = max_y[slot2];
-                                comp3210_cx[29:20] <= prox_cx2;     comp3210_cy[26:18] <= prox_cy2;
-                                comp3210_area[47:32] <= area[slot2][15:0];
-                                v2 <= 1'b0;
-                            end
-                            default: begin
-                                comp3210_left[29:20] = min_x[slot3]; comp3210_right[29:20] = max_x[slot3];
-                                comp3210_top[26:18] = min_y[slot3];  comp3210_bottom[26:18] = max_y[slot3];
-                                comp3210_cx[29:20] <= prox_cx3;     comp3210_cy[26:18] <= prox_cy3;
-                                comp3210_area[47:32] <= area[slot3][15:0];
-                                v3 <= 1'b0;
-                            end
-                        endcase
-                    end
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
+                    comp3210_left[29:20] = min_x[slot2];
+                    comp3210_right[29:20] = max_x[slot2];
+                    comp3210_top[26:18] = min_y[slot2];
+                    comp3210_bottom[26:18] = max_y[slot2];
+                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
+                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
+                    comp3210_area[47:32] <= area[slot2][15:0];
+                // if (!sort_by_prox) begin
+                //     if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
+                //         comp3210_left[29:20] = min_x[slot2];
+                //         comp3210_right[29:20] = max_x[slot2];
+                //         comp3210_top[26:18] = min_y[slot2];
+                //         comp3210_bottom[26:18] = max_y[slot2];
+                //         comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
+                //         comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
+                //         comp3210_area[47:32] <= area[slot2][15:0];
+                //     end
+                // end else begin
+                //     if (allowed_n >= 3'd3) begin
+                //         curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
+                //         if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
+                //         if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
+                //         if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
+                //         if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
+                //         ord2 <= curr_sel;
+                //         case (curr_sel)
+                //             2'd0: begin
+                //                 comp3210_left[29:20] = min_x[slot0]; comp3210_right[29:20] = max_x[slot0];
+                //                 comp3210_top[26:18] = min_y[slot0];  comp3210_bottom[26:18] = max_y[slot0];
+                //                 comp3210_cx[29:20] <= prox_cx0;     comp3210_cy[26:18] <= prox_cy0;
+                //                 comp3210_area[47:32] <= area[slot0][15:0];
+                //                 v0 <= 1'b0;
+                //             end
+                //             2'd1: begin
+                //                 comp3210_left[29:20] = min_x[slot1]; comp3210_right[29:20] = max_x[slot1];
+                //                 comp3210_top[26:18] = min_y[slot1];  comp3210_bottom[26:18] = max_y[slot1];
+                //                 comp3210_cx[29:20] <= prox_cx1;     comp3210_cy[26:18] <= prox_cy1;
+                //                 comp3210_area[47:32] <= area[slot1][15:0];
+                //                 v1 <= 1'b0;
+                //             end
+                //             2'd2: begin
+                //                 comp3210_left[29:20] = min_x[slot2]; comp3210_right[29:20] = max_x[slot2];
+                //                 comp3210_top[26:18] = min_y[slot2];  comp3210_bottom[26:18] = max_y[slot2];
+                //                 comp3210_cx[29:20] <= prox_cx2;     comp3210_cy[26:18] <= prox_cy2;
+                //                 comp3210_area[47:32] <= area[slot2][15:0];
+                //                 v2 <= 1'b0;
+                //             end
+                //             default: begin
+                //                 comp3210_left[29:20] = min_x[slot3]; comp3210_right[29:20] = max_x[slot3];
+                //                 comp3210_top[26:18] = min_y[slot3];  comp3210_bottom[26:18] = max_y[slot3];
+                //                 comp3210_cx[29:20] <= prox_cx3;     comp3210_cy[26:18] <= prox_cy3;
+                //                 comp3210_area[47:32] <= area[slot3][15:0];
+                //                 v3 <= 1'b0;
+                //             end
+                //         endcase
+                //     end
                 end
                 state <= S_COMP3;
             end
             S_COMP3: begin
                 // (MSB chunk)
-                if (!sort_by_prox) begin
-                    if (slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT) begin
-                        comp3210_left [39:30] = min_x[slot3];
-                        comp3210_right [39:30] = max_x[slot3];
-                        comp3210_top[35:27] = min_y[slot3];
-                        comp3210_bottom[35:27] = max_y[slot3];
-                        comp3210_cx[39:30] <= (min_x[slot3] + max_x[slot3]) >> 1;
-                        comp3210_cy[35:27] <= (min_y[slot3] + max_y[slot3]) >> 1;
-                        comp3210_area[63:48] <= area[slot3][15:0];
-                    end
-                end else begin
-                    if (allowed_n >= 3'd4) begin
-                        curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
-                        if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
-                        if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
-                        if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
-                        if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
-                        ord3 <= curr_sel;
-                        case (curr_sel)
-                            2'd0: begin
-                                comp3210_left[39:30] = min_x[slot0]; comp3210_right[39:30] = max_x[slot0];
-                                comp3210_top[35:27] = min_y[slot0];  comp3210_bottom[35:27] = max_y[slot0];
-                                comp3210_cx[39:30] <= prox_cx0;     comp3210_cy[35:27] <= prox_cy0;
-                                comp3210_area[63:48] <= area[slot0][15:0];
-                            end
-                            2'd1: begin
-                                comp3210_left[39:30] = min_x[slot1]; comp3210_right[39:30] = max_x[slot1];
-                                comp3210_top[35:27] = min_y[slot1];  comp3210_bottom[35:27] = max_y[slot1];
-                                comp3210_cx[39:30] <= prox_cx1;     comp3210_cy[35:27] <= prox_cy1;
-                                comp3210_area[63:48] <= area[slot1][15:0];
-                            end
-                            2'd2: begin
-                                comp3210_left[39:30] = min_x[slot2]; comp3210_right[39:30] = max_x[slot2];
-                                comp3210_top[35:27] = min_y[slot2];  comp3210_bottom[35:27] = max_y[slot2];
-                                comp3210_cx[39:30] <= prox_cx2;     comp3210_cy[35:27] <= prox_cy2;
-                                comp3210_area[63:48] <= area[slot2][15:0];
-                            end
-                            default: begin
-                                comp3210_left[39:30] = min_x[slot3]; comp3210_right[39:30] = max_x[slot3];
-                                comp3210_top[35:27] = min_y[slot3];  comp3210_bottom[35:27] = max_y[slot3];
-                                comp3210_cx[39:30] <= prox_cx3;     comp3210_cy[35:27] <= prox_cy3;
-                                comp3210_area[63:48] <= area[slot3][15:0];
-                            end
-                        endcase
-                    end
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
+                    comp3210_left[29:20] = min_x[slot2];
+                    comp3210_right[29:20] = max_x[slot2];
+                    comp3210_top[26:18] = min_y[slot2];
+                    comp3210_bottom[26:18] = max_y[slot2];
+                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
+                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
+                    comp3210_area[47:32] <= area[slot2][15:0];
+                // if (!sort_by_prox) begin
+                //     if (slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT) begin
+                //         comp3210_left [39:30] = min_x[slot3];
+                //         comp3210_right [39:30] = max_x[slot3];
+                //         comp3210_top[35:27] = min_y[slot3];
+                //         comp3210_bottom[35:27] = max_y[slot3];
+                //         comp3210_cx[39:30] <= (min_x[slot3] + max_x[slot3]) >> 1;
+                //         comp3210_cy[35:27] <= (min_y[slot3] + max_y[slot3]) >> 1;
+                //         comp3210_area[63:48] <= area[slot3][15:0];
+                //     end
+                // end else begin
+                //     if (allowed_n >= 3'd4) begin
+                //         curr_min_d <= 20'hFFFFF; curr_sel <= 2'd0;
+                //         if (v0 && d0 < curr_min_d) begin curr_min_d <= d0; curr_sel <= 2'd0; end
+                //         if (v1 && d1 < curr_min_d) begin curr_min_d <= d1; curr_sel <= 2'd1; end
+                //         if (v2 && d2 < curr_min_d) begin curr_min_d <= d2; curr_sel <= 2'd2; end
+                //         if (v3 && d3 < curr_min_d) begin curr_min_d <= d3; curr_sel <= 2'd3; end
+                //         ord3 <= curr_sel;
+                //         case (curr_sel)
+                //             2'd0: begin
+                //                 comp3210_left[39:30] = min_x[slot0]; comp3210_right[39:30] = max_x[slot0];
+                //                 comp3210_top[35:27] = min_y[slot0];  comp3210_bottom[35:27] = max_y[slot0];
+                //                 comp3210_cx[39:30] <= prox_cx0;     comp3210_cy[35:27] <= prox_cy0;
+                //                 comp3210_area[63:48] <= area[slot0][15:0];
+                //             end
+                //             2'd1: begin
+                //                 comp3210_left[39:30] = min_x[slot1]; comp3210_right[39:30] = max_x[slot1];
+                //                 comp3210_top[35:27] = min_y[slot1];  comp3210_bottom[35:27] = max_y[slot1];
+                //                 comp3210_cx[39:30] <= prox_cx1;     comp3210_cy[35:27] <= prox_cy1;
+                //                 comp3210_area[63:48] <= area[slot1][15:0];
+                //             end
+                //             2'd2: begin
+                //                 comp3210_left[39:30] = min_x[slot2]; comp3210_right[39:30] = max_x[slot2];
+                //                 comp3210_top[35:27] = min_y[slot2];  comp3210_bottom[35:27] = max_y[slot2];
+                //                 comp3210_cx[39:30] <= prox_cx2;     comp3210_cy[35:27] <= prox_cy2;
+                //                 comp3210_area[63:48] <= area[slot2][15:0];
+                //             end
+                //             default: begin
+                //                 comp3210_left[39:30] = min_x[slot3]; comp3210_right[39:30] = max_x[slot3];
+                //                 comp3210_top[35:27] = min_y[slot3];  comp3210_bottom[35:27] = max_y[slot3];
+                //                 comp3210_cx[39:30] <= prox_cx3;     comp3210_cy[35:27] <= prox_cy3;
+                //                 comp3210_area[63:48] <= area[slot3][15:0];
+                //             end
+                //         endcase
+                //     end
                 end
                 state <= S_COMPS_DONE;
             end
             S_COMPS_DONE: begin
                 // compute comp_count
-                if (!sort_by_prox) begin
+                // if (!sort_by_prox) begin
                     comp_count <=
                         ((slot0!=0) && active_root[slot0] && (area[slot0] >= MIN_AREA_RT)) +
                         ((slot1!=0) && active_root[slot1] && (area[slot1] >= MIN_AREA_RT)) +
                         ((slot2!=0) && active_root[slot2] && (area[slot2] >= MIN_AREA_RT)) +
                         ((slot3!=0) && active_root[slot3] && (area[slot3] >= MIN_AREA_RT));
-                end else begin
-                    // clamp by allowed_n in proximity mode
-                    comp_count <= (prox_valid_n > allowed_n) ? allowed_n : prox_valid_n;
-                end
+                // end else begin
+                //     // clamp by allowed_n in proximity mode
+                //     comp_count <= (prox_valid_n > allowed_n) ? allowed_n : prox_valid_n;
+                // end
                 state <= S_READY;
             end
 
@@ -1724,7 +1758,7 @@ endmodule
 //                 end
 
 //                 // update leaderboard and filter out
-//                 if (ua_area_new >= MIN_AREA) begin
+//                 if (ua_area_new >= MIN_AREA_RT) begin
 //                     if      (slot0 == ua) slot0_area <= ua_area_new;
 //                     else if (slot1 == ua) slot1_area <= ua_area_new;
 //                     else if (slot2 == ua) slot2_area <= ua_area_new;

@@ -24,14 +24,15 @@ module ufds_settings_overlay (
     // Settings
     output reg [2:0] tab_idx,          // 1..5
     output reg [1:0] min_area_sel,     // 00=4, 01=16, 10=32, 11=64
-    output reg         sort_by_prox,     // 0=area, 1=proximity
-    output reg [1:0] max_boxes_sel       // 00=1, 01=2, 10=3, 11=4
+    // output reg         sort_by_prox,     // 0=area, 1=proximity
+    output reg [1:0] max_boxes_sel,       // 00=1, 01=2, 10=3, 11=4
+    output reg         servo           // servo mode on/off
 );
 
     // Colors
     localparam [11:0] BLACK   = 12'h000; // 0
     localparam [11:0] WHITE   = 12'hFFF; // 1
-    localparam [11:0] RED     = 12'hF00; // 2
+    localparam [11:0] RED     = 12'h00F; // 2
     localparam [11:0] GREEN   = 12'h1C1; // 3
     localparam [11:0] GREY    = 12'h888; 
     localparam [11:0] CYAN    = 12'hFF0; // 5
@@ -43,7 +44,7 @@ module ufds_settings_overlay (
     localparam [11:0] OFFWHITE  = 12'hBEE; // 11
     localparam [11:0] BORDERBLUE = 12'hC70; // 12
     localparam [11:0] BRIGHTBLUE = 12'hFB0; // 13
-    localparam [11:0] BUMBLEBEE   = 12'hFC0; // 14
+    localparam [11:0] BUMBLEBEE   = 12'h0CF; // 14
 
     // Boxes geometry (inclusive ranges)
     // Box 1: Return (30..62, 324..430)
@@ -142,7 +143,7 @@ module ufds_settings_overlay (
     wire in_box4 = (px >= box4[0] + 2 && px <= box4[1] - 2 && py >= box4[2] + 2 && py <= box4[3] - 2);      // Update stats box
     wire in_box5 = (px >= box5[0] + 2 && px <= box5[1] - 2 && py >= box5[2] + 2 && py <= box5[3] - 2);      // Filter refine box
     wire in_box6 = (px >= box6[0] + 2 && px <= box6[1] - 2 && py >= box6[2] + 2 && py <= box6[3] - 2);      // Bounding box box
-    wire in_box7 = (px >= box7[0] + 2 && px <= box7[1] - 2 && py >= box7[2] + 2 && py <= box7[3] - 2);      // Blank box
+    wire in_servo = (px >= box7[0] + 2 && px <= box7[1] - 2 && py >= box7[2] + 2 && py <= box7[3] - 2);      // servo box
 
     wire mouse_in_box1 = (mouse_x >= box1[0] + 2 && mouse_x <= box1[1] - 2 && mouse_y >= box1[2] + 2 && mouse_y <= box1[3] - 2);
     wire mouse_in_box2 = (mouse_x >= box2[0] + 2 && mouse_x <= box2[1] - 2 && mouse_y >= box2[2] + 2 && mouse_y <= box2[3] - 2);
@@ -150,7 +151,7 @@ module ufds_settings_overlay (
     wire mouse_in_box4 = (mouse_x >= box4[0] + 2 && mouse_x <= box4[1] - 2 && mouse_y >= box4[2] + 2 && mouse_y <= box4[3] - 2);
     wire mouse_in_box5 = (mouse_x >= box5[0] + 2 && mouse_x <= box5[1] - 2 && mouse_y >= box5[2] + 2 && mouse_y <= box5[3] - 2);
     wire mouse_in_box6 = (mouse_x >= box6[0] + 2 && mouse_x <= box6[1] - 2 && mouse_y >= box6[2] + 2 && mouse_y <= box6[3] - 2);
-    wire mouse_in_box7 = (mouse_x >= box7[0] + 2 && mouse_x <= box7[1] - 2 && mouse_y >= box7[2] + 2 && mouse_y <= box7[3] - 2);
+    wire mouse_in_servo = (mouse_x >= box7[0] + 2 && mouse_x <= box7[1] - 2 && mouse_y >= box7[2] + 2 && mouse_y <= box7[3] - 2);
 
 
     // Panel 4 controls geometry (Filter) under the tab row: place within y 440..470
@@ -176,22 +177,22 @@ module ufds_settings_overlay (
     // wire in_tick3 = (px == tick_x3) && in_slider_track;
 
     // Stack buttons vertically within panel width
-    localparam integer a_start_x = 526, a_start_y = 368, a_end_x = 565, a_end_y = 383;
-    localparam integer p_start_x = 506, p_start_y = 386, p_end_x = 585, p_end_y = 407;
-    wire in_btn_area = (px >= a_start_x && px <= a_end_x && py >= a_start_y && py <= a_end_y);
-    wire in_btn_prox = (px >= p_start_x && px <= p_end_x && py >= p_start_y && py <= p_end_y);
-    wire mouse_in_btn_area = (mouse_x >= a_start_x && mouse_x <= a_end_x && mouse_y >= a_start_y && mouse_y <= a_end_y);
-    wire mouse_in_btn_prox = (mouse_x >= p_start_x && mouse_x <= p_end_x && mouse_y >= p_start_y && mouse_y <= p_end_y);
+    // localparam integer a_start_x = 526, a_start_y = 368, a_end_x = 565, a_end_y = 383;
+    // localparam integer p_start_x = 506, p_start_y = 386, p_end_x = 585, p_end_y = 407;
+    // wire in_btn_area = (px >= a_start_x && px <= a_end_x && py >= a_start_y && py <= a_end_y);
+    // wire in_btn_prox = (px >= p_start_x && px <= p_end_x && py >= p_start_y && py <= p_end_y);
+    // wire mouse_in_btn_area = (mouse_x >= a_start_x && mouse_x <= a_end_x && mouse_y >= a_start_y && mouse_y <= a_end_y);
+    // wire mouse_in_btn_prox = (mouse_x >= p_start_x && mouse_x <= p_end_x && mouse_y >= p_start_y && mouse_y <= p_end_y);
 
     // Panel 5 controls geometry (Draw BB): x 510..610, y 446..470 (four small buttons)
     // localparam integer btn1_x0 = 502, btn1_x1 = 521, btn1_y0 = 422, btn1_y1 = 441;
     // localparam integer btn2_x0 = 525, btn2_x1 = 544, btn2_y0 = 422, btn2_y1 = 441;
     // localparam integer btn3_x0 = 548, btn3_x1 = 567, btn3_y0 = 422, btn3_y1 = 441;
     // localparam integer btn4_x0 = 571, btn4_x1 = 590, btn4_y0 = 422, btn4_y1 = 441;
-    localparam integer btn1_x0 = 503, btn1_x1 = 522, btn1_y0 = 422, btn1_y1 = 441;
-    localparam integer btn2_x0 = 526, btn2_x1 = 545, btn2_y0 = 422, btn2_y1 = 441;
-    localparam integer btn3_x0 = 549, btn3_x1 = 568, btn3_y0 = 422, btn3_y1 = 441;
-    localparam integer btn4_x0 = 572, btn4_x1 = 591, btn4_y0 = 422, btn4_y1 = 441;
+    localparam integer btn1_x0 = 503, btn1_x1 = 522, btn1_y0 = 393, btn1_y1 = 412;
+    localparam integer btn2_x0 = 526, btn2_x1 = 545, btn2_y0 = 393, btn2_y1 = 412;
+    localparam integer btn3_x0 = 549, btn3_x1 = 568, btn3_y0 = 393, btn3_y1 = 412;
+    localparam integer btn4_x0 = 572, btn4_x1 = 591, btn4_y0 = 393, btn4_y1 = 412;
 
     wire in_btn_1 = (px >= btn1_x0 && px <= btn1_x1 && py >= btn1_y0 && py <= btn1_y1);
     wire in_btn_2 = (px >= btn2_x0 && px <= btn2_x1 && py >= btn2_y0 && py <= btn2_y1);
@@ -227,7 +228,7 @@ module ufds_settings_overlay (
         if (reset) begin
             tab_idx       <= 1;
             min_area_sel  <= 2'b00; // 4
-            sort_by_prox  <= 1'b0;  // area
+            // sort_by_prox  <= 1'b0;  // area
             max_boxes_sel <= 2'b11; // 4
             return_click  <= 1'b0;
         end else begin
@@ -261,23 +262,26 @@ module ufds_settings_overlay (
                     //     min_area_sel <= 2'b11; // 64
                     // // end
                     // Sort mode buttons
-                    if (mouse_in_btn_area) sort_by_prox <= 1'b0;
-                    if (mouse_in_btn_prox) sort_by_prox <= 1'b1;
+                // if (mouse_in_btn_area) sort_by_prox <= 1'b0;
+                // if (mouse_in_btn_prox) sort_by_prox <= 1'b1;
 
-                    if (mouse_in_btn04_1) min_area_sel <= 2'b00; // 4
-                    else if (mouse_in_btn16_1) min_area_sel <= 2'b01; // 16
-                    else if (mouse_in_btn32_1) min_area_sel <= 2'b10; // 32
-                    else if (mouse_in_btn64_1) min_area_sel <= 2'b11; // 64
+                if (mouse_in_btn04_1) min_area_sel <= 2'b00; // 4
+                else if (mouse_in_btn16_1) min_area_sel <= 2'b01; // 16
+                else if (mouse_in_btn32_1) min_area_sel <= 2'b10; // 32
+                else if (mouse_in_btn64_1) min_area_sel <= 2'b11; // 64
                 // end
 
                 // Panel 5 interactions (Draw BB) only when tab 5
                 // if (tab_idx == 5) begin
-                    if (mouse_in_btn_1) max_boxes_sel <= 2'b00;
-                    else if (mouse_in_btn_2) max_boxes_sel <= 2'b01;
-                    else if (mouse_in_btn_3) max_boxes_sel <= 2'b10;
-                    else if (mouse_in_btn_4) max_boxes_sel <= 2'b11;
+                if (mouse_in_btn_1) max_boxes_sel <= 2'b00;
+                else if (mouse_in_btn_2) max_boxes_sel <= 2'b01;
+                else if (mouse_in_btn_3) max_boxes_sel <= 2'b10;
+                else if (mouse_in_btn_4) max_boxes_sel <= 2'b11;
 
                 // end
+                if (mouse_in_servo) begin
+                    servo <= ~servo;
+                end
             end
         end
     end
@@ -334,10 +338,10 @@ module ufds_settings_overlay (
 
     // Panel 5 button borders (Area/Proximity), thickness 1
     // Border wires for stacked buttons
-    wire border_btn_area = ((px >= 526 + 1 && px <= 565 && ((py == 368) || (py == 383))) ||
-                            (py >= 368 && py <= 383 && ((px == 526 + 1) || (px == 565))));
-    wire border_btn_prox = ((px >= 506 + 1 && px <= 585 && ((py == 386) || (py == 407))) ||
-                            (py >= 386 && py <= 407 && ((px == 506 + 1) || (px == 585))));
+    // wire border_btn_area = ((px >= 526 + 1 && px <= 565 && ((py == 368) || (py == 383))) ||
+    //                         (py >= 368 && py <= 383 && ((px == 526 + 1) || (px == 565))));
+    // wire border_btn_prox = ((px >= 506 + 1 && px <= 585 && ((py == 386) || (py == 407))) ||
+    //                         (py >= 386 && py <= 407 && ((px == 506 + 1) || (px == 585))));
 
     // Panel 5 max-box button borders, thickness 1
     wire border_btn_1 = ((px >= btn1_x0 + 1 && px <= btn1_x1 && ((py == btn1_y0) || (py == btn1_y1))) ||
@@ -357,15 +361,15 @@ module ufds_settings_overlay (
             // nothing
         end else begin
             // Separating lines at y = 322 (full width)
-            if ((py == 322)) begin
-                overlay_en  = 1'b1; overlay_rgb = GREEN;
-            end
-            if ((py == 323)) begin
-                overlay_en  = 1'b1; overlay_rgb = 12'h1A1;
-            end
-            if ((py == 324)) begin
-                overlay_en  = 1'b1; overlay_rgb = 12'h181;
-            end
+            // if ((py == 322)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = GREEN;
+            // end
+            // if ((py == 323)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = 12'h1A1;
+            // end
+            // if ((py == 324)) begin
+            //     overlay_en  = 1'b1; overlay_rgb = 12'h181;
+            // end
             // if ((py == 323) || (py == 321) || (py == 323) || (py == 395) || (py == 397)) begin
             //     overlay_en  = 1'b1; overlay_rgb = BORDERBLUE;
             // end
@@ -379,13 +383,13 @@ module ufds_settings_overlay (
             if (mouse_in_box4 && in_box4) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box5 && in_box5) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box6 && in_box6) begin overlay_en=1; overlay_rgb=OFFWHITE; end
-            if (mouse_in_box7 && in_box7) begin overlay_en=1; overlay_rgb=MAGENTA; end
+            if (mouse_in_servo && in_servo) begin overlay_en=1; overlay_rgb=RED; end
 
             // Draw tab borders
             // if (border_box1) begin overlay_en=1; overlay_rgb=GREEN; end
             if (border_box1) begin
                 overlay_en=1;
-                if (tab_idx == 0) overlay_rgb=GREY; else overlay_rgb=GREEN;
+                if (tab_idx == 0) overlay_rgb=GREEN; else overlay_rgb=GREY;
             end
             if (border_box2) begin
                 overlay_en = 1; 
@@ -407,7 +411,7 @@ module ufds_settings_overlay (
                 overlay_en = 1; 
                 if (tab_idx == 5) overlay_rgb = GREEN; else overlay_rgb = GREY;
             end
-            if (border_box7) begin overlay_en=1; overlay_rgb=GREY; end
+            if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = RED; else overlay_rgb=GREY; end
 
             if (gen_black) begin overlay_en=1; overlay_rgb=BLACK; end
             if (gen_yellow) begin overlay_en=1; overlay_rgb=YELLOW; end
@@ -423,7 +427,7 @@ module ufds_settings_overlay (
             // if (px >= 512 && px <= 520 && py >= 330 && py <= 338) begin overlay_en=1; overlay_rgb=BLUE; end    // Box6
 
             // Panel 4 details
-            // if (tab_idx == 4) begin
+            // if (tab_idx== 4) begin
                 // slider track
                 // if (in_slider_track) begin overlay_en=1; overlay_rgb=WHITE; end
                 // if (in_tick0 || in_tick1 || in_tick2 || in_tick3) begin overlay_en=1; overlay_rgb=WHITE; end
@@ -439,53 +443,66 @@ module ufds_settings_overlay (
                 //     overlay_en=1; overlay_rgb=GREEN;
                 // end
                 // buttons
-                if (border_btn_area) begin
-                    overlay_en = 1;
-                    if (sort_by_prox) overlay_rgb = GREY; else overlay_rgb = CYAN;
-                end
-                if (border_btn_prox) begin
-                    overlay_en = 1;
-                    if (sort_by_prox) overlay_rgb = CYAN; else overlay_rgb = GREY;
-                end
-            // end
-
-            // Panel 5 details
-            // if (tab_idx == 5) begin
-                if (border_btn_1) begin
-                    overlay_en = 1;
-                    if (max_boxes_sel==2'b00) overlay_rgb = GREEN; else overlay_rgb = GREY;
-                end
-                if (border_btn_2) begin
-                    overlay_en = 1;
-                    if (max_boxes_sel==2'b01) overlay_rgb = GREEN; else overlay_rgb = GREY;
-                end
-                if (border_btn_3) begin
-                    overlay_en = 1;
-                    if (max_boxes_sel==2'b10) overlay_rgb = GREEN; else overlay_rgb = GREY;
-                end
-                if (border_btn_4) begin
-                    overlay_en = 1;
-                    if (max_boxes_sel==2'b11) overlay_rgb = GREEN; else overlay_rgb = GREY;
-                end
+            if (btn04_1 && (mouse_in_btn04_1 || min_area_sel==2'b00)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (btn16_1 && (mouse_in_btn16_1 || min_area_sel==2'b01)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (btn32_1 && (mouse_in_btn32_1 || min_area_sel==2'b10)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (btn64_1 && (mouse_in_btn64_1 || min_area_sel==2'b11)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
             // end
 
             // Panel 4 buttons
             if (border_btn04_1) begin
                 overlay_en = 1;
-                if (min_area_sel==2'b00) overlay_rgb = GREEN; else overlay_rgb = GREY;
+                if (min_area_sel==2'b00) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             end
             if (border_btn16_1) begin
                 overlay_en = 1;
-                if (min_area_sel==2'b01) overlay_rgb = GREEN; else overlay_rgb = GREY;
+                if (min_area_sel==2'b01) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             end
             if (border_btn32_1) begin
                 overlay_en = 1;
-                if (min_area_sel==2'b10) overlay_rgb = GREEN; else overlay_rgb = GREY;
+                if (min_area_sel==2'b10) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             end
             if (border_btn64_1) begin
                 overlay_en = 1;
-                if (min_area_sel==2'b11) overlay_rgb = GREEN; else overlay_rgb = GREY;
+                if (min_area_sel==2'b11) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             end
+
+            // Panel 5 details
+            // if (tab_idx == 5) begin
+            if (in_btn_1 && (mouse_in_btn_1 || max_boxes_sel==2'b00)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (in_btn_2 && (mouse_in_btn_2 || max_boxes_sel==2'b01)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (in_btn_3 && (mouse_in_btn_3 || max_boxes_sel==2'b10)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            if (in_btn_4 && (mouse_in_btn_4 || max_boxes_sel==2'b11)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            // if (in_btn_area && (mouse_in_btn_area || !sort_by_prox)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            // if (in_btn_prox && (mouse_in_btn_prox || sort_by_prox)) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
+            // end
+            if (border_btn_1) begin
+                overlay_en = 1;
+                if (max_boxes_sel==2'b00) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
+            end
+            if (border_btn_2) begin
+                overlay_en = 1;
+                if (max_boxes_sel==2'b01) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
+            end
+            if (border_btn_3) begin
+                overlay_en = 1;
+                if (max_boxes_sel==2'b10) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
+            end
+            if (border_btn_4) begin
+                overlay_en = 1;
+                if (max_boxes_sel==2'b11) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
+            end
+            // if (border_btn_area) begin
+            //     overlay_en = 1;
+            //     if (sort_by_prox) overlay_rgb = GREY; else overlay_rgb = BUMBLEBEE;
+            // end
+            // if (border_btn_prox) begin
+            //     overlay_en = 1;
+            //     if (sort_by_prox) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
+            // end
+            // end
+            if (in_servo && servo) begin overlay_en=1; overlay_rgb=RED; end
+
         end
     end
 

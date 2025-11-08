@@ -1,0 +1,6 @@
+verilog xil_defaultlib  \
+"../../../ip/bitmap_mem_1/sim/bitmap_mem.v" \
+
+verilog xil_defaultlib "glbl.v"
+
+nosort

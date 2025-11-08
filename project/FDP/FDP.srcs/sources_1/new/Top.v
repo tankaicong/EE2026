@@ -47,7 +47,7 @@ module Top(
     wire ufds_settings_mode = (state == S_UFDS_SETTINGS);
     
     // Crosshair color mapping from selection
-    wire [11:0] crosshair_rgb = MAGENTA;
+    wire [11:0] crosshair_rgb = CYAN;
 
     wire [10:0] convolution_cutoff_x = (Final_Out_Control == 2'b11) ? (640 - (Total_Count-1)*2) : 640 - (Pre_Count-1)*2;
     wire [9:0] convolution_cutoff_y = (Final_Out_Control == 2'b11) ? (480 - (Total_Count-1)*2) : 480 - (Pre_Count-1)*2;
@@ -71,16 +71,16 @@ module Top(
                 if (left_click_edge || right_click_edge) begin
                     state <= S_CV_SETTINGS;
                 end
-                else begin
-                    // Display box for start game manual
-                    if ((frame_x >= 33) && (frame_x <= 87) && (frame_y >= 123) && (frame_y <= 177)) begin
-                        frame_pixel <= GREEN; // green fill
-                    end
-                    // if (a_fill) begin
-                    if ((frame_x >= 183) && (frame_x <= 177) && (frame_y >= 123) && (frame_y <= 177)) begin
-                        frame_pixel <= BLUE; // red fill
-                    end
-                end
+                // else begin
+                //     // // Display box for start game manual
+                //     // if ((frame_x >= 33) && (frame_x <= 87) && (frame_y >= 123) && (frame_y <= 177)) begin
+                //     //     frame_pixel <= GREEN; // green fill
+                //     // end
+                //     // // if (a_fill) begin
+                //     // if ((frame_x >= 183) && (frame_x <= 177) && (frame_y >= 123) && (frame_y <= 177)) begin
+                //     //     frame_pixel <= BLUE; // red fill
+                //     // end
+                // end
             end
             
             S_CV_SETTINGS: begin
@@ -113,11 +113,11 @@ module Top(
                 
                 if (thr_section_active) frame_pixel <= thr_section_pixel;
                 // draw CV settings overlay, then the info pixel, then draw cursor on top
-                else if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
+                if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
 
                 // Info pixel on top of overlay
-                if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
-                // For BRAM overlay (paint only when not transparent)
+                // if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
+                // BRAM overlay BACKGROUND pass: draw static assets only (mask out box interiors)
                 if (write_high && (overlay_pixel != 4'hF)) begin
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
@@ -136,8 +136,10 @@ module Top(
                     else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
                     // 4'hF is transparent (ignored), anything else unmapped: do nothing
                 end
+
                 // Use VGA-space cursor here (overlay also uses VGA coords)
-                if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
+                if (vga_cursor_border) frame_pixel <= 12'h000; // black outline
+                else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
             S_UFDS_SETTINGS: begin
@@ -206,11 +208,13 @@ module Top(
                 )) begin
                     frame_pixel <= GREEN;
                 end
+
+
+                // Info tab overlay
+                if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
-                // Cursor on top
-                if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
 
                 // Pull from BRAM
                 if (write_high && (overlay_pixel != 4'hF)) begin
@@ -231,6 +235,10 @@ module Top(
                     else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
                     // 4'hF is transparent (ignored), anything else unmapped: do nothing
                 end
+
+                // Cursor on top
+                if (vga_cursor_border) frame_pixel <= 12'h000; // black outline
+                else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
             S_GAME_AUTO_MODE: begin
@@ -240,23 +248,23 @@ module Top(
                 // Renamed manual mode
                 // --- Crosshair drawing with user-selected color ---
                 // === Bottom vertical arm ===
-                if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
+                if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+5) begin
                     frame_pixel <= crosshair_rgb;
                 end
 
                 // === Top vertical arm ===
-                else if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
+                else if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120-5 && frame_y[9:1] <= 120-2) begin
                     frame_pixel <= crosshair_rgb;
                 end
 
                 // === Left horizontal arm ===
-                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
+                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155-5 && frame_x[9:1]-10 <= 155-2) begin
                     frame_pixel <= crosshair_rgb;
 
                 end
 
                 // === Right horizontal arm ===
-                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
+                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+5) begin
                     frame_pixel <= crosshair_rgb;
                 end
             end
@@ -392,8 +400,8 @@ module Top(
         .reset(cap_reset),
         .frame_start(ov7670_vsync),
         .we(rgb_pixel_valid),
-            .pixel_in(threshold_pixel),
-            .op_dilate(Morphology_State[0]),                 // Morphology_State bit now directly 1 = DILATE
+        .pixel_in(threshold_pixel),
+        .op_dilate(Morphology_State[0]),                 // Morphology_State bit now directly 1 = DILATE
         .addr_off_col(B1_addr_off_col),
         .addr_off_row(B1_addr_off_row),
         .pixel_out(B1_pixel_out),
@@ -409,7 +417,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B1_pixel_valid),
         .pixel_in(B1_pixel_out),
-            .op_dilate(Morphology_State[1]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[1]),                 // 1 = DILATE
         .addr_off_col(B2_addr_off_col),
         .addr_off_row(B2_addr_off_row),
         .pixel_out(B2_pixel_out),
@@ -426,7 +434,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B2_pixel_valid),
         .pixel_in(B2_pixel_out),
-            .op_dilate(Morphology_State[2]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[2]),                 // 1 = DILATE
         .addr_off_col(B3_addr_off_col),
         .addr_off_row(B3_addr_off_row),
         .pixel_out(B3_pixel_out),
@@ -442,7 +450,7 @@ module Top(
         .frame_start(ov7670_vsync),
         .we(B3_pixel_valid),
         .pixel_in(B3_pixel_out),
-            .op_dilate(Morphology_State[3]),                 // 1 = DILATE
+        .op_dilate(Morphology_State[3]),                 // 1 = DILATE
         .addr_off_col(B4_addr_off_col),
         .addr_off_row(B4_addr_off_row),
         .pixel_out(B4_pixel_out),
@@ -987,7 +995,7 @@ module Top(
         .ext_reset(cap_reset),
         // Settings from UFDS UI
         .min_area_sel(ufds_min_area_sel_r),
-        .sort_by_prox(ufds_sort_by_prox_r),
+        // .sort_by_prox(ufds_sort_by_prox_r),
         .max_boxes_sel(ufds_max_boxes_sel_r),
         .comp3210_left(comp3210_left),
         .comp3210_right(comp3210_right),
@@ -1000,7 +1008,6 @@ module Top(
         .ready_o(ready_o),
         .next_unused_label(next_unused_label)
     );
-
 
 // ----------- DISPLAY PARAMS, CROSSHAIR, BOUNDING BOXES ----------- //
     localparam GREEN = 12'h1C1;
@@ -1166,7 +1173,7 @@ module Top(
     wire cv_sett_overlay_en;
     wire [11:0] cv_sett_overlay;
     // Click pulses from CV settings overlay selection boxes
-    wire cam_box_clicked;
+    // wire cam_box_clicked;
     wire bitmap_box_clicked;
     wire ufds_box_clicked;
     // Change-view selection code from overlay (00 CAM, 01 PRE, 11 BITMAP, 10 MORPH)
@@ -1180,7 +1187,8 @@ module Top(
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
-        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        // .cam_box_click(cam_box_clicked), 
+        .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
         .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
         .final_out(final_out)
@@ -1192,9 +1200,10 @@ module Top(
     wire [2:0] info_idx;
     wire [11:0] info_pix_rgb;
     cv_settings_info_tab info_tab (
-        .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
+        .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
-        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        // .cam_box_click(cam_box_clicked), 
+        .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .gauss_click(gauss_click_mv), .median_click(median_click_mv), .erode_click(erode_click_mv), .dilate_click(dilate_click_mv),
         .pix_x(info_pix_x), .pix_y(info_pix_y), .info_idx(info_idx), .pix_rgb(info_pix_rgb)
     );
@@ -1230,9 +1239,9 @@ module Top(
     // Threshold section wires (instantiated later so we can tie enable to state)
     wire [11:0] thr_section_pixel;
     wire        thr_section_active;
-    // wire [3:0]  start_red_val, end_red_val;
-    // wire [3:0]  start_green_val, end_green_val;
-    // wire [3:0]  start_blue_val, end_blue_val;
+    wire [3:0]  start_red_val, end_red_val;
+    wire [3:0]  start_green_val, end_green_val;
+    wire [3:0]  start_blue_val, end_blue_val;
     // New HSV thresholds and mode flag from threshold UI
     // wire [3:0]  start_h_val, end_h_val;
     // wire [3:0]  start_s_val, end_s_val;
@@ -1261,12 +1270,12 @@ module Top(
         .rgb_pixel_in(rgb_pixel_out),
         // .bram_pixel_out(bram_pixel_out),
         .mouse_color_bram(mouse_color_bram),
-        // .start_red_val(start_red_val),
-        // .end_red_val(end_red_val),
-        // .start_green_val(start_green_val),
-        // .end_green_val(end_green_val),
-        // .start_blue_val(start_blue_val),
-        // .end_blue_val(end_blue_val),
+        .start_red_val(start_red_val),
+        .end_red_val(end_red_val),
+        .start_green_val(start_green_val),
+        .end_green_val(end_green_val),
+        .start_blue_val(start_blue_val),
+        .end_blue_val(end_blue_val),
         // .start_h_val(start_h_val), .end_h_val(end_h_val),
         // .start_s_val(start_s_val), .end_s_val(end_s_val),
         // .start_v_val(start_v_val), .end_v_val(end_v_val),
@@ -1284,8 +1293,9 @@ module Top(
     wire        ufds_return_click;
     wire [2:0]  ufds_tab_idx;
     wire [1:0]  ufds_min_area_sel;
-    wire        ufds_sort_by_prox;
+    // wire        ufds_sort_by_prox;
     wire [1:0]  ufds_max_boxes_sel;
+    wire servo_en;
 
     ufds_settings_overlay ufds_ui (
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
@@ -1293,21 +1303,24 @@ module Top(
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
         .return_click(ufds_return_click),
-        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), .sort_by_prox(ufds_sort_by_prox), .max_boxes_sel(ufds_max_boxes_sel)
+        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), 
+        // .sort_by_prox(ufds_sort_by_prox), 
+        .max_boxes_sel(ufds_max_boxes_sel),
+        .servo(servo_en)
     );
 
     // Latch UFDS settings for UFDS pipeline (clk domain)
     reg [1:0] ufds_min_area_sel_r;
-    reg       ufds_sort_by_prox_r;
+    // reg       ufds_sort_by_prox_r;
     reg [1:0] ufds_max_boxes_sel_r;
     always @(posedge clk) begin
         if (btnU) begin
             ufds_min_area_sel_r  <= 2'b00; // 4
-            ufds_sort_by_prox_r  <= 1'b0;  // area
+            // ufds_sort_by_prox_r  <= 1'b0;  // area
             ufds_max_boxes_sel_r <= 2'b11; // 4 boxes
         end else begin
             ufds_min_area_sel_r  <= ufds_min_area_sel;
-            ufds_sort_by_prox_r  <= ufds_sort_by_prox;
+            // ufds_sort_by_prox_r  <= ufds_sort_by_prox;
             ufds_max_boxes_sel_r <= ufds_max_boxes_sel;
         end
     end
@@ -1350,8 +1363,33 @@ module Top(
         .front_idx(front_idx),
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
+        .morph_state(Morphology_State),
+        .info_idx(ufds_tab_idx),
         .to_write(write_high),
-        .image_pixel(overlay_pixel)
+        .image_pixel(overlay_pixel),
+        .gauss_sq(gauss_sq),
+        .med_sq(med_sq),
+        .erode1_sq(erode1_sq),
+        .erode2_sq(erode2_sq),
+        .dilate1_sq(dilate1_sq),
+        .dilate2_sq(dilate2_sq)
+    );
+
+
+// ----------- INFORMATION TABS ----------- //
+    wire tab_en;
+    wire [11:0] tab_rgb;
+    Education_Tabs tabs (
+        .clk(clk),
+        .clk25(clk25),
+        .rst(btnU),
+        .frame_x(frame_x),
+        .frame_y(frame_y),
+        .change_x(info_pix_x),
+        .change_y(info_pix_y),
+        .info_select(ufds_tab_idx),
+        .edu_rgb(tab_rgb),
+        .edu_pixel_en(tab_en)
     );
 
 // ----------- VGA CONTROLLER ----------- //
@@ -1527,10 +1565,68 @@ module Top(
     wire [8:0] mouse_y_vga = (mouse_y_sync >= 12'd479) ? 9'd479 : mouse_y_sync[8:0];
     wire [9:0] mouse_x_vga = mouse_x_sync;
     // wire [8:0] mouse_y_vga = mouse_y_sync;
-    // VGA-space 3x3 cursor for VGA-based UIs (e.g., settings overlays) to avoid source-grid offset
-    wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
-    wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
-    wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
+    // VGA-space 3x3 logical cursor region retained (for any logic that still expects it)
+    // wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
+    // wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
+    // wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
+
+    // Cursor: right-angled triangle with right angle at (mouse_x_vga, mouse_y_vga) (top-left corner)
+    // Vertices: tip (0,0), (CUR_W,0) to the right, (0,CUR_H) downward.
+    // localparam integer CUR_W = 10; // horizontal leg length
+    // localparam integer CUR_H = 10; // vertical leg length
+    // wire signed [10:0] cdx = frame_x - mouse_x_vga; // x offset from tip
+    // wire signed [10:0] cdy = frame_y - mouse_y_vga; // y offset from tip
+    // wire        cursor_in_bounds = (cdx >= 0 && cdx <= CUR_W && cdy >= 0 && cdy <= CUR_H);
+    // // Point inside triangle if scaled sum within overall area: cdx/CUR_W + cdy/CUR_H <= 1
+    // // Avoid division: cdx*CUR_H + cdy*CUR_W <= CUR_W*CUR_H
+    // wire [21:0] tri_lhs = (cdx * CUR_H) + (cdy * CUR_W);
+    // wire [21:0] tri_rhs = (CUR_W * CUR_H);
+    // wire        cursor_inside_tri = cursor_in_bounds && (tri_lhs <= tri_rhs);
+    // wire at_tip = (cdx == 0 && cdy == 0);
+    // wire on_left_leg = (cdx == 0) && (cdy >= 0) && (cdy <= CUR_H);
+    // wire on_top_leg  = (cdy == 0) && (cdx >= 0) && (cdx <= CUR_W);
+    // wire on_hyp      = cursor_inside_tri && (tri_lhs == tri_rhs);
+    // wire corner_right = (cdx == CUR_W) && (cdy == 0);
+    // wire corner_bottom = (cdx == 0) && (cdy == CUR_H);
+    // wire cursor_outline = cursor_inside_tri && (at_tip || on_left_leg || on_top_leg || on_hyp || corner_right || corner_bottom);
+    // wire cursor_fill    = cursor_inside_tri && !cursor_outline;
+
+    // VGA-space arrowhead cursor (for settings overlays)
+    localparam VGA_CUR_SIZE = 7; // arrow height and width 
+    localparam VGA_BORDER   = 1;  // outline thickness in VGA pixels
+    localparam diagonal_from_left = 5; // tail starts here (unused)
+    localparam signed [11:0] VGA_TAIL_WIDTH  = 12'sd3;   // tail width (doubled from 2)
+    localparam signed [11:0] VGA_TAIL_LENGTH = 12'sd3;   // tail length (doubled from 3)
+
+    wire signed [10:0] dx_s = $signed({1'b0, frame_x}) - $signed({1'b0, mouse_x_vga});
+    wire signed [10:0] dy_s = $signed({1'b0, frame_y}) - $signed({1'b0, mouse_y_vga});
+
+    // Arrow fill (isosceles right triangle with 45° hypotenuse)
+    wire arrow_fill = (dx_s >= 0) && (dy_s >= 0) &&
+                      (dy_s <= VGA_CUR_SIZE) && (dx_s <= dy_s);
+
+    // Eroded inner triangle to create an outline of thickness VGA_BORDER
+    wire arrow_inner = (dx_s >= VGA_BORDER) && (dy_s >= VGA_BORDER) &&
+                       (dy_s <= (VGA_CUR_SIZE - VGA_BORDER)) &&
+                       (dx_s <= (dy_s - VGA_BORDER));
+
+    wire arrow_border = arrow_fill & ~arrow_inner;
+
+    // Tail rectangle directly beneath the arrow base
+    wire arrow_tail_vga = (dx_s >= 2) && (dx_s < VGA_TAIL_WIDTH + 3) &&
+                          (dy_s >= VGA_CUR_SIZE) && (dy_s < (VGA_CUR_SIZE + VGA_TAIL_LENGTH));
+    // Erode tail to form a 1px outline (same VGA_BORDER thickness)
+    wire tail_inner = (dx_s >= VGA_BORDER) && (dx_s < (VGA_TAIL_WIDTH - VGA_BORDER)) &&
+                      (dy_s >= (VGA_CUR_SIZE + VGA_BORDER)) && (dy_s < (VGA_CUR_SIZE + VGA_TAIL_LENGTH - VGA_BORDER));
+    wire tail_border = arrow_tail_vga & ~tail_inner;
+
+    // Final shape signals
+    wire vga_cursor_fill   = arrow_fill | arrow_tail_vga;             // white area
+    wire vga_cursor_border = arrow_border | tail_border;              // black outline (head + tail)
+
+    // Dynamic cursor color for contrast: draw black on bright backgrounds, white otherwise
+    // wire [5:0]  cursor_luma = {2'b00, bram_pixel_out[11:8]} + {2'b00, bram_pixel_out[7:4]} + {2'b00, bram_pixel_out[3:0]};
+    // wire [11:0] cursor_rgb_dyn = (cursor_luma > 6'd24) ? 12'h000 : 12'hFFF;
 
 
 // ----------- SERVO CONTROLLER ----------- //

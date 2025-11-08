@@ -85,7 +85,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -150,7 +150,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;

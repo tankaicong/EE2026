@@ -410,7 +410,7 @@ module Education_Tabs (
 
                 // Compute line selection based on info_select
                 // Helper for neighbors: two paragraphs
-                if (info_select == 5'd0) begin
+                if (info_select == 5'd1) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= neighbor_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - neighbor_stats[1*3 + 1];
@@ -451,7 +451,7 @@ module Education_Tabs (
                         glyph_row_cnt <= act_row;
                     end
                 end
-                else if (info_select == 5'd1) begin
+                else if (info_select == 5'd2) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= union_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - union_stats[1*3 + 1];
@@ -492,7 +492,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd2) begin
+                end else if (info_select == 5'd3) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= statistics_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - statistics_stats[1*3 + 1];
@@ -532,7 +532,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd3) begin
+                end else if (info_select == 5'd4) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= filter_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - filter_stats[1*3 + 1];
@@ -572,7 +572,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd4) begin
+                end else if (info_select == 5'd5) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= building_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - building_stats[1*3 + 1];

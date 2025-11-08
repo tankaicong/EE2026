@@ -31,7 +31,7 @@ module Top(
 
 // ----------- Overall FSM ----------- //
     
-    // Overlays pixel with other graphics based on program state (background = bram_pixel_out when sw[15] is off)
+    // Overlays pixel with other graphics based on program state (background = bram_final_pixel_out when sw[15] is off)
     // current flow should be: S_MENU -> S_USER_SETTINGS -> S_MENU -> S_GAME_(MANUAL/AUTO)_MODE
     reg[2:0] state = 0;
     reg[2:0] prev_state = 0; // remember previous state
@@ -47,7 +47,10 @@ module Top(
     wire ufds_settings_mode = (state == S_UFDS_SETTINGS);
     
     // Crosshair color mapping from selection
-    wire [11:0] crosshair_rgb = MAGENTA;
+    wire [11:0] crosshair_rgb = CYAN;
+
+    wire [10:0] convolution_cutoff_x = (Final_Out_Control == 2'b11) ? (640 - (Total_Count-1)*2) : 640 - (Pre_Count-1)*2;
+    wire [9:0] convolution_cutoff_y = (Final_Out_Control == 2'b11) ? (480 - (Total_Count-1)*2) : 480 - (Pre_Count-1)*2;
 
     always @(posedge clk25) begin
         if (btnU) begin
@@ -55,7 +58,11 @@ module Top(
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
-            frame_pixel <= bram_pixel_out;
+            if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove unwritten borders from convolutions
+                frame_pixel <= BLACK;
+            end else begin
+                frame_pixel <= bram_final_pixel_out;
+            end
         end
         
         // State machine for different overlays
@@ -88,7 +95,7 @@ module Top(
                     prev_state <= S_UFDS_SETTINGS;
                 end
                 // this is the layer order:
-                // bram_pixel_out (camera frame)
+                // bram_final_pixel_out (camera frame)
                 // dim if frame_y >= 324
                 // cv_settings overlay (borders, toggles, guidelines; no GB/MF/EA/EB/DA/DB fills now)
                 // BRAM overlay (skips if overlay_pixel == F, so transparency works)
@@ -96,20 +103,21 @@ module Top(
 
 
                 // Dim camera feed under the settings region (rows >= 324), keep normal feed above
-                if (frame_y >= 9'd324) begin
+                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove unwritten borders from convolutions
+                    frame_pixel <= BLACK;
+                end
+                else if (frame_y >= 9'd324) begin
                     // Per-channel dimming (RGB444 -> quarter brightness)
-                    frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
-                end else begin
-                    frame_pixel <= bram_pixel_out;
+                    frame_pixel <= { (bram_final_pixel_out[11:8] >> 2), (bram_final_pixel_out[7:4] >> 2), (bram_final_pixel_out[3:0] >> 2) };
                 end
                 
                 if (thr_section_active) frame_pixel <= thr_section_pixel;
                 // draw CV settings overlay, then the info pixel, then draw cursor on top
-                else if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
+                if (cv_sett_overlay_en) frame_pixel <= cv_sett_overlay;
 
                 // Info pixel on top of overlay
-                if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
-                // For BRAM overlay (paint only when not transparent)
+                // if ((frame_x == info_pix_x) && (frame_y == info_pix_y)) frame_pixel <= info_pix_rgb;
+                // BRAM overlay BACKGROUND pass: draw static assets only (mask out box interiors)
                 if (write_high && (overlay_pixel != 4'hF)) begin
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
@@ -128,8 +136,10 @@ module Top(
                     else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
                     // 4'hF is transparent (ignored), anything else unmapped: do nothing
                 end
+
                 // Use VGA-space cursor here (overlay also uses VGA coords)
-                if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
+                if (vga_cursor_border) frame_pixel <= 12'h000; // black outline
+                else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
             S_UFDS_SETTINGS: begin
@@ -144,10 +154,11 @@ module Top(
                 end
 
                 // Dim camera feed under the settings region (rows >= 324)
-                if (frame_y >= 9'd324) begin
-                    frame_pixel <= { (bram_pixel_out[11:8] >> 2), (bram_pixel_out[7:4] >> 2), (bram_pixel_out[3:0] >> 2) };
-                end else begin
-                    frame_pixel <= bram_pixel_out;
+                if (frame_y >= convolution_cutoff_y || frame_x >= convolution_cutoff_x) begin   //remove unwritten borders from convolutions
+                    frame_pixel <= BLACK;
+                end
+                else if (frame_y >= 9'd324) begin
+                    frame_pixel <= { (bram_final_pixel_out[11:8] >> 2), (bram_final_pixel_out[7:4] >> 2), (bram_final_pixel_out[3:0] >> 2) };
                 end
 
                 if (frame_addr == 74399) begin
@@ -201,8 +212,6 @@ module Top(
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
-                // Cursor on top
-                if (within_cursor_vga_3x3) frame_pixel <= 12'hFFF;
 
                 // Pull from BRAM
                 if (write_high && (overlay_pixel != 4'hF)) begin
@@ -223,6 +232,10 @@ module Top(
                     else if (overlay_pixel == 4'hE) frame_pixel <= 12'h0CF;   
                     // 4'hF is transparent (ignored), anything else unmapped: do nothing
                 end
+
+                // Cursor on top
+                if (vga_cursor_border) frame_pixel <= 12'h000; // black outline
+                else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
             S_GAME_AUTO_MODE: begin
@@ -232,23 +245,23 @@ module Top(
                 // Renamed manual mode
                 // --- Crosshair drawing with user-selected color ---
                 // === Bottom vertical arm ===
-                if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+11) begin
+                if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120+2 && frame_y[9:1] <= 120+5) begin
                     frame_pixel <= crosshair_rgb;
                 end
 
                 // === Top vertical arm ===
-                else if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120-11 && frame_y[9:1] <= 120-2) begin
+                else if (frame_x[9:1]-10 == 155 && frame_y[9:1] >= 120-5 && frame_y[9:1] <= 120-2) begin
                     frame_pixel <= crosshair_rgb;
                 end
 
                 // === Left horizontal arm ===
-                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155-11 && frame_x[9:1]-10 <= 155-2) begin
+                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155-5 && frame_x[9:1]-10 <= 155-2) begin
                     frame_pixel <= crosshair_rgb;
 
                 end
 
                 // === Right horizontal arm ===
-                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+11) begin
+                else if (frame_y[9:1] == 120 && frame_x[9:1]-10 >= 155+2 && frame_x[9:1]-10 <= 155+5) begin
                     frame_pixel <= crosshair_rgb;
                 end
             end
@@ -524,76 +537,94 @@ module Top(
 
     // Unified write controls for both RGB frame buffer and 1-bit bitmap buffer
     // Share write enable and address; keep separate data for RGB (12-bit) and bitmap (1-bit)
-    reg        we_w;            // common write enable for both memories
-    reg [17:0] waddr18_r;       // common write address for both memories (absolute with base)
+    // Separate write enables and addresses for RGB frame buffer and 1-bit bitmap buffer
+    reg        we_rgb_w;        // write enable for image_mem
+    reg        we_bmp_w;        // write enable for bitmap_mem
+    reg [17:0] rgb_waddr18_r;   // write address for image_mem (absolute with base)
+    reg [17:0] bmp_waddr18_r;   // write address for bitmap_mem (absolute with base)
     reg [11:0] rgb_dina_r;      // RGB data to image_mem
     reg        bmp_dina_r;      // bitmap data to Dual_Port_Buffer
     // Single pending entry for filtered overwrite (affects both memories)
-    reg        pend;            // pending filtered write
-    reg [17:0] pend_addr_q;     // absolute address for filtered center
+    // Independent pending entries for RGB and bitmap paths (morphology stages may have different latency)
+    reg        pend_rgb;            // pending filtered write (RGB)
+    reg        pend_bmp;            // pending filtered write (Bitmap)
+    reg [17:0] pend_addr_rgb_q;     // absolute address for filtered center (RGB)
+    reg [17:0] pend_addr_bmp_q;     // absolute address for filtered center (Bitmap)
     reg [11:0] fpix_q;         // latched filtered RGB pixel
-    // reg        bdin_q;          // latched filtered bitmap bit
+    reg        bdin_q;          // latched filtered bitmap bit
 
     // PCLK-domain writer:
     // - Image RGB: raw on we==1, filtered overwrite on we==0
     // - Bitmap 1-bit: raw-threshold on we==1, filtered-threshold overwrite on we==0
     always @(posedge ov7670_pclk) begin
         if (cap_reset) begin
-            we_w <= 1'b0;
-            waddr18_r <= 18'd0;
+            we_rgb_w <= 1'b0;
+            we_bmp_w <= 1'b0;
+            rgb_waddr18_r <= 18'd0;
+            bmp_waddr18_r <= 18'd0;
             rgb_dina_r <= 12'd0;
             bmp_dina_r <= 1'b0;
-            pend <= 1'b0;
-            pend_addr_q <= 18'd0;
-            // bdin_q <= 1'b0;
+            pend_rgb <= 1'b0;
+            pend_bmp <= 1'b0;
+            pend_addr_rgb_q <= 18'd0;
+            pend_addr_bmp_q <= 18'd0;
+            fpix_q <= 12'd0;
+            bdin_q <= 1'b0;
         end else begin
-            we_w <= 1'b0; // default no write; assert exactly once per cycle below
+            // default: no writes asserted this cycle until decided below
+            we_rgb_w <= 1'b0;
+            we_bmp_w <= 1'b0;
 
-            // Latch a pending filtered write only when we==1 (raw write occupies the port).
-            if (we && final_pixel_we && !pend) begin
-                pend <= 1'b1;
-                pend_addr_q <= final_addr_out + wr_base_frame; // absolute address in the latched frame half
-                // bitmap bit from selected filtered pipeline (same address as RGB)
-                fpix_q <= final_pixel_out;
-                // bdin_q <= threshold_pixel_mux;
-            end
-
-            // On the non-pixel cycles (we==0):
-            //  1) If a pending entry exists (from a prior we==1), commit it first to preserve order.
-            //  2) Else, if a current filtered pixel is valid, write it immediately (padding flush support).
-            if (!we) begin
-                if (pend) begin
-                    waddr18_r  <= pend_addr_q;
-                    rgb_dina_r <= fpix_q;    // choose not to overwrite rgb frame
-                    // bmp_dina_r <= bdin_q;
-                    we_w <= 1'b1;
-                    pend <= 1'b0;
-                end
-                else if (final_pixel_we) begin
-                    waddr18_r  <= final_addr_out + wr_base_frame;
-                    rgb_dina_r <= final_pixel_out;
-                    // bmp_dina_r <= threshold_pixel_bin;
-                    we_w <= 1'b1;
-                end
-            end
-
-            // On pixel-complete cycles (we==1):
-            //  - If sw[6]=1 (bitmap mode), write immediate threshold(dout) so the frame never shows RGB
-            //  - Else, write RAW RGB as usual
+            // Latch pending entries when raw camera write occupies port (we==1)
+            // Separate conditions for RGB and bitmap pipelines so morphology latency is respected.
             if (we) begin
-                //actually no need to write raw rgb with the path control setup above
-                // waddr18_r  <= {1'b0, addr} + wr_base_frame;
-                // rgb_dina_r <= Final_Out_Control[1] ? 12'h000 : rgb_dina_r;  //prevent old pixels from remaining on screen in bitmap mode
-                // // bmp_dina_r <= threshold_pixel;
-                // we_w <= 1'b1;
+                if (final_pixel_we && !pend_rgb) begin
+                    pend_rgb <= 1'b1;
+                    pend_addr_rgb_q <= final_addr_out;
+                    fpix_q <= final_pixel_out; // latest RGB filtered pixel
+                end
+                if (final_bmp_pixel_we && !pend_bmp) begin
+                    pend_bmp <= 1'b1;
+                    pend_addr_bmp_q <= final_bmp_addr_out;
+                    bdin_q <= final_bmp_pixel_out; // latest bitmap bit
+                end
             end
+
+            // On we==0 cycles, commit any pending writes first; then direct-write new valids (no need to pend).
+            if (!we) begin
+                // Commit pending RGB first (arbitrary order) then bitmap; both can occur same cycle
+                if (pend_rgb) begin
+                    rgb_waddr18_r <= pend_addr_rgb_q;
+                    rgb_dina_r    <= fpix_q;
+                    we_rgb_w      <= 1'b1;
+                    pend_rgb      <= 1'b0;
+                end else if (final_pixel_we) begin
+                    // Direct write when valid arrives on an idle camera cycle
+                    rgb_waddr18_r <= final_addr_out + wr_base_frame;
+                    rgb_dina_r    <= final_pixel_out;
+                    we_rgb_w      <= 1'b1;
+                end
+
+                if (pend_bmp) begin
+                    bmp_waddr18_r <= pend_addr_bmp_q;
+                    bmp_dina_r    <= bdin_q;
+                    we_bmp_w      <= 1'b1;
+                    pend_bmp      <= 1'b0;
+                end else if (final_bmp_pixel_we) begin
+                    bmp_waddr18_r <= final_bmp_addr_out + wr_base_frame;
+                    bmp_dina_r    <= final_bmp_pixel_out;
+                    we_bmp_w      <= 1'b1;
+                end
+            end
+            // We intentionally do NOT write during we==1 (raw pixel cycles) to avoid port contention.
         end
     end
 
+    wire [11:0] bram_pixel_out;
     image_mem frame_buffer( 
         .clka(ov7670_pclk),
-        .wea(we_w),
-        .addra(waddr18_r),
+        .wea(we_rgb_w),
+        .addra(rgb_waddr18_r),
         .dina(rgb_dina_r),          // write RGB444 (raw on we cycles, filtered on alt cycles)
         .clkb(clk25),
         .addrb(addrb18),
@@ -610,9 +641,19 @@ module Top(
     // );
 
     //----------- BITMAP STREAM (1-bit, synced to VGA read) ----------- //
-    // Eliminate the dedicated bitmap BRAM; derive the bitmap bit on-the-fly
-    // by thresholding the RGB pixel read from the frame buffer (bram_pixel_out).
-    // This keeps p_px aligned with addrb18/clk25 and removes the large 1-bit double buffer.
+
+    // added back bitmap buffer BRAM to store 1-bit bitmap data
+    wire bram_bmp_pixel_out;
+    bitmap_mem bitmap_buffer(
+        .clka(ov7670_pclk),
+        .wea(we_bmp_w),
+        .addra(bmp_waddr18_r),
+        .dina(bmp_dina_r), // write bitmap pixel
+        .clkb(clk25),
+        .addrb(addrb18),
+        .doutb(bram_bmp_pixel_out) // read bitmap pixel
+    );
+
     // wire raw_bitmap_pixel = (
     //     (bram_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (bram_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
     //     (bram_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (bram_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
@@ -629,6 +670,10 @@ module Top(
     //     .doutb(bitmap_pixel) // read bitmap pixel
     // );
 
+    //----------- VGA FINAL OUTPUT MUX CONTROLS (FOR DEDICATED BITMAP BUFFER MODE) ----------- //
+    wire [11:0] bram_final_pixel_out;
+    assign bram_final_pixel_out = Final_Out_Control[1] ? (bram_bmp_pixel_out ? 12'hFFF : 12'h000) : bram_pixel_out;
+
 
 // ----------- FILTER SELECTION MUX CONTROLS ----------- //
     // Wires driven by switches: do not give them constant drivers as well
@@ -643,6 +688,8 @@ module Top(
 
     wire [3:0] Morphology_State;        // From CV settings
     wire [2:0] Morph_Count;          // From CV settings
+    reg [1:0] Pre_Count;
+    wire [3:0] Total_Count = Morph_Count + Pre_Count;   //extra bit for bitshift operations
     
 
     // Runtime-adjustable address offsets for convolutions
@@ -675,6 +722,7 @@ module Top(
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b00;
+                Pre_Count <= 2'd0;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd0;
             end
@@ -682,6 +730,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'bx;
                 RGB_Out_Control <= 2'b01;
+                Pre_Count <= 2'd1;
                 rgb_addr_off_col = -1; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd1;
             end
@@ -689,6 +738,7 @@ module Top(
                 Gaussian_In_Control <= 1'bx;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b10;
+                Pre_Count <= 2'd1;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd2;
             end
@@ -696,6 +746,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b1;
                 RGB_Out_Control <= 2'b10;
+                Pre_Count <= 2'd2;
                 rgb_addr_off_col = -2; rgb_addr_off_row = -1;
                 Last_Stage_RGB = 3'd2;
             end
@@ -703,6 +754,7 @@ module Top(
                 Gaussian_In_Control <= 1'b1;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b01;
+                Pre_Count <= 2'd2;
                 rgb_addr_off_col = -2; rgb_addr_off_row = -1;
                 Last_Stage_RGB = 3'd1;
             end
@@ -710,6 +762,7 @@ module Top(
                 Gaussian_In_Control <= 1'b0;
                 Median_In_Control <= 1'b0;
                 RGB_Out_Control <= 2'b00;
+                Pre_Count <= 2'd0;
                 rgb_addr_off_col = 0; rgb_addr_off_row = 0;
                 Last_Stage_RGB = 3'd0;
             end
@@ -722,8 +775,8 @@ module Top(
         BMP_Out_Control <= Morph_Count;
 
         // state machine for offsets due to convolutions
-        total_addr_off_col = (Final_Out_Control == 2'b11) ? rgb_addr_off_col + bmp_addr_off_col : rgb_addr_off_col;
-        total_addr_off_row = (Final_Out_Control == 2'b11) ? rgb_addr_off_row + bmp_addr_off_row : rgb_addr_off_row;
+        total_addr_off_col = rgb_addr_off_col + bmp_addr_off_col;
+        total_addr_off_row = rgb_addr_off_row + bmp_addr_off_row;
 
         // zero out all offsets first
         gaussian_addr_off_col <= 0; gaussian_addr_off_row <= 0;
@@ -742,12 +795,12 @@ module Top(
                     // do nothing all offsets 0
                 end
                 2'd1: begin //last stage is Gaussian
-                    gaussian_addr_off_col <= total_addr_off_col;
-                    gaussian_addr_off_row <= total_addr_off_row;
+                    gaussian_addr_off_col <= rgb_addr_off_col;
+                    gaussian_addr_off_row <= rgb_addr_off_row;
                 end
                 2'd2: begin //last stage is Median
-                    median_addr_off_col <= total_addr_off_col;
-                    median_addr_off_row <= total_addr_off_row;
+                    median_addr_off_col <= rgb_addr_off_col;
+                    median_addr_off_row <= rgb_addr_off_row;
                 end
                 default: begin
                     //pass
@@ -789,17 +842,26 @@ module Top(
                 end
             endcase
         end
+        B1_addr_off_col <= sw[3:0];
+        B1_addr_off_row <= sw[7:4];
     end
 
+    // FROM UART
+    // always @(posedge clk) begin
+    //     if (sw[14]) begin
+    //         Preprocessing_State <= pre_order_vector;
+    //         Final_Out_Control <= final_out;
+    //     end else begin
+    //         Preprocessing_State <= received_prevector;
+    //         Final_Out_Control <= 2'b11;
+    //     end
+    // end
+
     always @(posedge clk) begin
-        if (sw[14]) begin
-            Preprocessing_State <= pre_order_vector;
-            Final_Out_Control <= final_out;
-        end else begin
-            Preprocessing_State <= received_prevector;
-            Final_Out_Control <= 2'b11;
-        end
+        Preprocessing_State <= pre_order_vector;
+        Final_Out_Control <= final_out;
     end
+
 
     // input and output pixels from each convolutional block
     wire [11:0] median_pixel_in, median_pixel_out;
@@ -810,10 +872,12 @@ module Top(
 
     wire bmp_pixel_out;
     wire [11:0] final_pixel_out;
+    wire final_bmp_pixel_out;
 
     // write enables piping in pixel_valid outputs from previous convolutional blocks or camera capture block
     wire median_pixel_we, gaussian_pixel_we;
-    // wire rgb_pixel_we;
+    wire final_pixel_we;
+    wire final_bmp_pixel_we;
 
     // output address wires from each convolutional block / mux
     wire [16:0] median_addr_out, gaussian_addr_out;
@@ -821,14 +885,12 @@ module Top(
     wire [16:0] B1_addr_out, B2_addr_out, B3_addr_out, B4_addr_out;
     wire [16:0] bmp_addr_out;
     wire [16:0] final_addr_out;
+    wire [16:0] final_bmp_addr_out;
 
     // output flags from the convolutional blocks / mux indicating when pixel_out is valid
     wire median_pixel_valid, gaussian_pixel_valid;
     wire rgb_pixel_valid;
-    // wire erode_1_pixel_valid, erode_2_pixel_valid;
-    // wire dilate_1_pixel_valid, dilate_2_pixel_valid;
     wire bmp_pixel_valid;
-    wire final_pixel_valid;
 
     // preprocessing operations path control
     assign gaussian_pixel_in = Gaussian_In_Control ? median_pixel_out : dout;
@@ -846,76 +908,16 @@ module Top(
     assign rgb_pixel_valid = (RGB_Out_Control == 2'b00) ? we :
                              (RGB_Out_Control == 2'b01) ? gaussian_pixel_valid :
                              (RGB_Out_Control == 2'b10) ? median_pixel_valid : 1'b0;
-    // --- Thresholding operations (RGB and HSV modes) ---
-    // Synchronize HSV thresholds and mode flag to ov7670_pclk domain (consumed by thresholding)
-    reg [3:0] h_min_p1, h_min_p2, h_max_p1, h_max_p2;
-    reg [3:0] s_min_p1, s_min_p2, s_max_p1, s_max_p2;
-    reg [3:0] v_min_p1, v_min_p2, v_max_p1, v_max_p2;
-    reg       mode_hsv_p1, mode_hsv_p2;
-    always @(posedge ov7670_pclk) begin
-        h_min_p1 <= start_h_val; h_min_p2 <= h_min_p1;
-        h_max_p1 <= end_h_val;   h_max_p2 <= h_max_p1;
-        s_min_p1 <= start_s_val; s_min_p2 <= s_min_p1;
-        s_max_p1 <= end_s_val;   s_max_p2 <= s_max_p1;
-        v_min_p1 <= start_v_val; v_min_p2 <= v_min_p1;
-        v_max_p1 <= end_v_val;   v_max_p2 <= v_max_p1;
-        mode_hsv_p1 <= mode_is_hsv; mode_hsv_p2 <= mode_hsv_p1;
-    end
+   
 
     // thresholding operation (RGB path)
     // Use the currently selected RGB stream (rgb_pixel_out) against live RGB thresholds from UI.
     // This keeps thresholding consistent with preprocessing stage selection.
-    assign threshold_pixel_rgb = (
-        (rgb_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
-        (rgb_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
-        (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4])   && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])     // R in range
-    ) ? 1'b1 : 1'b0;
-
-    // RGB444 -> HSV (Q4) for current pixel stream (approximation, no division)
-    wire [3:0] R4 = rgb_pixel_out[11:8];
-    wire [3:0] G4 = rgb_pixel_out[7:4];
-    wire [3:0] B4_ = rgb_pixel_out[3:0];
-    wire [3:0] maxc4 = (R4>=G4 && R4>=B4_) ? R4 : (G4>=B4_ ? G4 : B4_);
-    wire [3:0] minc4 = (R4<=G4 && R4<=B4_) ? R4 : (G4<=B4_ ? G4 : B4_);
-    wire [3:0] delta4 = maxc4 - minc4;
-    wire [3:0] V4 = maxc4;
-    wire [3:0] S4 = delta4; // approximate
-    // Hue calculation with 16 bins around circle using thresholded differences
-    wire signed [5:0] t_rg = $signed({2'b00,G4}) - $signed({2'b00,B4_});
-    wire signed [5:0] t_gb = $signed({2'b00,B4_}) - $signed({2'b00,R4});
-    wire signed [5:0] t_br = $signed({2'b00,R4}) - $signed({2'b00,G4});
-    reg  [3:0] H4;
-    always @(*) begin
-        if (delta4 == 4'd0) H4 = 4'd0; else begin
-            if (maxc4 == R4) begin
-                if (t_rg >= 0)
-                    H4 = ( (t_rg<<<2) >= (3*delta4) ) ? 4'd5 : ( (t_rg<<<1) >= delta4 ? 4'd3 : 4'd1 );
-                else
-                    H4 = 4'd15 - ( ((-t_rg)<<<2) >= (3*delta4) ? 4'd1 : (((-t_rg)<<<1) >= delta4 ? 4'd3 : 4'd5) );
-            end else if (maxc4 == G4) begin
-                if (t_gb >= 0)
-                    H4 = 4'd5 + ( (t_gb<<<2) >= (3*delta4) ? 4'd5 : ( (t_gb<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
-                else
-                    H4 = 4'd5 - ( ((-t_gb)<<<2) >= (3*delta4) ? 4'd1 : (((-t_gb)<<<1) >= delta4 ? 4'd3 : 4'd5) );
-            end else begin
-                if (t_br >= 0)
-                    H4 = 4'd10 + ( (t_br<<<2) >= (3*delta4) ? 4'd5 : ( (t_br<<<1) >= delta4 ? 4'd3 : 4'd1 ) );
-                else
-                    H4 = 4'd10 - ( ((-t_br)<<<2) >= (3*delta4) ? 4'd1 : (((-t_br)<<<1) >= delta4 ? 4'd3 : 4'd5) );
-            end
-        end
-    end
-
-    // HSV range checks (H handles wrap-around)
-    wire h_in_range = (h_min_p2 <= h_max_p2) ? ((H4 >= h_min_p2) && (H4 <= h_max_p2))
-                                             : ((H4 >= h_min_p2) || (H4 <= h_max_p2));
-    wire s_in_range = (S4 >= s_min_p2) && (S4 <= s_max_p2);
-    wire v_in_range = (V4 >= v_min_p2) && (V4 <= v_max_p2);
-    wire threshold_pixel_hsv = h_in_range && s_in_range && v_in_range;
-
-    // Final threshold bit selected by mode
-    wire threshold_pixel_hsv_w = threshold_pixel_hsv; // alias to avoid reordering warnings
-    wire threshold_pixel = mode_hsv_p2 ? threshold_pixel_hsv_w : threshold_pixel_rgb;
+    // assign threshold_pixel_rgb = (
+    //     (rgb_pixel_out[3:0]  >= RGB_THRESHOLD[23:20]) && (rgb_pixel_out[3:0]  <= RGB_THRESHOLD[19:16]) && // B in range
+    //     (rgb_pixel_out[7:4]  >= RGB_THRESHOLD[15:12]) && (rgb_pixel_out[7:4]  <= RGB_THRESHOLD[11:8])  && // G in range
+    //     (rgb_pixel_out[11:8] >= RGB_THRESHOLD[7:4])   && (rgb_pixel_out[11:8] <= RGB_THRESHOLD[3:0])     // R in range
+    // ) ? 1'b1 : 1'b0;
 
     // bitmap morphology path control
     assign bmp_pixel_out = (BMP_Out_Control == 3'b000) ? threshold_pixel :
@@ -934,18 +936,31 @@ module Top(
                              (BMP_Out_Control == 3'b011) ? B3_pixel_valid :
                              (BMP_Out_Control == 3'b100) ? B4_pixel_valid : 1'b0;
 
-    assign final_pixel_out = (Final_Out_Control == 2'b00) ? dout :
-                             (Final_Out_Control == 2'b01) ? rgb_pixel_out :
-                             (Final_Out_Control == 2'b10) ? (threshold_pixel ? 12'hFFF : 12'h000) :
-                             (Final_Out_Control == 2'b11) ? (bmp_pixel_out ? 12'hFFF : 12'h000) : 12'd0;
-    assign final_pixel_we = (Final_Out_Control == 2'b00) ? we :
-                            (Final_Out_Control == 2'b01) ? rgb_pixel_valid :
-                            (Final_Out_Control == 2'b10) ? rgb_pixel_valid :
-                            (Final_Out_Control == 2'b11) ? bmp_pixel_valid : 1'b0; 
-    assign final_addr_out = (Final_Out_Control == 2'b00) ? addr :
-                            (Final_Out_Control == 2'b01) ? rgb_addr_out :
-                            (Final_Out_Control == 2'b10) ? rgb_addr_out :
-                            (Final_Out_Control == 2'b11) ? bmp_addr_out : 17'd0;
+    // old path control for all to single RGB BRAM buffer
+    // assign final_pixel_out = (Final_Out_Control == 2'b00) ? dout :
+    //                          (Final_Out_Control == 2'b01) ? rgb_pixel_out :
+    //                          (Final_Out_Control == 2'b10) ? (threshold_pixel ? 12'hFFF : 12'h000) :
+    //                          (Final_Out_Control == 2'b11) ? (bmp_pixel_out ? 12'hFFF : 12'h000) : 12'd0;
+    // assign final_pixel_we = (Final_Out_Control == 2'b00) ? we :
+    //                         (Final_Out_Control == 2'b01) ? rgb_pixel_valid :
+    //                         (Final_Out_Control == 2'b10) ? rgb_pixel_valid :
+    //                         (Final_Out_Control == 2'b11) ? bmp_pixel_valid : 1'b0; 
+    // assign final_addr_out = (Final_Out_Control == 2'b00) ? addr :
+    //                         (Final_Out_Control == 2'b01) ? rgb_addr_out :
+    //                         (Final_Out_Control == 2'b10) ? rgb_addr_out :
+    //                         (Final_Out_Control == 2'b11) ? bmp_addr_out : 17'd0;
+
+    // new path control for RGB BRAM and 1-bit bitmap BRAM
+    // original final_xxx_xxx wires used for RGB pixels for RGB BRAM
+    // new final_bmp_xxx wires used for 1-bit bitmap for bitmap BRAM
+    assign final_pixel_out = (Final_Out_Control[0]) ? rgb_pixel_out : dout;
+    assign final_pixel_we  = (Final_Out_Control[0]) ? rgb_pixel_valid : we;
+    assign final_addr_out  = (Final_Out_Control[0]) ? rgb_addr_out : addr;
+
+    //"HOTFIX": use raw bitmap for all modes except 2'b11 final bitmap mode
+    assign final_bmp_pixel_out = (Final_Out_Control == 2'b11) ? bmp_pixel_out : threshold_pixel;
+    assign final_bmp_pixel_we  = (Final_Out_Control == 2'b11) ? bmp_pixel_valid : rgb_pixel_valid;
+    assign final_bmp_addr_out  = (Final_Out_Control == 2'b11) ? bmp_addr_out : rgb_addr_out;
 
 
 
@@ -962,7 +977,11 @@ module Top(
     // Decimate the VGA-doubled raster (640x480) to source grid (320x240):
     // take only even hCounter/vCounter pixels so each source pixel is enqueued once
     wire decim_hv = (~frame_x[0]) && (~frame_y[0]);
-    wire ufds_pixel_in = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : 1'b0;
+
+
+    // wire ufds_pixel_in = Final_Out_Control[1] ? (bram_pixel_out == 12'hFFF) : 1'b0;  //for single RGB buffer mode
+    wire ufds_pixel_in = bram_bmp_pixel_out; // for dedicated bitmap buffer mode
+
     UFDS_Bridge ufds_bridge (
         .pclk(clk25),
         .p_rst(cap_reset),
@@ -1007,35 +1026,67 @@ module Top(
     // wire [7:0] green_top_y = green_start_y - fill_height;    // current row index of green 
 
     // Decode concatenated outputs into per-component fields and latch once per VGA frame for display
-    wire [9:0] left0   = received_left_boxes[9:0];
-    wire [9:0] left1   = received_left_boxes[19:10];
-    wire [9:0] left2   = received_left_boxes[29:20];
-    wire [9:0] left3   = received_left_boxes[39:30];
 
-    wire [9:0] right0  = received_right_boxes[9:0];
-    wire [9:0] right1  = received_right_boxes[19:10];
-    wire [9:0] right2  = received_right_boxes[29:20];
-    wire [9:0] right3  = received_right_boxes[39:30];
+    wire [9:0] left0 = comp3210_left[9:0];
+    wire [9:0] left1 = comp3210_left[19:10];
+    wire [9:0] left2 = comp3210_left[29:20];
+    wire [9:0] left3 = comp3210_left[39:30];
 
-    wire [8:0] top0    = received_top_boxes[8:0];
-    wire [8:0] top1    = received_top_boxes[17:9];
-    wire [8:0] top2    = received_top_boxes[26:18];
-    wire [8:0] top3    = received_top_boxes[35:27];
+    wire [9:0] right0 = comp3210_right[9:0];
+    wire [9:0] right1 = comp3210_right[19:10];
+    wire [9:0] right2 = comp3210_right[29:20];
+    wire [9:0] right3 = comp3210_right[39:30];
 
-    wire [8:0] bottom0 = received_bottom_boxes[8:0];
-    wire [8:0] bottom1 = received_bottom_boxes[17:9];
-    wire [8:0] bottom2 = received_bottom_boxes[26:18];
-    wire [8:0] bottom3 = received_bottom_boxes[35:27];
+    wire [8:0] top0 = comp3210_top[8:0];
+    wire [8:0] top1 = comp3210_top[17:9];
+    wire [8:0] top2 = comp3210_top[26:18];
+    wire [8:0] top3 = comp3210_top[35:27];
 
-    wire [9:0] cx0     = received_CX[9:0];
-    wire [9:0] cx1     = received_CX[19:10];
-    wire [9:0] cx2     = received_CX[29:20];
-    wire [9:0] cx3     = received_CX[39:30];
+    wire [8:0] bottom0 = comp3210_bottom[8:0];
+    wire [8:0] bottom1 = comp3210_bottom[17:9];
+    wire [8:0] bottom2 = comp3210_bottom[26:18];
+    wire [8:0] bottom3 = comp3210_bottom[35:27];
 
-    wire [8:0] cy0     = received_CY[8:0];
-    wire [8:0] cy1     = received_CY[17:9];
-    wire [8:0] cy2     = received_CY[26:18];
-    wire [8:0] cy3     = received_CY[35:27];
+    wire [9:0] cx0 = comp3210_cx[9:0];
+    wire [9:0] cx1 = comp3210_cx[19:10];
+    wire [9:0] cx2 = comp3210_cx[29:20];
+    wire [9:0] cx3 = comp3210_cx[39:30];
+
+    wire [8:0] cy0 = comp3210_cy[8:0];
+    wire [8:0] cy1 = comp3210_cy[17:9];
+    wire [8:0] cy2 = comp3210_cy[26:18];
+    wire [8:0] cy3 = comp3210_cy[35:27];
+
+    //FROM UART
+    // wire [9:0] left0   = received_left_boxes[9:0];
+    // wire [9:0] left1   = received_left_boxes[19:10];
+    // wire [9:0] left2   = received_left_boxes[29:20];
+    // wire [9:0] left3   = received_left_boxes[39:30];
+
+    // wire [9:0] right0  = received_right_boxes[9:0];
+    // wire [9:0] right1  = received_right_boxes[19:10];
+    // wire [9:0] right2  = received_right_boxes[29:20];
+    // wire [9:0] right3  = received_right_boxes[39:30];
+
+    // wire [8:0] top0    = received_top_boxes[8:0];
+    // wire [8:0] top1    = received_top_boxes[17:9];
+    // wire [8:0] top2    = received_top_boxes[26:18];
+    // wire [8:0] top3    = received_top_boxes[35:27];
+
+    // wire [8:0] bottom0 = received_bottom_boxes[8:0];
+    // wire [8:0] bottom1 = received_bottom_boxes[17:9];
+    // wire [8:0] bottom2 = received_bottom_boxes[26:18];
+    // wire [8:0] bottom3 = received_bottom_boxes[35:27];
+
+    // wire [9:0] cx0     = received_CX[9:0];
+    // wire [9:0] cx1     = received_CX[19:10];
+    // wire [9:0] cx2     = received_CX[29:20];
+    // wire [9:0] cx3     = received_CX[39:30];
+
+    // wire [8:0] cy0     = received_CY[8:0];
+    // wire [8:0] cy1     = received_CY[17:9];
+    // wire [8:0] cy2     = received_CY[26:18];
+    // wire [8:0] cy3     = received_CY[35:27];
 
     // Latches for overlay drawing
     reg [9:0] left0_l, right0_l, cx0_l;
@@ -1119,7 +1170,7 @@ module Top(
     wire cv_sett_overlay_en;
     wire [11:0] cv_sett_overlay;
     // Click pulses from CV settings overlay selection boxes
-    wire cam_box_clicked;
+    // wire cam_box_clicked;
     wire bitmap_box_clicked;
     wire ufds_box_clicked;
     // Change-view selection code from overlay (00 CAM, 01 PRE, 11 BITMAP, 10 MORPH)
@@ -1133,7 +1184,8 @@ module Top(
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .front_idx(front_idx),
         .overlay_en(cv_sett_overlay_en), .overlay_rgb(cv_sett_overlay),
-        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        // .cam_box_click(cam_box_clicked), 
+        .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .pre_x_o(PRE_X_VGA), .pre_y_o(PRE_Y_VGA), .pre_w_o(PRE_W_VGA), .pre_h_o(PRE_H_VGA),
         .morph_x_o(MORPH_X_VGA), .morph_y_o(MORPH_Y_VGA), .morph_w_o(MORPH_W_VGA), .morph_h_o(MORPH_H_VGA),
         .final_out(final_out)
@@ -1147,7 +1199,8 @@ module Top(
     cv_settings_info_tab info_tab (
         .clk(clk25), .reset(vga_reset), .settings_active(cv_settings_mode),
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
-        .cam_box_click(cam_box_clicked), .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
+        // .cam_box_click(cam_box_clicked), 
+        .bitmap_box_click(bitmap_box_clicked), .ufds_box_click(ufds_box_clicked),
         .gauss_click(gauss_click_mv), .median_click(median_click_mv), .erode_click(erode_click_mv), .dilate_click(dilate_click_mv),
         .pix_x(info_pix_x), .pix_y(info_pix_y), .info_idx(info_idx), .pix_rgb(info_pix_rgb)
     );
@@ -1172,7 +1225,7 @@ module Top(
             if (in_roi && !mouse_sample_ready && 
                 (frame_x[9:1] - 10 == mouse_x_vga[9:1] - 10) && 
                 (frame_y[9:1] == mouse_y_vga[8:1])) begin
-                mouse_color_bram <= bram_pixel_out;
+                mouse_color_bram <= bram_final_pixel_out;
                 mouse_sample_ready <= 1'b1;
             end
         end
@@ -1186,25 +1239,20 @@ module Top(
     wire [3:0]  start_red_val, end_red_val;
     wire [3:0]  start_green_val, end_green_val;
     wire [3:0]  start_blue_val, end_blue_val;
-    // HSV slider outputs and mode flag
-    wire [3:0]  start_h_val, end_h_val;
-    wire [3:0]  start_s_val, end_s_val;
-    wire [3:0]  start_v_val, end_v_val;
-    wire        mode_is_hsv;
     // New HSV thresholds and mode flag from threshold UI
-    wire [3:0]  start_h_val, end_h_val;
-    wire [3:0]  start_s_val, end_s_val;
-    wire [3:0]  start_v_val, end_v_val;
-    wire        mode_is_hsv;
+    // wire [3:0]  start_h_val, end_h_val;
+    // wire [3:0]  start_s_val, end_s_val;
+    // wire [3:0]  start_v_val, end_v_val;
+    // wire        mode_is_hsv;
     // Enable for threshold UI: active only when CV settings UI is visible so sliders
     // are loaded with the BRAM overlay set. This ensures the sliders are drawn with
     // other VGA-space overlays.
     wire thr_enable = (state == S_CV_SETTINGS);
 
     // Instantiate threshold_section now that 'state' is declared so we can pass enable
-    wire [23:0] RGB_THRESHOLD = {start_red_val, end_red_val,
-                          start_green_val, end_green_val,
-                          start_blue_val, end_blue_val};
+    // wire [23:0] RGB_THRESHOLD = {start_red_val, end_red_val,
+    //                       start_green_val, end_green_val,
+    //                       start_blue_val, end_blue_val};
     threshold_subsection thr_section_inst (
         .clk25(clk25),
         .vga_reset(vga_reset),
@@ -1212,10 +1260,12 @@ module Top(
         .py_src(frame_y),
         .mouse_x_px(mouse_x_vga),
         .mouse_y_px(mouse_y_vga),
-        .left_click(left_click_sync[1]),
+        .left_click(left_click_deb),
         .left_click_edge(left_click_edge),
+        .left_click_fall(left_click_fall),
         .enable(thr_enable),
-        .bram_pixel_out(bram_pixel_out),
+        .rgb_pixel_in(rgb_pixel_out),
+        // .bram_pixel_out(bram_pixel_out),
         .mouse_color_bram(mouse_color_bram),
         .start_red_val(start_red_val),
         .end_red_val(end_red_val),
@@ -1223,10 +1273,11 @@ module Top(
         .end_green_val(end_green_val),
         .start_blue_val(start_blue_val),
         .end_blue_val(end_blue_val),
-        .start_h_val(start_h_val), .end_h_val(end_h_val),
-        .start_s_val(start_s_val), .end_s_val(end_s_val),
-        .start_v_val(start_v_val), .end_v_val(end_v_val),
-        .mode_is_hsv(mode_is_hsv),
+        // .start_h_val(start_h_val), .end_h_val(end_h_val),
+        // .start_s_val(start_s_val), .end_s_val(end_s_val),
+        // .start_v_val(start_v_val), .end_v_val(end_v_val),
+        .threshold_pixel(threshold_pixel),
+        // .mode_is_hsv(mode_is_hsv),
         .section_pixel(thr_section_pixel),
         .section_active(thr_section_active)
     );
@@ -1241,6 +1292,7 @@ module Top(
     wire [1:0]  ufds_min_area_sel;
     wire        ufds_sort_by_prox;
     wire [1:0]  ufds_max_boxes_sel;
+    wire servo_en;
 
     ufds_settings_overlay ufds_ui (
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
@@ -1248,7 +1300,8 @@ module Top(
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
         .return_click(ufds_return_click),
-        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), .sort_by_prox(ufds_sort_by_prox), .max_boxes_sel(ufds_max_boxes_sel)
+        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), .sort_by_prox(ufds_sort_by_prox), .max_boxes_sel(ufds_max_boxes_sel),
+        .servo(servo_en)
     );
 
     // Latch UFDS settings for UFDS pipeline (clk domain)
@@ -1306,13 +1359,19 @@ module Top(
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
         .to_write(write_high),
-        .image_pixel(overlay_pixel)
+        .image_pixel(overlay_pixel),
+        .gauss_sq(gauss_sq),
+        .med_sq(med_sq),
+        .erode1_sq(erode1_sq),
+        .erode2_sq(erode2_sq),
+        .dilate1_sq(dilate1_sq),
+        .dilate2_sq(dilate2_sq)
     );
 
 // ----------- VGA CONTROLLER ----------- //
     // Wire for BRAM address from VGA controller
     wire [16:0] frame_addr;             // logical 0..(310*240-1)
-    wire [11:0] bram_pixel_out;            // 12-bit RGB444 from BRAM
+    wire [11:0] bram_final_pixel_out;            // 12-bit RGB444 from BRAM
     reg [11:0] frame_pixel;            // RGB444 to VGA
     wire [9:0] frame_x;  // current x coord in frame (0..639)
     wire [9:0] frame_y;  // current y coord in frame (0..479)
@@ -1482,10 +1541,68 @@ module Top(
     wire [8:0] mouse_y_vga = (mouse_y_sync >= 12'd479) ? 9'd479 : mouse_y_sync[8:0];
     wire [9:0] mouse_x_vga = mouse_x_sync;
     // wire [8:0] mouse_y_vga = mouse_y_sync;
-    // VGA-space 3x3 cursor for VGA-based UIs (e.g., settings overlays) to avoid source-grid offset
-    wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
-    wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
-    wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
+    // VGA-space 3x3 logical cursor region retained (for any logic that still expects it)
+    // wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
+    // wire [8:0] vga_dy = (frame_y > mouse_y_vga) ? (frame_y - mouse_y_vga) : (mouse_y_vga - frame_y);
+    // wire       within_cursor_vga_3x3 = (vga_dx <= 10'd1) && (vga_dy <= 9'd1);
+
+    // Cursor: right-angled triangle with right angle at (mouse_x_vga, mouse_y_vga) (top-left corner)
+    // Vertices: tip (0,0), (CUR_W,0) to the right, (0,CUR_H) downward.
+    // localparam integer CUR_W = 10; // horizontal leg length
+    // localparam integer CUR_H = 10; // vertical leg length
+    // wire signed [10:0] cdx = frame_x - mouse_x_vga; // x offset from tip
+    // wire signed [10:0] cdy = frame_y - mouse_y_vga; // y offset from tip
+    // wire        cursor_in_bounds = (cdx >= 0 && cdx <= CUR_W && cdy >= 0 && cdy <= CUR_H);
+    // // Point inside triangle if scaled sum within overall area: cdx/CUR_W + cdy/CUR_H <= 1
+    // // Avoid division: cdx*CUR_H + cdy*CUR_W <= CUR_W*CUR_H
+    // wire [21:0] tri_lhs = (cdx * CUR_H) + (cdy * CUR_W);
+    // wire [21:0] tri_rhs = (CUR_W * CUR_H);
+    // wire        cursor_inside_tri = cursor_in_bounds && (tri_lhs <= tri_rhs);
+    // wire at_tip = (cdx == 0 && cdy == 0);
+    // wire on_left_leg = (cdx == 0) && (cdy >= 0) && (cdy <= CUR_H);
+    // wire on_top_leg  = (cdy == 0) && (cdx >= 0) && (cdx <= CUR_W);
+    // wire on_hyp      = cursor_inside_tri && (tri_lhs == tri_rhs);
+    // wire corner_right = (cdx == CUR_W) && (cdy == 0);
+    // wire corner_bottom = (cdx == 0) && (cdy == CUR_H);
+    // wire cursor_outline = cursor_inside_tri && (at_tip || on_left_leg || on_top_leg || on_hyp || corner_right || corner_bottom);
+    // wire cursor_fill    = cursor_inside_tri && !cursor_outline;
+
+    // VGA-space arrowhead cursor (for settings overlays)
+    localparam VGA_CUR_SIZE = 7; // arrow height and width 
+    localparam VGA_BORDER   = 1;  // outline thickness in VGA pixels
+    localparam diagonal_from_left = 5; // tail starts here (unused)
+    localparam signed [11:0] VGA_TAIL_WIDTH  = 12'sd4;   // tail width (doubled from 2)
+    localparam signed [11:0] VGA_TAIL_LENGTH = 12'sd4;   // tail length (doubled from 3)
+
+    wire signed [10:0] dx_s = $signed({1'b0, frame_x}) - $signed({1'b0, mouse_x_vga});
+    wire signed [10:0] dy_s = $signed({1'b0, frame_y}) - $signed({1'b0, mouse_y_vga});
+
+    // Arrow fill (isosceles right triangle with 45° hypotenuse)
+    wire arrow_fill = (dx_s >= 0) && (dy_s >= 0) &&
+                      (dy_s <= VGA_CUR_SIZE) && (dx_s <= dy_s);
+
+    // Eroded inner triangle to create an outline of thickness VGA_BORDER
+    wire arrow_inner = (dx_s >= VGA_BORDER) && (dy_s >= VGA_BORDER) &&
+                       (dy_s <= (VGA_CUR_SIZE - VGA_BORDER)) &&
+                       (dx_s <= (dy_s - VGA_BORDER));
+
+    wire arrow_border = arrow_fill & ~arrow_inner;
+
+    // Tail rectangle directly beneath the arrow base
+    wire arrow_tail_vga = (dx_s >= 0) && (dx_s < VGA_TAIL_WIDTH) &&
+                          (dy_s >= VGA_CUR_SIZE) && (dy_s < (VGA_CUR_SIZE + VGA_TAIL_LENGTH));
+    // Erode tail to form a 1px outline (same VGA_BORDER thickness)
+    wire tail_inner = (dx_s >= VGA_BORDER) && (dx_s < (VGA_TAIL_WIDTH - VGA_BORDER)) &&
+                      (dy_s >= (VGA_CUR_SIZE + VGA_BORDER)) && (dy_s < (VGA_CUR_SIZE + VGA_TAIL_LENGTH - VGA_BORDER));
+    wire tail_border = arrow_tail_vga & ~tail_inner;
+
+    // Final shape signals
+    wire vga_cursor_fill   = arrow_fill | arrow_tail_vga;             // white area
+    wire vga_cursor_border = arrow_border | tail_border;              // black outline (head + tail)
+
+    // Dynamic cursor color for contrast: draw black on bright backgrounds, white otherwise
+    // wire [5:0]  cursor_luma = {2'b00, bram_pixel_out[11:8]} + {2'b00, bram_pixel_out[7:4]} + {2'b00, bram_pixel_out[3:0]};
+    // wire [11:0] cursor_rgb_dyn = (cursor_luma > 6'd24) ? 12'h000 : 12'hFFF;
 
     // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
     wire servo_x_pwm;
@@ -1537,139 +1654,139 @@ module Top(
     // end
 
 
-    // <------- UART CONTROLLER FOR BOUNDING BOX -------->
-    // one bit = 434clks/bit * 1/50Mhz = 8.68 microseconds/bit
-    // to pass all four bounding boxes = 8.68 * 248 = 0.00215s
-    // each bit to pass in = 40 nanosecond
-    // delay = 0.00215s / (40 nanoseconds) = 53750 bits delay, which is roughly one frame worth of delay
-    // thus need to ensure that each TX waits for 0.00215s before sending
+    // // <------- UART CONTROLLER FOR BOUNDING BOX -------->
+    // // one bit = 434clks/bit * 1/50Mhz = 8.68 microseconds/bit
+    // // to pass all four bounding boxes = 8.68 * 248 = 0.00215s
+    // // each bit to pass in = 40 nanosecond
+    // // delay = 0.00215s / (40 nanoseconds) = 53750 bits delay, which is roughly one frame worth of delay
+    // // thus need to ensure that each TX waits for 0.00215s before sending
 
 
-    // wait 30000 ms to allow package to finish
-    reg [14:0] wait_counter = 15'd0;
-    // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
-    reg  [247:0] tx_fifo_payload = 0; // initial pattern (MSB..LSB = 09..00)
-    reg         tx_fifo_wr_en   = 1'b0;                     // 1-cycle strobe to enqueue a 10-byte burst
-    wire [247:0] rx_fifo_payload;
-    reg  [247:0] rx_fifo_payload_buf;
-    wire        rx_fifo_rd_en;           // 1-cycle strobe when 10 bytes received
+    // // wait 30000 ms to allow package to finish
+    // reg [14:0] wait_counter = 15'd0;
+    // // Controller encapsulates TX/RX UARTs with 10-byte FIFOs
+    // reg  [247:0] tx_fifo_payload = 0; // initial pattern (MSB..LSB = 09..00)
+    // reg         tx_fifo_wr_en   = 1'b0;                     // 1-cycle strobe to enqueue a 10-byte burst
+    // wire [247:0] rx_fifo_payload;
+    // reg  [247:0] rx_fifo_payload_buf;
+    // wire        rx_fifo_rd_en;           // 1-cycle strobe when 10 bytes received
 
-    UART_Controller u_uart (
-        .clk(clk50),
-        .rst(btnU),
-        .tx_fifo(tx_fifo_payload),
-        .tx_fifo_wr_en(tx_fifo_wr_en),
-        .tx_pin(uart_tx),
-        .rx_fifo(rx_fifo_payload),
-        .rx_fifo_rd_en(rx_fifo_rd_en),
-        .rx_pin(uart_rx)
-    );
+    // UART_Controller u_uart (
+    //     .clk(clk50),
+    //     .rst(btnU),
+    //     .tx_fifo(tx_fifo_payload),
+    //     .tx_fifo_wr_en(tx_fifo_wr_en),
+    //     .tx_pin(uart_tx),
+    //     .rx_fifo(rx_fifo_payload),
+    //     .rx_fifo_rd_en(rx_fifo_rd_en),
+    //     .rx_pin(uart_rx)
+    // );
 
-    // localparam CMD_BBOX = 1'd0;
-    // localparam CMD_SETTINGS = 1'd1;
+    // // localparam CMD_BBOX = 1'd0;
+    // // localparam CMD_SETTINGS = 1'd1;
 
 
-    // <--- Transmit BBOX Areas --->
-    // Temporary transmit fields (values come from UFDS top component outputs)
-    reg [39:0] left_coords;
-    reg [39:0] right_coords;
-    reg [35:0] top_coords;
-    reg [35:0] bottom_coords;
-    reg [39:0] cx0_coords;
-    reg [35:0] cy0_coords;
-    reg [3:0] pre_vector;
-    reg [3:0] morph_vector;
-    reg [1:0] udfs_min_area;
-    reg ufds_prio;
-    reg [1:0] ufds_max_box_no;
+    // // <--- Transmit BBOX Areas --->
+    // // Temporary transmit fields (values come from UFDS top component outputs)
+    // reg [39:0] left_coords;
+    // reg [39:0] right_coords;
+    // reg [35:0] top_coords;
+    // reg [35:0] bottom_coords;
+    // reg [39:0] cx0_coords;
+    // reg [35:0] cy0_coords;
+    // reg [3:0] pre_vector;
+    // reg [3:0] morph_vector;
+    // reg [1:0] udfs_min_area;
+    // reg ufds_prio;
+    // reg [1:0] ufds_max_box_no;
 
-    // Send BBOX packet once per second when UFDS has fresh results.
-    // Note: UART controller emits rx_fifo_rd_en only after MESSAGE_BITCOUNT/8 bytes (here 31) are received.
-    // This is the transmit block.
-    always @(posedge clk50) begin
-        tx_fifo_wr_en <= 1'b0; // default low
-        // Periodic BBOX transmit (once per second) when UFDS has fresh results
-        // wait_counter <= wait_counter + 1;
-        // if (wait_counter == 15'd30_000 && ready_o) begin
-        //     wait_counter <= 15'd0;
-        if (sw[14]) begin
-            // main sends user inputs to secondary
-            pre_vector <= pre_order_vector;   // 4 bits (two ops)
-            morph_vector <= Morphology_State;     // 4 bits (1=DILATE)
-            udfs_min_area <= ufds_min_area_sel;
-            ufds_prio <= ufds_sort_by_prox;
-            ufds_max_box_no <= ufds_max_boxes_sel;
+    // // Send BBOX packet once per second when UFDS has fresh results.
+    // // Note: UART controller emits rx_fifo_rd_en only after MESSAGE_BITCOUNT/8 bytes (here 31) are received.
+    // // This is the transmit block.
+    // always @(posedge clk50) begin
+    //     tx_fifo_wr_en <= 1'b0; // default low
+    //     // Periodic BBOX transmit (once per second) when UFDS has fresh results
+    //     // wait_counter <= wait_counter + 1;
+    //     // if (wait_counter == 15'd30_000 && ready_o) begin
+    //     //     wait_counter <= 15'd0;
+    //     if (sw[14]) begin
+    //         // main sends user inputs to secondary
+    //         pre_vector <= pre_order_vector;   // 4 bits (two ops)
+    //         morph_vector <= Morphology_State;     // 4 bits (1=DILATE)
+    //         udfs_min_area <= ufds_min_area_sel;
+    //         ufds_prio <= ufds_sort_by_prox;
+    //         ufds_max_box_no <= ufds_max_boxes_sel;
         
-            tx_fifo_payload[3:0] <= pre_vector;
-            tx_fifo_payload[7:4] <= morph_vector;              
-            tx_fifo_payload[13:12] <= udfs_min_area;
-            tx_fifo_payload[14] <= ufds_prio;   
-            tx_fifo_payload[16:15] <= ufds_max_box_no;     
-            tx_fifo_payload[239:17] <= 0;
-        end else begin
-            // temporarily store 40-bits for all 4 BBox in its left, right, top, bottom, cx and cy
-            // secondary sends BB to main
-            left_coords <= comp3210_left;   // 40-bit
-            right_coords <= comp3210_right;   
-            top_coords <= comp3210_top;
-            bottom_coords <= comp3210_bottom;
-            cx0_coords <= comp3210_cx;   // 10-bit
-            cy0_coords <= comp3210_cy;   // 10-bit
+    //         tx_fifo_payload[3:0] <= pre_vector;
+    //         tx_fifo_payload[7:4] <= morph_vector;              
+    //         tx_fifo_payload[13:12] <= udfs_min_area;
+    //         tx_fifo_payload[14] <= ufds_prio;   
+    //         tx_fifo_payload[16:15] <= ufds_max_box_no;     
+    //         tx_fifo_payload[239:17] <= 0;
+    //     end else begin
+    //         // temporarily store 40-bits for all 4 BBox in its left, right, top, bottom, cx and cy
+    //         // secondary sends BB to main
+    //         left_coords <= comp3210_left;   // 40-bit
+    //         right_coords <= comp3210_right;   
+    //         top_coords <= comp3210_top;
+    //         bottom_coords <= comp3210_bottom;
+    //         cx0_coords <= comp3210_cx;   // 10-bit
+    //         cy0_coords <= comp3210_cy;   // 10-bit
          
-            tx_fifo_payload[39:0] <= left_coords;
-            tx_fifo_payload[79:40] <= right_coords;              
-            tx_fifo_payload[119:80] <= {4'd0, top_coords};
-            tx_fifo_payload[159:120] <= {4'd0, bottom_coords};   
-            tx_fifo_payload[199:160] <= cx0_coords;          
-            tx_fifo_payload[239:200] <= {4'd0, cy0_coords};
+    //         tx_fifo_payload[39:0] <= left_coords;
+    //         tx_fifo_payload[79:40] <= right_coords;              
+    //         tx_fifo_payload[119:80] <= {4'd0, top_coords};
+    //         tx_fifo_payload[159:120] <= {4'd0, bottom_coords};   
+    //         tx_fifo_payload[199:160] <= cx0_coords;          
+    //         tx_fifo_payload[239:200] <= {4'd0, cy0_coords};
            
-        end
-         tx_fifo_wr_en <= 1'b1; // one-cycle strobe to enqueue the packet
-    end
-
-
-    // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
-    reg [3:0] received_prevector;
-    reg [3:0] received_morph;
-    reg [1:0] received_ufds_min_area;
-    reg received_ufds_sort_by_prox;
-    reg [1:0] received_ufds_max_box_sel;
-
-
-    reg [39:0] received_left_boxes = 0;
-    reg [39:0] received_right_boxes = 0;
-    reg [35:0] received_top_boxes = 0;
-    reg [35:0] received_bottom_boxes = 0;
-    reg [39:0] received_CX = 0;
-    reg [35:0] received_CY = 0;
-
-
-     // Receive Block.
-    always @(posedge clk50) begin
-        // UART PACKAGE
-        if (rx_fifo_rd_en) begin
-            // snapshot the payload buffer for use elsewhere
-                // Checks if message received is bounding boxes
-            if (sw[14]) begin
-                received_left_boxes = rx_fifo_payload[39:0];
-                received_right_boxes = rx_fifo_payload[79:40];
-                received_top_boxes = rx_fifo_payload[115:80];
-                received_bottom_boxes = rx_fifo_payload[155:120];
-                received_CX = rx_fifo_payload[199:160];
-                received_CY = rx_fifo_payload[235:200]; 
-            end else begin 
-                received_prevector <= tx_fifo_payload[3:0];
-                received_morph <= tx_fifo_payload[7:4];            
-                received_ufds_min_area <= tx_fifo_payload[13:12];
-                received_ufds_sort_by_prox <= tx_fifo_payload[14];   
-                received_ufds_max_box_sel <= tx_fifo_payload[16:15];   
-            end
-        end
-    end
-
-    // always @(posedge rx_fifo_rd_en) begin
-    //     rx_fifo_payload_buf <= rx_fifo_payload;
+    //     end
+    //      tx_fifo_wr_en <= 1'b1; // one-cycle strobe to enqueue the packet
     // end
+
+
+    // // <--- Transmit Settings ---> e.g. prevector, morph vector, ufds_max_area, ufds_sort_by_prox, ufds_max_box_sel
+    // reg [3:0] received_prevector;
+    // reg [3:0] received_morph;
+    // reg [1:0] received_ufds_min_area;
+    // reg received_ufds_sort_by_prox;
+    // reg [1:0] received_ufds_max_box_sel;
+
+
+    // reg [39:0] received_left_boxes = 0;
+    // reg [39:0] received_right_boxes = 0;
+    // reg [35:0] received_top_boxes = 0;
+    // reg [35:0] received_bottom_boxes = 0;
+    // reg [39:0] received_CX = 0;
+    // reg [35:0] received_CY = 0;
+
+
+    //  // Receive Block.
+    // always @(posedge clk50) begin
+    //     // UART PACKAGE
+    //     if (rx_fifo_rd_en) begin
+    //         // snapshot the payload buffer for use elsewhere
+    //             // Checks if message received is bounding boxes
+    //         if (sw[14]) begin
+    //             received_left_boxes = rx_fifo_payload[39:0];
+    //             received_right_boxes = rx_fifo_payload[79:40];
+    //             received_top_boxes = rx_fifo_payload[115:80];
+    //             received_bottom_boxes = rx_fifo_payload[155:120];
+    //             received_CX = rx_fifo_payload[199:160];
+    //             received_CY = rx_fifo_payload[235:200]; 
+    //         end else begin 
+    //             received_prevector <= tx_fifo_payload[3:0];
+    //             received_morph <= tx_fifo_payload[7:4];            
+    //             received_ufds_min_area <= tx_fifo_payload[13:12];
+    //             received_ufds_sort_by_prox <= tx_fifo_payload[14];   
+    //             received_ufds_max_box_sel <= tx_fifo_payload[16:15];   
+    //         end
+    //     end
+    // end
+
+    // // always @(posedge rx_fifo_rd_en) begin
+    // //     rx_fifo_payload_buf <= rx_fifo_payload;
+    // // end
     
 
 
@@ -1684,8 +1801,8 @@ module Top(
     //                uart_dbg[15:0];
 
     // Optional LEDs for quick UART debug
-    assign led[0] = tx_fifo_wr_en;     // TX trigger
-    assign led[1] = rx_fifo_rd_en;     // RX 10-byte ready
+    // assign led[0] = tx_fifo_wr_en;     // TX trigger
+    // assign led[1] = rx_fifo_rd_en;     // RX 10-byte ready
     // Drag-drop debug LEDs
     // assign led[5] = cv_settings_mode;  // settings screen active
     // assign led[6] = left_click_deb;    // debounced left level

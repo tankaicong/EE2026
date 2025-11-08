@@ -171,7 +171,7 @@ reg [16:0] min_area_tmp; // temp
 reg [1:0] min_idx_tmp; // temp
 
 // Proximity ordering helpers (among current 4 slots)
-reg        v0, v1, v2, v3;
+reg [label_bits-1:0] v0, v1, v2, v3;
 reg [9:0]  prox_cx0, prox_cx1, prox_cx2, prox_cx3;
 reg [8:0]  prox_cy0, prox_cy1, prox_cy2, prox_cy3;
 // Temp deltas for distance calculation (widen y to 10 bits during math)

@@ -998,7 +998,7 @@ module Top(
         .ext_reset(cap_reset),
         // Settings from UFDS UI
         .min_area_sel(ufds_min_area_sel_r),
-        .sort_by_prox(ufds_sort_by_prox_r),
+        // .sort_by_prox(ufds_sort_by_prox_r),
         .max_boxes_sel(ufds_max_boxes_sel_r),
         .comp3210_left(comp3210_left),
         .comp3210_right(comp3210_right),
@@ -1293,7 +1293,7 @@ module Top(
     wire        ufds_return_click;
     wire [2:0]  ufds_tab_idx;
     wire [1:0]  ufds_min_area_sel;
-    wire        ufds_sort_by_prox;
+    // wire        ufds_sort_by_prox;
     wire [1:0]  ufds_max_boxes_sel;
     wire servo_en;
 
@@ -1303,22 +1303,24 @@ module Top(
         .mouse_x(mouse_x_vga), .mouse_y(mouse_y_vga), .left_edge(left_click_edge),
         .overlay_en(ufds_overlay_en), .overlay_rgb(ufds_overlay_rgb),
         .return_click(ufds_return_click),
-        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), .sort_by_prox(ufds_sort_by_prox), .max_boxes_sel(ufds_max_boxes_sel),
+        .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), 
+        // .sort_by_prox(ufds_sort_by_prox), 
+        .max_boxes_sel(ufds_max_boxes_sel),
         .servo(servo_en)
     );
 
     // Latch UFDS settings for UFDS pipeline (clk domain)
     reg [1:0] ufds_min_area_sel_r;
-    reg       ufds_sort_by_prox_r;
+    // reg       ufds_sort_by_prox_r;
     reg [1:0] ufds_max_boxes_sel_r;
     always @(posedge clk) begin
         if (btnU) begin
             ufds_min_area_sel_r  <= 2'b00; // 4
-            ufds_sort_by_prox_r  <= 1'b0;  // area
+            // ufds_sort_by_prox_r  <= 1'b0;  // area
             ufds_max_boxes_sel_r <= 2'b11; // 4 boxes
         end else begin
             ufds_min_area_sel_r  <= ufds_min_area_sel;
-            ufds_sort_by_prox_r  <= ufds_sort_by_prox;
+            // ufds_sort_by_prox_r  <= ufds_sort_by_prox;
             ufds_max_boxes_sel_r <= ufds_max_boxes_sel;
         end
     end

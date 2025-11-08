@@ -12,7 +12,7 @@ module UFDS_Bridge (
     input  wire ext_reset,
     // UFDS settings
     input  wire [1:0] min_area_sel,    // 00=4, 01=16, 10=32, 11=64
-    input  wire       sort_by_prox,    // 0=area, 1=proximity
+    // input  wire       sort_by_prox,    // 0=area, 1=proximity
     input  wire [1:0] max_boxes_sel,   // 00=1, 01=2, 10=3, 11=4
 
     // UFDS single-bbox outputs
@@ -77,7 +77,7 @@ module UFDS_Bridge (
 
         // Settings to UFDS core
         .min_area_sel(min_area_sel),
-        .sort_by_prox(sort_by_prox),
+        // .sort_by_prox(sort_by_prox),
         .max_boxes_sel(max_boxes_sel),
 
         .ready_to_read(ready_i),

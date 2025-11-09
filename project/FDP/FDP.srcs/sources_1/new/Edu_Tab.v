@@ -362,7 +362,7 @@ module Education_Tabs (
 
     reg [11:0] base;
     reg [11:0] row5;
-
+    
     // Determine which paragraph/line is active at start of each scanline and
     // update the per-line state and horizontal counters.
     always @ (posedge clk25) begin

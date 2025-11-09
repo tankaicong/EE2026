@@ -85,7 +85,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -150,7 +150,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -255,7 +255,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -1212,8 +1212,6 @@ module Top(
     // Wires from drag-drop module
     wire [59:0] boxes_x_vector;
     wire [53:0] boxes_y_vector;
-    wire [59:0] boxes_x_vector_test;
-    wire [53:0] boxes_y_vector_test;
     // Concatenated order (leftmost in LSB)
     // morph_order_vector and pre_order_vector are forward-declared above
     // wire [5:0]  box_hover;
@@ -1224,7 +1222,7 @@ module Top(
     // wire [1:0]  pre_order0, pre_order1;
     // Click pulses from drag/drop for info categories
     wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
-
+    wire [3:0] box_morph_vector;
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
         .reset(vga_reset),
@@ -1238,12 +1236,12 @@ module Top(
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
-        .boxes_x_test(boxes_x_vector_test), .boxes_y_test(boxes_y_vector_test),
         // .hover(box_hover),
         // .morph_count(morph_count),
         // .morph_vector(morph_vector_4),
         .morph_count(Morph_Count),
         .morph_vector(Morphology_State),
+        .box_morph_vector(box_morph_vector),
         // .morph_count(morph_count),
         // .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         // .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
@@ -1458,7 +1456,7 @@ module Top(
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
         .menu_mode(menu_mode),
-        .morph_state(Morphology_State),
+        .morph_state(box_morph_vector),
         .info_idx(ufds_tab_idx),
         .to_write(write_high),
         .image_pixel(overlay_pixel),
@@ -1523,22 +1521,29 @@ module Top(
     end
     wire mouse_reset = mouse_rst_sync[2];
 
-    // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a low
-    reg [2:0] coin_sync = 3'b000;
-    reg       coin_seen_low = 1'b0;
+    // on seeing high at coin_input pin, generate a rising edge pulse
+    reg coin_input_prev = 1'b0;
     always @(posedge clk25) begin
-        if (vga_reset) begin
-            coin_sync     <= 3'b000;
-            coin_seen_low <= 1'b0;
-        end else begin
-            coin_sync <= {coin_sync[1:0], coin_input};
-            // Arm edge detect only after observing at least one low post-reset
-            if (!coin_seen_low && (coin_sync[1] == 1'b0)) begin
-                coin_seen_low <= 1'b1;
-            end
-        end
+        coin_input_prev <= coin_input;
     end
-    wire coin_input_edge = coin_seen_low && (coin_sync[1] & ~coin_sync[2]);
+    wire coin_input_edge = coin_input && !coin_input_prev;
+
+    // // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a high
+    // reg [2:0] coin_sync = 3'b000;
+    // reg       coin_seen_high = 1'b0;
+    // always @(posedge clk25) begin
+    //     if (btnU) begin
+    //         coin_sync     <= 3'b000;
+    //         coin_seen_high <= 1'b0;
+    //     end else begin
+    //         coin_sync <= {coin_sync[1:0], coin_input};
+    //         // Arm edge detect only after observing at least one high post-reset
+    //         if (!coin_seen_high && (coin_sync[1] == 1'b1)) begin
+    //             coin_seen_high <= 1'b1;
+    //         end
+    //     end
+    // end
+    // wire coin_input_edge = coin_seen_high && (coin_sync[1] & ~coin_sync[2]);
 
 
     wire left_click, right_click, new_event;
@@ -1833,7 +1838,7 @@ module Top(
         .invert_error(1'b1), //invert error for pan axis
         .control_output(servo_x_angle),
         .KP(pan_kp),
-        .KI(31'b0),
+        .KI(32'b0),
         .KD(pan_kd),
         .SERVO_MAX(32'sd200_000),
         .SERVO_MIN(32'sd0)
@@ -1854,7 +1859,7 @@ module Top(
         .invert_error(1'b1), //invert error for tilt axis
         .control_output(servo_y_angle),
         .KP(tilt_kp),
-        .KI(31'b0),
+        .KI(32'b0),
         .KD(tilt_kd),
         .SERVO_MAX(32'sd133_333),
         .SERVO_MIN(32'sd50_000)
@@ -2131,7 +2136,7 @@ module Top(
     // reg [15:0] ss_output;
     // always @(*) begin
     //     if (ssd_slow_en) begin
-    //         ss_output <= {7'd0, DELETE_THIS};
+    //         ss_output <= servo_x_angle[15:0];
     //     end else begin
     //         ss_output <= ss_output;
     //     end

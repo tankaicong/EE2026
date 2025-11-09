@@ -1,0 +1,34 @@
+Each white pixel(1) is a node
+in a grid, neighbours form
+edges.
+For Left, Upper Left, Upper and
+Upper Right pixel, find their
+root by walking up their parents.
+
+Allocate current pixel if
+neighbours have no roots(it is
+a new component).
+Else, pick a neighbouring
+component and union into
+one component.
+
+As frame builds, union
+neighbours and grow
+components.
+Each component stores a running
+area count and min, max x, y
+for bounding boxes.
+
+Remove tiny components as there
+may be noise, by min area.
+(no. of pixel in a component)
+e.g., 4 means components with
+less than 4 pixels are
+invalid.
+
+Pick up to 
+1 or 2 or 3 or 4
+valid components.
+Using min, max, centre
+of x, y, draw their
+respective boxes.

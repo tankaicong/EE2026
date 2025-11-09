@@ -6,7 +6,7 @@ module Education_Tabs (
     input [9:0] frame_y,                    // VGA current y coord
     input [9:0] change_x,                   // X from info_tab
     input [8:0] change_y,                   // Y from info_tab
-    input [4:0] info_select,                // Which info tab to show 0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate
+    input [2:0] info_select,                // Which info tab to show 0 - neighbor, 1 - union, 2 - stats, 3 - filter, 4 - building, 5 - gaussian, 6 - median, 7 - erode, 8- dilate
     output [11:0] edu_rgb,                  // 12-bit pixel data from edu tabs (black/white)
     output reg edu_pixel_en                 // High when this module wants top.v to overwrite pixel with edu_rgb
 );
@@ -57,8 +57,8 @@ module Education_Tabs (
 
     // Start coords of neighbor paragraphs
     localparam integer neighbor_stats [0 : (neighbor_paragraphs * 3) - 1] = {
-        88, 38, 3,     // X start, Y start, num lines 1st paragraph
-        88, 90, 3      // X start, Y start, num lines 2nd paragraph 
+        90, 38, 3,     // X start, Y start, num lines 1st paragraph
+        83, 83, 3      // X start, Y start, num lines 2nd paragraph 
     };
 
     // NOTE: removed a stray/incorrect block that referenced PIX_Y_TOP/PIX_X.
@@ -72,7 +72,7 @@ module Education_Tabs (
     localparam integer union_paragraphs = 2;
     localparam integer union_stats [0 : (union_paragraphs * 3) - 1] = {
         90, 38, 3,     // X start, Y start, num lines 1st paragraph
-        90, 90, 3      // X start, Y start, num lines 2nd paragraph
+        90, 83, 3      // X start, Y start, num lines 2nd paragraph
     };
 
     localparam integer union1_num = 25,
@@ -105,8 +105,8 @@ module Education_Tabs (
 // ---------- Statistics ----------
     localparam integer statistics_paragraphs = 2;
     localparam integer statistics_stats [0 : (statistics_paragraphs * 3) - 1] = {
-        93, 37, 3,    // X start, Y start 1st paragraph
-        93, 90, 3     // X start, Y start 2nd paragraph
+        87, 37, 3,    // X start, Y start 1st paragraph
+        87, 85, 3     // X start, Y start 2nd paragraph
     };
 
     localparam integer stats1_num = 22,
@@ -140,8 +140,8 @@ module Education_Tabs (
 
     localparam integer filter_paragraphs = 2;
     localparam integer filter_stats [0 : (filter_paragraphs * 3) - 1] = {
-        75, 37, 3,    // X start, Y start 1st paragraph
-        75, 89, 3     // X start, Y start 2nd paragraph
+        85, 37, 3,    // X start, Y start 1st paragraph
+        85, 84, 3     // X start, Y start 2nd paragraph
     };
 
     localparam integer filter1_num = 31;
@@ -175,7 +175,7 @@ module Education_Tabs (
     localparam integer building_paragraphs = 2;
     localparam integer building_stats [0 : (building_paragraphs * 3) - 1] = {
         93, 38, 3,    // X start, Y start 1st paragraph
-        93, 90, 3     // X start, Y start 2nd paragraph
+        93, 85, 3     // X start, Y start 2nd paragraph
     };
     localparam integer building1_num = 11;
     localparam integer building2_num = 16;
@@ -226,7 +226,7 @@ module Education_Tabs (
 		line_length = 0; glyph_code = 0;
 		if(line_idx != 4'hF) begin
 			case(info_select)
-				5'd0: if(!use_par1) begin
+				3'd1: if(!use_par1) begin
 						case(line_idx)
 							0: begin line_length = neighbor1_num; if(char_idx < neighbor1_num) glyph_code = neighbor1[char_idx]; end
 							1: begin line_length = neighbor2_num; if(char_idx < neighbor2_num) glyph_code = neighbor2[char_idx]; end
@@ -239,7 +239,7 @@ module Education_Tabs (
 							2: begin line_length = neighbor6_num; if(char_idx < neighbor6_num) glyph_code = neighbor6[char_idx]; end
 						endcase
 					  end
-				5'd1:
+				3'd2:
                     if (!use_par1) begin
                         case(line_idx)
                             0: begin line_length = union1_num; if(char_idx < union1_num) glyph_code = union1[char_idx]; end
@@ -254,7 +254,7 @@ module Education_Tabs (
                             2: begin line_length = union6_num; if(char_idx < union6_num) glyph_code = union6[char_idx]; end
                         endcase
                     end
-				5'd2: 
+				3'd3: 
                     if (!use_par1) begin
                         case(line_idx)
                             0: begin line_length = stats1_num; if(char_idx < stats1_num) glyph_code = stats1[char_idx]; end
@@ -264,12 +264,12 @@ module Education_Tabs (
                     end
                     else begin
                         case(line_idx)
-                            0: begin line_length = stats1_num; if(char_idx < stats1_num) glyph_code = stats4[char_idx]; end
-                            1: begin line_length = stats2_num; if(char_idx < stats2_num) glyph_code = stats5[char_idx]; end
-                            2: begin line_length = stats3_num; if(char_idx < stats3_num) glyph_code = stats6[char_idx]; end
+                            0: begin line_length = stats4_num; if(char_idx < stats4_num) glyph_code = stats4[char_idx]; end
+                            1: begin line_length = stats5_num; if(char_idx < stats5_num) glyph_code = stats5[char_idx]; end
+                            2: begin line_length = stats6_num; if(char_idx < stats6_num) glyph_code = stats6[char_idx]; end
                         endcase
                     end
-				5'd3:
+				3'd4:
                     if (!use_par1) begin
                         case(line_idx)
                             0: begin line_length = filter1_num; if(char_idx < filter1_num) glyph_code = filter1[char_idx]; end
@@ -284,7 +284,7 @@ module Education_Tabs (
                             2: begin line_length = filter6_num; if(char_idx < filter6_num) glyph_code = filter6[char_idx]; end
                         endcase
                     end
-				5'd4: 
+				3'd5: 
                     if (!use_par1) begin
                         case(line_idx)
                             0: begin line_length = building1_num; if(char_idx < building1_num) glyph_code = building1[char_idx]; end
@@ -410,7 +410,7 @@ module Education_Tabs (
 
                 // Compute line selection based on info_select
                 // Helper for neighbors: two paragraphs
-                if (info_select == 5'd1) begin
+                if (info_select == 3'd1) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= neighbor_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - neighbor_stats[1*3 + 1];
@@ -451,7 +451,7 @@ module Education_Tabs (
                         glyph_row_cnt <= act_row;
                     end
                 end
-                else if (info_select == 5'd2) begin
+                else if (info_select == 3'd2) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= union_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - union_stats[1*3 + 1];
@@ -492,7 +492,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd3) begin
+                end else if (info_select == 3'd3) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= statistics_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - statistics_stats[1*3 + 1];
@@ -532,7 +532,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd4) begin
+                end else if (info_select == 3'd4) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= filter_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - filter_stats[1*3 + 1];
@@ -572,7 +572,7 @@ module Education_Tabs (
                     if (line_active) begin
                         glyph_row_cnt <= act_row;
                     end
-                end else if (info_select == 5'd5) begin
+                end else if (info_select == 3'd5) begin
                     // Paragraph 1 takes precedence if it matches (lower on screen)
                     if (int_y_ctr >= building_stats[1*3 + 1]) begin
                         d1 = int_y_ctr - building_stats[1*3 + 1];

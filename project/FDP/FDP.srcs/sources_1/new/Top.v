@@ -239,11 +239,12 @@ module Top(
                 end
 
 
-                // Info tab overlay
-                // if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
+
+                // Info tab overlay - promoted to show text on top of the background box, has y-cutoff here
+                if (tab_en && frame_y < 9'd320) frame_pixel <= tab_rgb;
 
                 // Pull from BRAM
                 if (write_high && (overlay_pixel != 4'hF)) begin
@@ -452,7 +453,7 @@ module Top(
     );
 
 //----------- MEDIAN FILTERS (3x3 and 5x5) ----------- //
-    // // 3x3 instance
+    // 3x3 instance
     Median_Filter #(
         .KERNEL_SIZE(3),
         .PIXEL_DEPTH(12),
@@ -1386,6 +1387,7 @@ module Top(
     wire [1:0]  ufds_max_boxes_sel;
     wire servo_en;
 
+
     ufds_settings_overlay ufds_ui (
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
         .px(frame_x), .py(frame_y),
@@ -1860,27 +1862,27 @@ module Top(
 
     //Simple state machine for PID pan and tilt tuning
     reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
-    reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
-    always @(*) begin
-        case (PID_Tuning_State)
-            2'b00: begin
-                led[15:14] <= 2'b00;    //indicate idle state
-                ss_output <= 16'd0;
-            end
-            2'b01: begin
-                pan_kp <= sw[15:8];
-                pan_kd <= sw[7:0];
-                led[15:14] <= 2'b10;    //indicate tuning pan
-                ss_output <= {pan_kp, pan_kd};
-            end
-            2'b10: begin
-                tilt_kp <= sw[15:8];
-                tilt_kd <= sw[7:0];
-                led[15:14] <= 2'b01;    //indicate tuning tilt
-                ss_output <= {tilt_kp, tilt_kd};
-            end
-        endcase
-    end
+    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    // always @(*) begin
+    //     case (PID_Tuning_State)
+    //         2'b00: begin
+    //             led[15:14] <= 2'b00;    //indicate idle state
+    //             ss_output <= 16'd0;
+    //         end
+    //         2'b01: begin
+    //             pan_kp <= sw[15:8];
+    //             pan_kd <= sw[7:0];
+    //             led[15:14] <= 2'b10;    //indicate tuning pan
+    //             ss_output <= {pan_kp, pan_kd};
+    //         end
+    //         2'b10: begin
+    //             tilt_kp <= sw[15:8];
+    //             tilt_kd <= sw[7:0];
+    //             led[15:14] <= 2'b01;    //indicate tuning tilt
+    //             ss_output <= {tilt_kp, tilt_kd};
+    //         end
+    //     endcase
+    // end
 
     //debounced btnL,C,R to switch between pan and tilt tuning
     reg [2:0] btnR_sync = 3'b000;
@@ -2134,6 +2136,10 @@ module Top(
     //         ss_output <= ss_output;
     //     end
     // end
+    reg [15:0] ss_output;
+    always @ (*) begin
+        ss_output <= ufds_tab_idx;
+    end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

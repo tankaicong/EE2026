@@ -31,12 +31,18 @@ module generate_bram_overlay(
     en is used to turn on/off the overlay */
     // Access BRAM
     reg [17:0] overlay_addr;
-    Single_Port_Buffer #(
-        .CHOICE(0)
-    ) single_buffer (
-        .clk(clk25),
-        .addr(overlay_addr),
-        .dout(image_pixel)  
+    // Single_Port_Buffer #(
+    //     .CHOICE(0)
+    // ) single_buffer (
+    //     .clk(clk25),
+    //     .addr(overlay_addr),
+    //     .dout(image_pixel)  
+    // );
+
+    overlay_mem single_buffer(
+        .clka(clk25),
+        .addra(overlay_addr),
+        .douta(image_pixel)
     );
 
     // Localparams for pixels
@@ -186,8 +192,8 @@ module generate_bram_overlay(
     // assign gauss_tab_1 = (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < (gauss_tab_y + lookup[(NUM_ACTL - 7)*ATTRS + 3]));
     // assign gauss_tab = (~ufds_settings_mode) && (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y);
     // assign gauss_tab_1 = (~ufds_settings_mode) && (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[(NUM_ACTL - 7)*ATTRS + 2])) && (frame_y >= gauss_tab_y);
-    assign gauss_tab = (ufds_settings_mode) && (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
-    assign gauss_tab_1 = (ufds_settings_mode) && (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
+    // assign gauss_tab = (ufds_settings_mode) && (frame_x >= gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
+    // assign gauss_tab_1 = (ufds_settings_mode) && (frame_x > gauss_tab_x && frame_x <= (gauss_tab_x + lookup[24*ATTRS + 2])) && (frame_y >= gauss_tab_y && frame_y < lookup[24*ATTRS + 3] + gauss_tab_y);
     assign gauss_sq = (~ufds_settings_mode) && (frame_x >= gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
     assign gauss_sq_1 = (~ufds_settings_mode) && (frame_x > gauss_x && frame_x <= (gauss_x + lookup[(NUM_ACTL - 6)*ATTRS + 2])) && (frame_y >= gauss_y && frame_y < (gauss_y + lookup[(NUM_ACTL - 6)*ATTRS + 3]));
     assign med_sq = (~ufds_settings_mode) && (frame_x >= med_x && frame_x <= (med_x + lookup[(NUM_ACTL - 5)*ATTRS + 2])) && (frame_y >= med_y && frame_y < (med_y + lookup[(NUM_ACTL - 5)*ATTRS + 3]));

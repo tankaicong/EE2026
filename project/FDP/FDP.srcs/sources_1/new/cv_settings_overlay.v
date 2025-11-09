@@ -323,13 +323,13 @@ module cv_settings_overlay (
             // end
 
             // External rectangle for bitmap
-            if ((py == 435 || py == 468) && px >= 278 && px <= 349) begin     // Horizontal x2
-                overlay_en = 1'b1; overlay_rgb = BLUE;
-            end
-            if ((px == 278 || px == 349) && py >= 435 && py <= 468) begin     // Vertical x2
-                overlay_en = 1'b1; overlay_rgb = BLUE;
-            end
-            if ((px >= 279 && px <= 348 && py >= 436 && py < 467) && (mouse_x >= 279 && mouse_x <= 348 && mouse_y >= 436 && mouse_y < 467)) begin
+            // if ((py == 435 || py == 468) && px >= 278 && px <= 349) begin     // Horizontal x2
+            //     overlay_en = 1'b1; overlay_rgb = BLUE;
+            // end
+            // if ((px == 278 || px == 349) && py >= 435 && py <= 468) begin     // Vertical x2
+            //     overlay_en = 1'b1; overlay_rgb = BLUE;
+            // end
+            if ((px >= 279 && px <= 348 && py >= 436 && py < 469) && (mouse_x >= 279 && mouse_x <= 348 && mouse_y >= 436 && mouse_y < 469)) begin
                 overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
             end
             // if (in_bitmap_rect) begin
@@ -337,13 +337,13 @@ module cv_settings_overlay (
             // end
 
             // External rectangle for UFDS
-            if ((py == 435 || py == 468) && px >= 564 && px <= 629) begin     // Horizontal x2
-                overlay_en = 1'b1; overlay_rgb = BLUE;
-            end
-            if ((px == 564 || px == 629) && py >= 435 && py <= 468) begin     // Vertical x2
-                overlay_en = 1'b1; overlay_rgb = BLUE;
-            end
-            if ((px >= 565 && px <= 628 && py >= 436 && py < 467) && (mouse_x >= 565 && mouse_x <= 628 && mouse_y >= 436 && mouse_y < 467)) begin
+            // if ((py == 435 || py == 468) && px >= 564 && px <= 629) begin     // Horizontal x2
+            //     overlay_en = 1'b1; overlay_rgb = BLUE;
+            // end
+            // if ((px == 564 || px == 629) && py >= 435 && py <= 468) begin     // Vertical x2
+            //     overlay_en = 1'b1; overlay_rgb = BLUE;
+            // end
+            if ((px >= 565 && px <= 628 && py >= 436 && py < 469) && (mouse_x >= 565 && mouse_x <= 628 && mouse_y >= 436 && mouse_y < 469)) begin
                 overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
             end
             // if (in_ufds_rect) begin

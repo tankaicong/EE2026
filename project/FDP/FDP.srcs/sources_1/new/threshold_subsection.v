@@ -138,7 +138,7 @@ module threshold_subsection (
     localparam BOX_START_LEFT_Y  = 9'd348;
 
     // Eyedropper display rectangle
-    localparam EYE_X   = 10'd230;
+    localparam EYE_X   = 10'd270;
     localparam EYE_Y   = 9'd330;
     localparam EYE_W   = 10'd15;
     localparam EYE_H   = 9'd15;

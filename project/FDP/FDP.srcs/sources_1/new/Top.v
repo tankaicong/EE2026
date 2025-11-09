@@ -39,11 +39,8 @@ module Top(
     reg[2:0] prev_state = 0; // remember previous state
     localparam S_MENU = 0;
     localparam S_CV_SETTINGS = 1; // CV settings (right-click toggle)
-    wire info_dim_en; // dim mask from CV settings overlay (info tab region)
-    // localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
-    // localparam S_GAME_MANUAL_MODE = 3;
-    localparam S_GAME_AUTO_MODE = 4;
-    localparam S_UFDS_SETTINGS = 5; // UFDS settings page
+    localparam S_UFDS_SETTINGS = 2; // UFDS settings page
+    localparam S_FULLSCREEN = 3;
 
     wire cv_settings_mode = (state == S_CV_SETTINGS);
     // wire user_settings_mode = (state == S_USER_SETTINGS);
@@ -51,6 +48,9 @@ module Top(
 
     wire menu_mode = (state == S_MENU);
     
+    wire info_dim_en; // dim mask from CV settings overlay (info tab region)
+    // localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
+    // localparam S_GAME_MANUAL_MODE = 3;
     // Crosshair color mapping from selection
     wire [11:0] crosshair_rgb = CYAN;
 
@@ -59,7 +59,7 @@ module Top(
 
     always @(posedge clk25) begin
         if (btnU) begin
-            state <= S_MENU;
+            state = S_MENU;
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
@@ -111,7 +111,7 @@ module Top(
             S_CV_SETTINGS: begin
                 // right-click again to return to prev_state
                 if (right_click_edge) begin
-                    state <= S_GAME_AUTO_MODE;
+                    state <= S_FULLSCREEN;
                     prev_state <= S_CV_SETTINGS;
                 end
                 // Enter UFDS settings when UFDS box is clicked
@@ -170,7 +170,7 @@ module Top(
             S_UFDS_SETTINGS: begin
                 // right-click or Return box to go back to CV settings
                 if (right_click_edge) begin 
-                    state <= S_GAME_AUTO_MODE;
+                    state <= S_FULLSCREEN;
                     prev_state <= S_UFDS_SETTINGS;
                 end
                 if (ufds_return_click) begin 
@@ -272,7 +272,7 @@ module Top(
                 else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
-            S_GAME_AUTO_MODE: begin
+            S_FULLSCREEN: begin
                 if (right_click_edge && prev_state == S_CV_SETTINGS) state = S_CV_SETTINGS;
                 if (right_click_edge && prev_state == S_UFDS_SETTINGS) state = S_UFDS_SETTINGS;
 

@@ -137,13 +137,13 @@ module ufds_settings_overlay (
     // localparam integer box6 [0:3] = {495, 596, 324, 479};
     // localparam integer box7 [0:3] = {597, 639, 324, 479};
     // localparam integer box1 [0:3] = {21, 31, 435, 469};
-    localparam integer box1 [0:3] = {21, 64, 324, 475};
-    localparam integer box2 [0:3] = {63, 219, 324, 432};
-    localparam integer box3 [0:3] = {220, 324, 324, 432};
-    localparam integer box4 [0:3] = {325, 396, 324, 432};
-    localparam integer box5 [0:3] = {397, 494, 324, 449};
-    localparam integer box6 [0:3] = {495, 596, 324, 449};
-    localparam integer box7 [0:3] = {597, 639, 324, 479};
+    localparam integer box1 [0:3] = {21, 64, 324, 477};
+    localparam integer box2 [0:3] = {63, 219, 324, 434};
+    localparam integer box3 [0:3] = {220, 324, 324, 434};
+    localparam integer box4 [0:3] = {325, 396, 324, 434};
+    localparam integer box5 [0:3] = {397, 494, 324, 451};
+    localparam integer box6 [0:3] = {495, 596, 324, 451};
+    localparam integer box7 [0:3] = {597, 639, 324, 481};
 
 
     wire in_box1 = (px >= box1[0] + 2 && px <= box1[1] - 2 && py >= box1[2] + 2 && py <= box1[3] - 2);      // Pink left box
@@ -432,7 +432,7 @@ module ufds_settings_overlay (
             if (mouse_in_box4 && in_box4) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box5 && in_box5) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box6 && in_box6) begin overlay_en=1; overlay_rgb=OFFWHITE; end
-            if (mouse_in_servo && in_servo) begin overlay_en=1; overlay_rgb=RED; end
+            if (mouse_in_servo && in_servo) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
 
             // Draw tab borders
             // if (border_box1) begin overlay_en=1; overlay_rgb=GREEN; end
@@ -460,7 +460,7 @@ module ufds_settings_overlay (
                 overlay_en = 1; 
                 if (tab_idx == 5) overlay_rgb = GREEN; else overlay_rgb = GREY;
             end
-            if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = RED; else overlay_rgb=GREY; end
+            if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = BUMBLEBEE; else overlay_rgb=GREY; end
 
             if (gen_black) begin overlay_en=1; overlay_rgb=BLACK; end
             if (gen_yellow) begin overlay_en=1; overlay_rgb=YELLOW; end
@@ -550,7 +550,7 @@ module ufds_settings_overlay (
             //     if (sort_by_prox) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             // end
             // end
-            if (in_servo && servo) begin overlay_en=1; overlay_rgb=RED; end
+            if (in_servo && servo) begin overlay_en=1; overlay_rgb=GREEN; end
 
         end
     end

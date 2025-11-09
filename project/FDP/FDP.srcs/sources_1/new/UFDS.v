@@ -170,11 +170,11 @@ reg [16:0] slot0_area, slot1_area, slot2_area, slot3_area; // cached areas for q
 reg [16:0] min_area_tmp; // temp for replace-min
 reg [1:0]  min_idx_tmp;  // temp for replace-min index
 
-// // area-based selection ordering helpers (deterministic top-N by area each frame)
-// reg        v0, v1, v2, v3;          // validity flags for slots at output time
-// reg [16:0] a0, a1, a2, a3;          // areas for slots at output time
-// reg [16:0] curr_max_a;              // current argmax area while selecting
-// reg [1:0]  curr_sel;                // selected slot index for this rank
+// area-based selection ordering helpers (deterministic top-N by area each pixel snapshot)
+reg used0, used1, used2, used3;       // marks a slot as already selected for current snapshot sequence
+reg [16:0] curr_max_a;                // current argmax area while selecting
+reg [1:0]  curr_sel;                  // selected slot index for this rank
+reg [label_bits-1:0] sel_lbl;         // selected label for current rank
 
 // runtime-configurable allowed output boxes derived from UI selection
 reg [2:0] allowed_n; // 1..4 derived from max_boxes_sel
@@ -791,59 +791,132 @@ always @(posedge clk) begin
                 // end
             end
 
-            // snapshot one component per cycle to ease timing
+            // snapshot up to 4 components in descending area order (greedy selection)
             S_COMP0: begin
-                // (LSB chunk)
-                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT) begin
-                    comp3210_left[9:0] = min_x[slot0];
-                    comp3210_right[9:0] = max_x[slot0];
-                    comp3210_top[8:0] = min_y[slot0];
-                    comp3210_bottom[8:0] = max_y[slot0];
-                    comp3210_cx[9:0] <= (min_x[slot0] + max_x[slot0]) >> 1;
-                    comp3210_cy[8:0] <= (min_y[slot0] + max_y[slot0]) >> 1;
-                    comp3210_area[15:0] <= area[slot0][15:0];
+                // reset used flags for this 4-rank selection sequence
+                used0 <= 1'b0; used1 <= 1'b0; used2 <= 1'b0; used3 <= 1'b0;
+
+                // pick largest among valid slots
+                curr_max_a = 17'd0; curr_sel = 2'd0; sel_lbl = 0;
+                if (slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT && area[slot0] > curr_max_a) begin curr_max_a = area[slot0]; curr_sel = 2'd0; sel_lbl = slot0; end
+                if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT && area[slot1] > curr_max_a) begin curr_max_a = area[slot1]; curr_sel = 2'd1; sel_lbl = slot1; end
+                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT && area[slot2] > curr_max_a) begin curr_max_a = area[slot2]; curr_sel = 2'd2; sel_lbl = slot2; end
+                if (slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT && area[slot3] > curr_max_a) begin curr_max_a = area[slot3]; curr_sel = 2'd3; sel_lbl = slot3; end
+
+                if (curr_max_a != 0) begin
+                    // write rank-0 (LSB chunk)
+                    comp3210_left[9:0]   = min_x[sel_lbl];
+                    comp3210_right[9:0]  = max_x[sel_lbl];
+                    comp3210_top[8:0]    = min_y[sel_lbl];
+                    comp3210_bottom[8:0] = max_y[sel_lbl];
+                    comp3210_cx[9:0]     <= (min_x[sel_lbl] + max_x[sel_lbl]) >> 1;
+                    comp3210_cy[8:0]     <= (min_y[sel_lbl] + max_y[sel_lbl]) >> 1;
+                    comp3210_area[15:0]  <= area[sel_lbl][15:0];
+                    // mark used slot
+                    case (curr_sel)
+                        2'd0: used0 <= 1'b1;
+                        2'd1: used1 <= 1'b1;
+                        2'd2: used2 <= 1'b1;
+                        default: used3 <= 1'b1;
+                    endcase
+                end else begin
+                    // no valid component
+                    comp3210_left[9:0]   = 10'd0; comp3210_right[9:0]  = 10'd0;
+                    comp3210_top[8:0]    = 9'd0;  comp3210_bottom[8:0] = 9'd0;
+                    comp3210_cx[9:0]     <= 10'd0; comp3210_cy[8:0] <= 9'd0;
+                    comp3210_area[15:0]  <= 16'd0;
                 end
 
                 state <= S_COMP1;
             end
             S_COMP1: begin
-                if (slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT) begin
-                    comp3210_left[19:10] = min_x[slot1];
-                    comp3210_right[19:10] = max_x[slot1];
-                    comp3210_top[17:9] = min_y[slot1];
-                    comp3210_bottom[17:9] = max_y[slot1];
-                    comp3210_cx[19:10] <= (min_x[slot1] + max_x[slot1]) >> 1;
-                    comp3210_cy[17:9] <= (min_y[slot1] + max_y[slot1]) >> 1;
-                    comp3210_area[31:16] <= area[slot1][15:0];
+                // pick next largest among remaining
+                curr_max_a = 17'd0; curr_sel = 2'd0; sel_lbl = 0;
+                if (!used0 && slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT && area[slot0] > curr_max_a) begin curr_max_a = area[slot0]; curr_sel = 2'd0; sel_lbl = slot0; end
+                if (!used1 && slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT && area[slot1] > curr_max_a) begin curr_max_a = area[slot1]; curr_sel = 2'd1; sel_lbl = slot1; end
+                if (!used2 && slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT && area[slot2] > curr_max_a) begin curr_max_a = area[slot2]; curr_sel = 2'd2; sel_lbl = slot2; end
+                if (!used3 && slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT && area[slot3] > curr_max_a) begin curr_max_a = area[slot3]; curr_sel = 2'd3; sel_lbl = slot3; end
+
+                if (curr_max_a != 0) begin
+                    comp3210_left[19:10]  = min_x[sel_lbl];
+                    comp3210_right[19:10] = max_x[sel_lbl];
+                    comp3210_top[17:9]    = min_y[sel_lbl];
+                    comp3210_bottom[17:9] = max_y[sel_lbl];
+                    comp3210_cx[19:10]    <= (min_x[sel_lbl] + max_x[sel_lbl]) >> 1;
+                    comp3210_cy[17:9]     <= (min_y[sel_lbl] + max_y[sel_lbl]) >> 1;
+                    comp3210_area[31:16]  <= area[sel_lbl][15:0];
+                    case (curr_sel)
+                        2'd0: used0 <= 1'b1;
+                        2'd1: used1 <= 1'b1;
+                        2'd2: used2 <= 1'b1;
+                        default: used3 <= 1'b1;
+                    endcase
+                end else begin
+                    comp3210_left[19:10]  = 10'd0; comp3210_right[19:10] = 10'd0;
+                    comp3210_top[17:9]    = 9'd0;  comp3210_bottom[17:9] = 9'd0;
+                    comp3210_cx[19:10]    <= 10'd0; comp3210_cy[17:9] <= 9'd0;
+                    comp3210_area[31:16]  <= 16'd0;
                 end
-           
 
                 state <= S_COMP2;
             end
             S_COMP2: begin
-                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
-                    comp3210_left[29:20] = min_x[slot2];
-                    comp3210_right[29:20] = max_x[slot2];
-                    comp3210_top[26:18] = min_y[slot2];
-                    comp3210_bottom[26:18] = max_y[slot2];
-                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
-                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
-                    comp3210_area[47:32] <= area[slot2][15:0];
+                curr_max_a = 17'd0; curr_sel = 2'd0; sel_lbl = 0;
+                if (!used0 && slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT && area[slot0] > curr_max_a) begin curr_max_a = area[slot0]; curr_sel = 2'd0; sel_lbl = slot0; end
+                if (!used1 && slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT && area[slot1] > curr_max_a) begin curr_max_a = area[slot1]; curr_sel = 2'd1; sel_lbl = slot1; end
+                if (!used2 && slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT && area[slot2] > curr_max_a) begin curr_max_a = area[slot2]; curr_sel = 2'd2; sel_lbl = slot2; end
+                if (!used3 && slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT && area[slot3] > curr_max_a) begin curr_max_a = area[slot3]; curr_sel = 2'd3; sel_lbl = slot3; end
+
+                if (curr_max_a != 0) begin
+                    comp3210_left[29:20]  = min_x[sel_lbl];
+                    comp3210_right[29:20] = max_x[sel_lbl];
+                    comp3210_top[26:18]   = min_y[sel_lbl];
+                    comp3210_bottom[26:18]= max_y[sel_lbl];
+                    comp3210_cx[29:20]    <= (min_x[sel_lbl] + max_x[sel_lbl]) >> 1;
+                    comp3210_cy[26:18]    <= (min_y[sel_lbl] + max_y[sel_lbl]) >> 1;
+                    comp3210_area[47:32]  <= area[sel_lbl][15:0];
+                    case (curr_sel)
+                        2'd0: used0 <= 1'b1;
+                        2'd1: used1 <= 1'b1;
+                        2'd2: used2 <= 1'b1;
+                        default: used3 <= 1'b1;
+                    endcase
+                end else begin
+                    comp3210_left[29:20]  = 10'd0; comp3210_right[29:20] = 10'd0;
+                    comp3210_top[26:18]   = 9'd0;  comp3210_bottom[26:18] = 9'd0;
+                    comp3210_cx[29:20]    <= 10'd0; comp3210_cy[26:18] <= 9'd0;
+                    comp3210_area[47:32]  <= 16'd0;
                 end
-                
+
                 state <= S_COMP3;
             end
             S_COMP3: begin
-                if (slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT) begin
-                    comp3210_left[29:20] = min_x[slot2];
-                    comp3210_right[29:20] = max_x[slot2];
-                    comp3210_top[26:18] = min_y[slot2];
-                    comp3210_bottom[26:18] = max_y[slot2];
-                    comp3210_cx[29:20] <= (min_x[slot2] + max_x[slot2]) >> 1;
-                    comp3210_cy[26:18] <= (min_y[slot2] + max_y[slot2]) >> 1;
-                    comp3210_area[47:32] <= area[slot2][15:0];
+                curr_max_a = 17'd0; curr_sel = 2'd0; sel_lbl = 0;
+                if (!used0 && slot0!=0 && active_root[slot0] && area[slot0] >= MIN_AREA_RT && area[slot0] > curr_max_a) begin curr_max_a = area[slot0]; curr_sel = 2'd0; sel_lbl = slot0; end
+                if (!used1 && slot1!=0 && active_root[slot1] && area[slot1] >= MIN_AREA_RT && area[slot1] > curr_max_a) begin curr_max_a = area[slot1]; curr_sel = 2'd1; sel_lbl = slot1; end
+                if (!used2 && slot2!=0 && active_root[slot2] && area[slot2] >= MIN_AREA_RT && area[slot2] > curr_max_a) begin curr_max_a = area[slot2]; curr_sel = 2'd2; sel_lbl = slot2; end
+                if (!used3 && slot3!=0 && active_root[slot3] && area[slot3] >= MIN_AREA_RT && area[slot3] > curr_max_a) begin curr_max_a = area[slot3]; curr_sel = 2'd3; sel_lbl = slot3; end
+
+                if (curr_max_a != 0) begin
+                    comp3210_left[39:30]  = min_x[sel_lbl];
+                    comp3210_right[39:30] = max_x[sel_lbl];
+                    comp3210_top[35:27]   = min_y[sel_lbl];
+                    comp3210_bottom[35:27]= max_y[sel_lbl];
+                    comp3210_cx[39:30]    <= (min_x[sel_lbl] + max_x[sel_lbl]) >> 1;
+                    comp3210_cy[35:27]    <= (min_y[sel_lbl] + max_y[sel_lbl]) >> 1;
+                    comp3210_area[63:48]  <= area[sel_lbl][15:0];
+                    case (curr_sel)
+                        2'd0: used0 <= 1'b1;
+                        2'd1: used1 <= 1'b1;
+                        2'd2: used2 <= 1'b1;
+                        default: used3 <= 1'b1;
+                    endcase
+                end else begin
+                    comp3210_left[39:30]  = 10'd0; comp3210_right[39:30] = 10'd0;
+                    comp3210_top[35:27]   = 9'd0;  comp3210_bottom[35:27] = 9'd0;
+                    comp3210_cx[39:30]    <= 10'd0; comp3210_cy[35:27] <= 9'd0;
+                    comp3210_area[63:48]  <= 16'd0;
                 end
-                
 
                 state <= S_COMPS_DONE;
             end

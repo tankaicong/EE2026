@@ -1211,8 +1211,6 @@ module Top(
     // Wires from drag-drop module
     wire [59:0] boxes_x_vector;
     wire [53:0] boxes_y_vector;
-    wire [59:0] boxes_x_vector_test;
-    wire [53:0] boxes_y_vector_test;
     // Concatenated order (leftmost in LSB)
     // morph_order_vector and pre_order_vector are forward-declared above
     // wire [5:0]  box_hover;
@@ -1223,10 +1221,6 @@ module Top(
     // wire [1:0]  pre_order0, pre_order1;
     // Click pulses from drag/drop for info categories
     wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
-    wire [7:0] rtest;
-    wire [11:0] box_order;
-    wire [3:0] placed_morph_vector;
-    wire [3:0] hover_vector;
     wire [3:0] box_morph_vector;
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
@@ -1241,11 +1235,6 @@ module Top(
         .morph_x(MORPH_X_VGA), .morph_y(MORPH_Y_VGA), .morph_w(MORPH_W_VGA), .morph_h(MORPH_H_VGA),
         .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
-        .boxes_x_test(boxes_x_vector_test), .boxes_y_test(boxes_y_vector_test),
-        .rtest(rtest),
-        .box_order_vector(box_order),
-        .placed_morph_vector(placed_morph_vector),
-        .hover_vector(hover_vector),
         // .hover(box_hover),
         // .morph_count(morph_count),
         // .morph_vector(morph_vector_4),
@@ -1536,11 +1525,6 @@ module Top(
         coin_input_prev <= coin_input;
     end
     wire coin_input_edge = coin_input && !coin_input_prev;
-    always @(*) begin
-        led[0] = coin_input;
-        led[4:1] = placed_morph_vector;
-        led[8:5] = hover_vector;
-    end
 
     // // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a high
     // reg [2:0] coin_sync = 3'b000;
@@ -1852,7 +1836,7 @@ module Top(
         .invert_error(1'b1), //invert error for pan axis
         .control_output(servo_x_angle),
         .KP(pan_kp),
-        .KI(31'b0),
+        .KI(32'b0),
         .KD(pan_kd),
         .SERVO_MAX(32'sd200_000),
         .SERVO_MIN(32'sd0)
@@ -1873,7 +1857,7 @@ module Top(
         .invert_error(1'b1), //invert error for tilt axis
         .control_output(servo_y_angle),
         .KP(tilt_kp),
-        .KI(31'b0),
+        .KI(32'b0),
         .KD(tilt_kd),
         .SERVO_MAX(32'sd133_333),
         .SERVO_MIN(32'sd50_000)
@@ -1881,27 +1865,27 @@ module Top(
 
     //Simple state machine for PID pan and tilt tuning
     reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
-    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
-    // always @(*) begin
-    //     case (PID_Tuning_State)
-    //         2'b00: begin
-    //             led[15:14] <= 2'b00;    //indicate idle state
-    //             ss_output <= 16'd0;
-    //         end
-    //         2'b01: begin
-    //             pan_kp <= sw[15:8];
-    //             pan_kd <= sw[7:0];
-    //             led[15:14] <= 2'b10;    //indicate tuning pan
-    //             ss_output <= {pan_kp, pan_kd};
-    //         end
-    //         2'b10: begin
-    //             tilt_kp <= sw[15:8];
-    //             tilt_kd <= sw[7:0];
-    //             led[15:14] <= 2'b01;    //indicate tuning tilt
-    //             ss_output <= {tilt_kp, tilt_kd};
-    //         end
-    //     endcase
-    // end
+    reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    always @(*) begin
+        case (PID_Tuning_State)
+            2'b00: begin
+                led[15:14] <= 2'b00;    //indicate idle state
+                ss_output <= 16'd0;
+            end
+            2'b01: begin
+                pan_kp <= sw[15:8];
+                pan_kd <= sw[7:0];
+                led[15:14] <= 2'b10;    //indicate tuning pan
+                ss_output <= {pan_kp, pan_kd};
+            end
+            2'b10: begin
+                tilt_kp <= sw[15:8];
+                tilt_kd <= sw[7:0];
+                led[15:14] <= 2'b01;    //indicate tuning tilt
+                ss_output <= {tilt_kp, tilt_kd};
+            end
+        endcase
+    end
 
     //debounced btnL,C,R to switch between pan and tilt tuning
     reg [2:0] btnR_sync = 3'b000;
@@ -2136,25 +2120,25 @@ module Top(
 
 
 
-    reg [31:0] ssd_slow_cnt = 32'd0;
-    reg        ssd_slow_en = 1'b0;
-    always @(posedge clk) begin
-        ssd_slow_cnt <= ssd_slow_cnt + 1;
-        if (ssd_slow_cnt >= 32'd1) begin
-            ssd_slow_cnt <= 32'd0;
-            ssd_slow_en <= 1'b1;
-        end else begin
-            ssd_slow_en <= 1'b0;
-        end
-    end
-    reg [15:0] ss_output;
-    always @(*) begin
-        if (ssd_slow_en) begin
-            ss_output <= {5'd0, boxes_x_vector[29:20]};
-        end else begin
-            ss_output <= ss_output;
-        end
-    end
+    // reg [31:0] ssd_slow_cnt = 32'd0;
+    // reg        ssd_slow_en = 1'b0;
+    // always @(posedge clk) begin
+    //     ssd_slow_cnt <= ssd_slow_cnt + 1;
+    //     if (ssd_slow_cnt >= 32'd1) begin
+    //         ssd_slow_cnt <= 32'd0;
+    //         ssd_slow_en <= 1'b1;
+    //     end else begin
+    //         ssd_slow_en <= 1'b0;
+    //     end
+    // end
+    // reg [15:0] ss_output;
+    // always @(*) begin
+    //     if (ssd_slow_en) begin
+    //         ss_output <= servo_x_angle[15:0];
+    //     end else begin
+    //         ss_output <= ss_output;
+    //     end
+    // end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

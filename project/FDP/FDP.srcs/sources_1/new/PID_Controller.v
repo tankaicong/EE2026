@@ -86,9 +86,9 @@ module PID_Controller
                 derivative = error - prev_error;
 
                 // Compute control output
-                pid_sum = ((KP * error) << KP_BITSHIFT_LEFT) +
-                          ((KI * integral) >> KI_BITSHIFT_RIGHT) + 
-                          ((KD * derivative) >> KD_BITSHIFT_RIGHT);
+                pid_sum = ((KP * error) <<< KP_BITSHIFT_LEFT) +
+                          ((KI * integral) >>> KI_BITSHIFT_RIGHT) + 
+                          ((KD * derivative) >>> KD_BITSHIFT_RIGHT);
 
                 // position control means integrate pid term
                 control_output = control_output + pid_sum;

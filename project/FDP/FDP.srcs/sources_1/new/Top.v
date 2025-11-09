@@ -77,7 +77,8 @@ module Top(
                     state <= S_CV_SETTINGS;
                 end
 
-                if ((menu_write) && (overlay_pixel != 4'hF)) begin
+                // if ((menu_write) && (overlay_pixel != 4'hF)) begin
+                if (write_high && (overlay_pixel != 4'hF)) begin
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
                     else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
@@ -1441,7 +1442,7 @@ module Top(
     // reg [53:0] move_y = 54'h2C160B0582C160;
     wire write_high;
     wire [3:0] overlay_pixel;
-    wire menu_write;
+    // wire menu_write;
     generate_bram_overlay gen_ovrly (
         .clk(clk),        // 100MHz clock (used for position updates)
         .clk25(clk25),    // 25MHz VGA clock for BRAM reads
@@ -1465,8 +1466,8 @@ module Top(
         .erode1_sq(erode1_sq),
         .erode2_sq(erode2_sq),
         .dilate1_sq(dilate1_sq),
-        .dilate2_sq(dilate2_sq),
-        .menu_write(menu_write)
+        .dilate2_sq(dilate2_sq)
+        // .menu_write(menu_write)
     );
 
 

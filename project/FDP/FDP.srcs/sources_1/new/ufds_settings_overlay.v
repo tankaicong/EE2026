@@ -393,10 +393,19 @@ module ufds_settings_overlay (
             //     end
             // end
 
+
+            // Green vertical line on the left
             if (px >= 360 && px < 362 && py >= (info_tab_top_y + INFO_BAR_OFFSET) && py <= 326) begin
                 overlay_en = 1'b1; overlay_rgb = GREEN;
             end
+
+            // Rectangle overlay for elements
             if (px >= 362 && px <= 639 && py >= (info_tab_top_y + INFO_BAR_OFFSET) && py < 326) begin
+                overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+            end
+
+            // Rectangle overlay for tab
+            if (px >= 470 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
                 overlay_en = 1'b1; overlay_rgb = OFFWHITE;
             end
 

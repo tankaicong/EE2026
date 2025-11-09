@@ -63,7 +63,7 @@ module cv_settings_info_tab (
     // Top-Left pixel positions
     localparam [9:0] PIX_X = 10'd359; // fixed X
     localparam [8:0] PIX_Y_INIT = 9'd296; // depends on tab height
-    localparam [8:0] PIX_Y_TOP = 9'd200;
+    localparam [8:0] PIX_Y_TOP = 9'd196;
 
     // Movement timing: 1.5s at 25 MHz
     localparam integer CLK_HZ = 25000000;

@@ -27,12 +27,18 @@ module Education_Tabs (
 
 
 // ---------- NEIGHBOURS ----------
+    // Start coords of neighbor paragraphs
+    localparam integer neighbor_stats [0 : (neighbor_paragraphs * 3) - 1] = {
+        90, 38, 3,     // X start, Y start, num lines 1st paragraph
+        79, 83, 3      // X start, Y start, num lines 2nd paragraph 
+    };
+
     localparam integer  neighbor1_num = 29,
                         neighbor2_num = 26,
                         neighbor3_num = 6,
                         neighbor4_num = 31,
                         neighbor5_num = 29,
-                        neighbor6_num = 32;
+                        neighbor6_num = 33;
 
     localparam integer neighbor_paragraphs = 2;
 
@@ -52,14 +58,9 @@ module Education_Tabs (
         20, 41, 41, 30, 43, 52, 17, 34, 32, 33, 45, 52, 41, 34, 49, 30, 37, 53, 52, 31, 34, 39, 29, 52, 45, 33, 30, 34, 43
     };
     localparam integer neighbor6 [0: (neighbor6_num - 1)] = {
-        43, 40, 40, 45, 52, 27, 50, 52, 48, 26, 37, 36, 34, 39, 32, 52, 46, 41, 52, 45, 33, 30, 34, 43, 52, 41, 26, 43, 30, 39, 45, 44
+        43, 40, 40, 45, 52, 27, 50, 52, 48, 26, 37, 36, 34, 39, 32, 52, 46, 41, 52, 45, 33, 30, 34, 43, 52, 41, 26, 43, 30, 39, 45, 44, 54
     };
 
-    // Start coords of neighbor paragraphs
-    localparam integer neighbor_stats [0 : (neighbor_paragraphs * 3) - 1] = {
-        90, 38, 3,     // X start, Y start, num lines 1st paragraph
-        83, 83, 3      // X start, Y start, num lines 2nd paragraph 
-    };
 
     // NOTE: removed a stray/incorrect block that referenced PIX_Y_TOP/PIX_X.
     // The main address generation is below and handles info_select cases.
@@ -146,7 +147,7 @@ module Education_Tabs (
 
     localparam integer filter1_num = 31;
     localparam integer filter2_num = 26;
-    localparam integer filter3_num = 29;
+    localparam integer filter3_num = 30;
     localparam integer filter4_num = 29;
     localparam integer filter5_num = 22;
     localparam integer filter6_num = 8;
@@ -158,7 +159,7 @@ module Education_Tabs (
         38, 26, 50, 52, 27, 30, 52, 39, 40, 34, 44, 30, 53, 52, 27, 50, 52, 38, 34, 39, 52, 26, 43, 30, 26, 54
     };
     localparam integer filter3 [0 : (filter3_num - 1)] = {
-        55, 39, 40, 54, 52, 40, 31, 52, 41, 34, 49, 30, 37, 52, 34, 39, 52, 26, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 56
+        55, 39, 40, 54, 52, 40, 31, 52, 41, 34, 49, 30, 37, 44, 52, 34, 39, 52, 26, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 56
     };
     localparam integer filter4 [0 : (filter4_num - 1)] = {
         30, 54, 32, 54, 53, 52, 60, 52, 38, 30, 26, 39, 44, 52, 28, 40, 38, 41, 40, 39, 30, 39, 45, 44, 52, 48, 34, 45, 33

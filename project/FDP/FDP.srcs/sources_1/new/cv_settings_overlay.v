@@ -88,7 +88,7 @@ module cv_settings_overlay (
     localparam [11:0] OFFWHITE  = 12'hBEE; // 11
     localparam [11:0] BORDERBLUE = 12'hC70; // 12
     localparam [11:0] BRIGHTBLUE = 12'hFB0; // 13
-    localparam [11:0] BUMBLEBEE   = 12'hFC0; // 14
+    localparam [11:0] BUMBLEBEE   = 12'h0CF; // 14
   
 
     // Info-tab barrier geometry (growing GREEN vertical line at x=362, thickness=3)
@@ -344,7 +344,7 @@ module cv_settings_overlay (
             //     overlay_en = 1'b1; overlay_rgb = BLUE;
             // end
             if ((px >= 565 && px <= 628 && py >= 436 && py < 469) && (mouse_x >= 565 && mouse_x <= 628 && mouse_y >= 436 && mouse_y < 469)) begin
-                overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+                overlay_en = 1'b1; overlay_rgb = BUMBLEBEE;
             end
             // if (in_ufds_rect) begin
             //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;

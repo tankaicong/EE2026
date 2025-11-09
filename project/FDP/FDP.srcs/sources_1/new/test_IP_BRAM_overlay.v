@@ -133,19 +133,6 @@ module test_IP_BRAM_overlay(
     wire [9:0] frame_x_next = (frame_x >= FRAME_WIDTH - 3) ? 10'd0 : frame_x + 10'd3;
     wire [9:0] frame_y_next = (frame_x >= FRAME_WIDTH - 3) ? ((frame_y == FRAME_HEIGHT - 1) ? 10'd0 : frame_y + 10'd1) : frame_y;
 
-    //original simple hardcoded version for first 3 overlays
-    // wire red_in = (frame_x >= lookup[0] && frame_x < (lookup[0] + lookup[2]) && frame_y >= lookup[1] && frame_y < (lookup[1] + lookup[3]));
-    // wire green_in = (frame_x >= lookup[5] && frame_x < (lookup[5] + lookup[7]) && frame_y >= lookup[6] && frame_y < (lookup[6] + lookup[8]));
-    // wire blue_in = (frame_x >= lookup[10] && frame_x < (lookup[10] + lookup[12]) && frame_y >= lookup[11] && frame_y < (lookup[11] + lookup[13]));
-
-    // wire red_look_ahead_in = (frame_x_next >= lookup[0] && frame_x_next < (lookup[0] + lookup[2]) && frame_y_next >= lookup[1] && frame_y_next < (lookup[1] + lookup[3]));
-    // wire green_look_ahead_in = (frame_x_next >= lookup[5] && frame_y_next < (lookup[6] + lookup[8]) && frame_y_next >= lookup[6] && frame_y_next < (lookup[6] + lookup[8]));
-    // wire blue_look_ahead_in = (frame_x_next >= lookup[10] && frame_x_next < (lookup[10] + lookup[12]) && frame_y_next >= lookup[11] && frame_y_next < (lookup[11] + lookup[13]));
-
-    // wire [17:0] red_look_ahead_in_addr = lookup[4] + (frame_y_next - lookup[1]) * lookup[2] + (frame_x_next - lookup[0]);
-    // wire [17:0] green_look_ahead_in_addr= lookup[9] + (frame_y_next - lookup[6]) * lookup[7] + (frame_x_next - lookup[5]);
-    // wire [17:0] blue_look_ahead_in_addr = lookup[14] + (frame_y_next - lookup[11]) * lookup[12] + (frame_x_next - lookup[10]);
-
     //generated version for all cv settings overlays
     wire [0 : (NUM_usr - 1)] ptr_in;
     wire [0 : (NUM_usr - 1)] ptr_look_ahead_in;
@@ -167,14 +154,6 @@ module test_IP_BRAM_overlay(
         endcase
 
         if (active_area) begin
-            //original simple hardcoded version for first 3 overlays
-            // if (red_look_ahead_in) overlay_addr_next <= red_look_ahead_in_addr;
-            // else if (green_look_ahead_in) overlay_addr_next <= green_look_ahead_in_addr;
-            // else if (blue_look_ahead_in) overlay_addr_next <= blue_look_ahead_in_addr;
-            // else overlay_addr_next <= 18'd0;
-            // if (red_in | green_in | blue_in) in_overlay = 1'b1;
-            // else in_overlay = 1'b0;
-
             //generated version for all cv settings overlays
             for (j=0; j<NUM_usr; j=j+1) begin
                 if (ptr_look_ahead_in[j]) begin

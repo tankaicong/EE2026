@@ -137,13 +137,13 @@ module ufds_settings_overlay (
     // localparam integer box6 [0:3] = {495, 596, 324, 479};
     // localparam integer box7 [0:3] = {597, 639, 324, 479};
     // localparam integer box1 [0:3] = {21, 31, 435, 469};
-    localparam integer box1 [0:3] = {21, 64, 324, 475};
-    localparam integer box2 [0:3] = {63, 219, 324, 432};
-    localparam integer box3 [0:3] = {220, 324, 324, 432};
-    localparam integer box4 [0:3] = {325, 396, 324, 432};
-    localparam integer box5 [0:3] = {397, 494, 324, 449};
-    localparam integer box6 [0:3] = {495, 596, 324, 449};
-    localparam integer box7 [0:3] = {597, 639, 324, 479};
+    localparam integer box1 [0:3] = {21, 64, 324, 477};
+    localparam integer box2 [0:3] = {63, 219, 324, 434};
+    localparam integer box3 [0:3] = {220, 324, 324, 434};
+    localparam integer box4 [0:3] = {325, 396, 324, 434};
+    localparam integer box5 [0:3] = {397, 494, 324, 451};
+    localparam integer box6 [0:3] = {495, 596, 324, 451};
+    localparam integer box7 [0:3] = {597, 639, 324, 481};
 
 
     wire in_box1 = (px >= box1[0] + 2 && px <= box1[1] - 2 && py >= box1[2] + 2 && py <= box1[3] - 2);      // Pink left box
@@ -236,10 +236,11 @@ module ufds_settings_overlay (
     wire        info_bar_visible = (info_tab_top_y < INFO_BAR_Y_BOT);
     wire [8:0]  info_y_top_clamp = (info_tab_top_y < INFO_BAR_Y_TOP) ? INFO_BAR_Y_TOP : info_tab_top_y;
     // Info-tab barrier geometry (growing GREEN vertical line at x=362, thickness=3)
-    localparam [9:0] INFO_BAR_X       = 10'd362;   // left edge of 3px barrier
+    localparam [9:0] INFO_BAR_X       = 10'd360;   // left edge of 3px barrier
     localparam [9:0] INFO_BAR_W       = 10'd3;     // thickness (px)
     localparam [8:0] INFO_BAR_Y_BOT   = 9'd322;    // bottom (fixed)
     localparam [8:0] INFO_BAR_Y_TOP   = 9'd322;    // min top when fully opened
+    localparam [8:0] INFO_BAR_OFFSET  = 9'd27;     // offset for thickness of tab bar
 
     // Latch clicks for tabs and settings
     always @(posedge clk) begin
@@ -340,19 +341,19 @@ module ufds_settings_overlay (
     //                        (py >= 389 && py <= 413 && ((px == 423 + 1) || (px == 447))));
     // wire border_btn16_1 = ((px >= 455 + 1 && px <= 479 && ((py == 389) || (py == 413))) ||
     //                        (py >= 389 && py <= 413 && ((px == 455 + 1) || (px == 479))));
-    wire border_btn04_1 = ((px >= btn04_x0 + 1 && px <= btn04_x1 && ((py == btn04_y0) || (py == btn04_y1))) ||
-                           (py >= btn04_y0 && py <= btn04_y1 && ((px == btn04_x0 + 1) || (px == btn04_x1))));
-    wire border_btn16_1 = ((px >= btn16_x0 + 1 && px <= btn16_x1 && ((py == btn16_y0) || (py == btn16_y1))) ||
-                           (py >= btn16_y0 && py <= btn16_y1 && ((px == btn16_x0 + 1) || (px == btn16_x1))));
+    wire border_btn04_1 = ((px >= btn04_x0 && px <= btn04_x1 && ((py == btn04_y0) || (py == btn04_y1))) ||
+                           (py >= btn04_y0 && py <= btn04_y1 && ((px == btn04_x0) || (px == btn04_x1))));
+    wire border_btn16_1 = ((px >= btn16_x0 && px <= btn16_x1 && ((py == btn16_y0) || (py == btn16_y1))) ||
+                           (py >= btn16_y0 && py <= btn16_y1 && ((px == btn16_x0) || (px == btn16_x1))));
     // Panel 4 button borders (32 and 64 area), thickness 1
     // wire border_btn32_1 = ((px >= 423 + 1 && px <= 447 && ((py == 419) || (py == 443))) ||
     //                        (py >= 419 && py <= 443 && ((px == 423 + 1) || (px == 447))));
     // wire border_btn64_1 = ((px >= 455 + 1 && px <= 479 && ((py == 419) || (py == 443))) ||
     //                        (py >= 419 && py <= 443 && ((px == 455 + 1) || (px == 479))));
-    wire border_btn32_1 = ((px >= btn32_x0 + 1 && px <= btn32_x1 && ((py == btn32_y0) || (py == btn32_y1))) ||
-                           (py >= btn32_y0 && py <= btn32_y1 && ((px == btn32_x0 + 1) || (px == btn32_x1))));
-    wire border_btn64_1 = ((px >= btn64_x0 + 1 && px <= btn64_x1 && ((py == btn64_y0) || (py == btn64_y1))) ||
-                           (py >= btn64_y0 && py <= btn64_y1 && ((px == btn64_x0 + 1) || (px == btn64_x1))));
+    wire border_btn32_1 = ((px >= btn32_x0 && px <= btn32_x1 && ((py == btn32_y0) || (py == btn32_y1))) ||
+                           (py >= btn32_y0 && py <= btn32_y1 && ((px == btn32_x0) || (px == btn32_x1))));
+    wire border_btn64_1 = ((px >= btn64_x0 && px <= btn64_x1 && ((py == btn64_y0) || (py == btn64_y1))) ||
+                           (py >= btn64_y0 && py <= btn64_y1 && ((px == btn64_x0) || (px == btn64_x1))));
 
     // Panel 5 button borders (Area/Proximity), thickness 1
     // Border wires for stacked buttons
@@ -378,18 +379,36 @@ module ufds_settings_overlay (
         if (!settings_active) begin
             // nothing
         end else begin
-                // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
-                // Draw after the separator lines so it visually overrides them at y=322.
-                if (info_bar_visible) begin
-                    if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
-                        (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
-                        overlay_en = 1'b1; overlay_rgb = GREEN;
-                    end
-                    if ((px >= 10'd446) && (px <= 10'd639) &&
-                        (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
-                        overlay_en = 1'b1; overlay_rgb = OFFWHITE;
-                    end
-                end
+            // Info-tab GREEN vertical barrier (3px thick) growing upward with info_tab_top_y
+            // Draw after the separator lines so it visually overrides them at y=322.
+            // if (info_bar_visible) begin
+            //     if ((px >= INFO_BAR_X) && (px < (INFO_BAR_X + INFO_BAR_W)) &&
+            //         (py >= info_y_top_clamp) && (py <= INFO_BAR_Y_BOT)) begin
+            //         overlay_en = 1'b1; overlay_rgb = GREEN;
+            //     end
+            //     // Background square for text visibility
+            //     if ((px >= 10'd446) && (px <= 10'd639) &&
+            //         (py >= info_y_top_clamp) && (py < INFO_BAR_Y_BOT)) begin // up to 321
+            //         overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+            //     end
+            // end
+
+
+            // Green vertical line on the left
+            if (px >= 360 && px < 362 && py >= (info_tab_top_y + INFO_BAR_OFFSET) && py <= 326) begin
+                overlay_en = 1'b1; overlay_rgb = GREEN;
+            end
+
+            // Rectangle overlay for elements
+            if (px >= 362 && px <= 639 && py >= (info_tab_top_y + INFO_BAR_OFFSET) && py < 326) begin
+                overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+            end
+
+            // Rectangle overlay for tab
+            if (px >= 470 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
+                overlay_en = 1'b1; overlay_rgb = OFFWHITE;
+            end
+
             // Separating lines at y = 322 (full width)
             // if ((py == 322)) begin
             //     overlay_en  = 1'b1; overlay_rgb = GREEN;
@@ -413,7 +432,7 @@ module ufds_settings_overlay (
             if (mouse_in_box4 && in_box4) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box5 && in_box5) begin overlay_en=1; overlay_rgb=OFFWHITE; end
             if (mouse_in_box6 && in_box6) begin overlay_en=1; overlay_rgb=OFFWHITE; end
-            if (mouse_in_servo && in_servo) begin overlay_en=1; overlay_rgb=RED; end
+            if (mouse_in_servo && in_servo) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
 
             // Draw tab borders
             // if (border_box1) begin overlay_en=1; overlay_rgb=GREEN; end
@@ -441,7 +460,7 @@ module ufds_settings_overlay (
                 overlay_en = 1; 
                 if (tab_idx == 5) overlay_rgb = GREEN; else overlay_rgb = GREY;
             end
-            if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = RED; else overlay_rgb=GREY; end
+            if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = BUMBLEBEE; else overlay_rgb=GREY; end
 
             if (gen_black) begin overlay_en=1; overlay_rgb=BLACK; end
             if (gen_yellow) begin overlay_en=1; overlay_rgb=YELLOW; end
@@ -531,7 +550,7 @@ module ufds_settings_overlay (
             //     if (sort_by_prox) overlay_rgb = BUMBLEBEE; else overlay_rgb = GREY;
             // end
             // end
-            if (in_servo && servo) begin overlay_en=1; overlay_rgb=RED; end
+            if (in_servo && servo) begin overlay_en=1; overlay_rgb=GREEN; end
 
         end
     end

@@ -39,11 +39,8 @@ module Top(
     reg[2:0] prev_state = 0; // remember previous state
     localparam S_MENU = 0;
     localparam S_CV_SETTINGS = 1; // CV settings (right-click toggle)
-    wire info_dim_en; // dim mask from CV settings overlay (info tab region)
-    // localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
-    // localparam S_GAME_MANUAL_MODE = 3;
-    localparam S_GAME_AUTO_MODE = 4;
-    localparam S_UFDS_SETTINGS = 5; // UFDS settings page
+    localparam S_UFDS_SETTINGS = 2; // UFDS settings page
+    localparam S_FULLSCREEN = 3;
 
     wire cv_settings_mode = (state == S_CV_SETTINGS);
     // wire user_settings_mode = (state == S_USER_SETTINGS);
@@ -51,6 +48,9 @@ module Top(
 
     wire menu_mode = (state == S_MENU);
     
+    wire info_dim_en; // dim mask from CV settings overlay (info tab region)
+    // localparam S_USER_SETTINGS = 2; // Display settings (btnC toggle)
+    // localparam S_GAME_MANUAL_MODE = 3;
     // Crosshair color mapping from selection
     wire [11:0] crosshair_rgb = CYAN;
 
@@ -59,7 +59,7 @@ module Top(
 
     always @(posedge clk25) begin
         if (btnU) begin
-            state <= S_MENU;
+            state = S_MENU;
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
@@ -77,7 +77,8 @@ module Top(
                     state <= S_CV_SETTINGS;
                 end
 
-                if ((menu_write) && (overlay_pixel != 4'hF)) begin
+                // if ((menu_write) && (overlay_pixel != 4'hF)) begin
+                if (write_high && (overlay_pixel != 4'hF)) begin
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
                     else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
@@ -110,7 +111,7 @@ module Top(
             S_CV_SETTINGS: begin
                 // right-click again to return to prev_state
                 if (right_click_edge) begin
-                    state <= S_GAME_AUTO_MODE;
+                    state <= S_FULLSCREEN;
                     prev_state <= S_CV_SETTINGS;
                 end
                 // Enter UFDS settings when UFDS box is clicked
@@ -169,7 +170,7 @@ module Top(
             S_UFDS_SETTINGS: begin
                 // right-click or Return box to go back to CV settings
                 if (right_click_edge) begin 
-                    state <= S_GAME_AUTO_MODE;
+                    state <= S_FULLSCREEN;
                     prev_state <= S_UFDS_SETTINGS;
                 end
                 if (ufds_return_click) begin 
@@ -239,11 +240,12 @@ module Top(
                 end
 
 
-                // Info tab overlay
-                // if (tab_en && frame_y < 9'd324) frame_pixel <= tab_rgb;
                     
                 // UFDS overlay
                 if (ufds_overlay_en) frame_pixel <= ufds_overlay_rgb;
+
+                // Info tab overlay - promoted to show text on top of the background box, has y-cutoff here
+                if (tab_en && frame_y < 9'd320) frame_pixel <= tab_rgb;
 
                 // Pull from BRAM
                 if (write_high && (overlay_pixel != 4'hF)) begin
@@ -270,7 +272,7 @@ module Top(
                 else if (vga_cursor_fill) frame_pixel <= 12'hFFF; // white fill
             end
 
-            S_GAME_AUTO_MODE: begin
+            S_FULLSCREEN: begin
                 if (right_click_edge && prev_state == S_CV_SETTINGS) state = S_CV_SETTINGS;
                 if (right_click_edge && prev_state == S_UFDS_SETTINGS) state = S_UFDS_SETTINGS;
 
@@ -452,7 +454,7 @@ module Top(
     );
 
 //----------- MEDIAN FILTERS (3x3 and 5x5) ----------- //
-    // // 3x3 instance
+    // 3x3 instance
     Median_Filter #(
         .KERNEL_SIZE(3),
         .PIXEL_DEPTH(12),
@@ -1384,6 +1386,7 @@ module Top(
     wire [1:0]  ufds_max_boxes_sel;
     wire servo_en;
 
+
     ufds_settings_overlay ufds_ui (
         .clk(clk25), .reset(vga_reset), .settings_active(ufds_settings_mode),
         .px(frame_x), .py(frame_y),
@@ -1439,7 +1442,7 @@ module Top(
     // reg [53:0] move_y = 54'h2C160B0582C160;
     wire write_high;
     wire [3:0] overlay_pixel;
-    wire menu_write;
+    // wire menu_write;
     generate_bram_overlay gen_ovrly (
         .clk(clk),        // 100MHz clock (used for position updates)
         .clk25(clk25),    // 25MHz VGA clock for BRAM reads
@@ -1463,8 +1466,8 @@ module Top(
         .erode1_sq(erode1_sq),
         .erode2_sq(erode2_sq),
         .dilate1_sq(dilate1_sq),
-        .dilate2_sq(dilate2_sq),
-        .menu_write(menu_write)
+        .dilate2_sq(dilate2_sq)
+        // .menu_write(menu_write)
     );
 
 
@@ -1865,27 +1868,27 @@ module Top(
 
     //Simple state machine for PID pan and tilt tuning
     reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
-    reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
-    always @(*) begin
-        case (PID_Tuning_State)
-            2'b00: begin
-                led[15:14] <= 2'b00;    //indicate idle state
-                ss_output <= 16'd0;
-            end
-            2'b01: begin
-                pan_kp <= sw[15:8];
-                pan_kd <= sw[7:0];
-                led[15:14] <= 2'b10;    //indicate tuning pan
-                ss_output <= {pan_kp, pan_kd};
-            end
-            2'b10: begin
-                tilt_kp <= sw[15:8];
-                tilt_kd <= sw[7:0];
-                led[15:14] <= 2'b01;    //indicate tuning tilt
-                ss_output <= {tilt_kp, tilt_kd};
-            end
-        endcase
-    end
+    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    // always @(*) begin
+    //     case (PID_Tuning_State)
+    //         2'b00: begin
+    //             led[15:14] <= 2'b00;    //indicate idle state
+    //             ss_output <= 16'd0;
+    //         end
+    //         2'b01: begin
+    //             pan_kp <= sw[15:8];
+    //             pan_kd <= sw[7:0];
+    //             led[15:14] <= 2'b10;    //indicate tuning pan
+    //             ss_output <= {pan_kp, pan_kd};
+    //         end
+    //         2'b10: begin
+    //             tilt_kp <= sw[15:8];
+    //             tilt_kd <= sw[7:0];
+    //             led[15:14] <= 2'b01;    //indicate tuning tilt
+    //             ss_output <= {tilt_kp, tilt_kd};
+    //         end
+    //     endcase
+    // end
 
     //debounced btnL,C,R to switch between pan and tilt tuning
     reg [2:0] btnR_sync = 3'b000;
@@ -2139,6 +2142,10 @@ module Top(
     //         ss_output <= ss_output;
     //     end
     // end
+    reg [15:0] ss_output;
+    always @ (*) begin
+        ss_output <= ufds_tab_idx;
+    end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

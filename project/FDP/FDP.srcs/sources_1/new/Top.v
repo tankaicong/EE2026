@@ -85,7 +85,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -150,7 +150,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'hBEE;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -254,7 +254,7 @@ module Top(
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
-                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h0FF;
+                    else if (overlay_pixel == 4'h7) frame_pixel <= 12'h888;
                     else if (overlay_pixel == 4'h8) frame_pixel <= 12'hB75;
                     else if (overlay_pixel == 4'h9) frame_pixel <= 12'hECA;
                     else if (overlay_pixel == 4'hA) frame_pixel <= 12'hEDB;
@@ -1223,7 +1223,11 @@ module Top(
     // wire [1:0]  pre_order0, pre_order1;
     // Click pulses from drag/drop for info categories
     wire gauss_click_mv, median_click_mv, erode_click_mv, dilate_click_mv;
-
+    wire [7:0] rtest;
+    wire [11:0] box_order;
+    wire [3:0] placed_morph_vector;
+    wire [3:0] hover_vector;
+    wire [3:0] box_morph_vector;
     cv_settings_dragdrop settings_cv (
         .clk(clk25),
         .reset(vga_reset),
@@ -1238,11 +1242,16 @@ module Top(
         .scroll_up(scroll_up_pulse), .scroll_down(scroll_down_pulse),
         .boxes_x(boxes_x_vector), .boxes_y(boxes_y_vector),
         .boxes_x_test(boxes_x_vector_test), .boxes_y_test(boxes_y_vector_test),
+        .rtest(rtest),
+        .box_order_vector(box_order),
+        .placed_morph_vector(placed_morph_vector),
+        .hover_vector(hover_vector),
         // .hover(box_hover),
         // .morph_count(morph_count),
         // .morph_vector(morph_vector_4),
         .morph_count(Morph_Count),
         .morph_vector(Morphology_State),
+        .box_morph_vector(box_morph_vector),
         // .morph_count(morph_count),
         // .morph_order0(morph_order0), .morph_order1(morph_order1), .morph_order2(morph_order2), .morph_order3(morph_order3),
         // .pre_count(pre_count), .pre_order0(pre_order0), .pre_order1(pre_order1),
@@ -1456,7 +1465,7 @@ module Top(
         .final_out(final_out),
         .ufds_settings_mode(ufds_settings_mode),
         .menu_mode(menu_mode),
-        .morph_state(Morphology_State),
+        .morph_state(box_morph_vector),
         .info_idx(ufds_tab_idx),
         .to_write(write_high),
         .image_pixel(overlay_pixel),
@@ -1521,22 +1530,34 @@ module Top(
     end
     wire mouse_reset = mouse_rst_sync[2];
 
-    // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a low
-    reg [2:0] coin_sync = 3'b000;
-    reg       coin_seen_low = 1'b0;
+    // on seeing high at coin_input pin, generate a rising edge pulse
+    reg coin_input_prev = 1'b0;
     always @(posedge clk25) begin
-        if (vga_reset) begin
-            coin_sync     <= 3'b000;
-            coin_seen_low <= 1'b0;
-        end else begin
-            coin_sync <= {coin_sync[1:0], coin_input};
-            // Arm edge detect only after observing at least one low post-reset
-            if (!coin_seen_low && (coin_sync[1] == 1'b0)) begin
-                coin_seen_low <= 1'b1;
-            end
-        end
+        coin_input_prev <= coin_input;
     end
-    wire coin_input_edge = coin_seen_low && (coin_sync[1] & ~coin_sync[2]);
+    wire coin_input_edge = coin_input && !coin_input_prev;
+    always @(*) begin
+        led[0] = coin_input;
+        led[4:1] = placed_morph_vector;
+        led[8:5] = hover_vector;
+    end
+
+    // // Coin input: synchronize to clk25 and generate a safe rising-edge pulse only after seeing a high
+    // reg [2:0] coin_sync = 3'b000;
+    // reg       coin_seen_high = 1'b0;
+    // always @(posedge clk25) begin
+    //     if (btnU) begin
+    //         coin_sync     <= 3'b000;
+    //         coin_seen_high <= 1'b0;
+    //     end else begin
+    //         coin_sync <= {coin_sync[1:0], coin_input};
+    //         // Arm edge detect only after observing at least one high post-reset
+    //         if (!coin_seen_high && (coin_sync[1] == 1'b1)) begin
+    //             coin_seen_high <= 1'b1;
+    //         end
+    //     end
+    // end
+    // wire coin_input_edge = coin_seen_high && (coin_sync[1] & ~coin_sync[2]);
 
 
     wire left_click, right_click, new_event;
@@ -1860,27 +1881,27 @@ module Top(
 
     //Simple state machine for PID pan and tilt tuning
     reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
-    reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
-    always @(*) begin
-        case (PID_Tuning_State)
-            2'b00: begin
-                led[15:14] <= 2'b00;    //indicate idle state
-                ss_output <= 16'd0;
-            end
-            2'b01: begin
-                pan_kp <= sw[15:8];
-                pan_kd <= sw[7:0];
-                led[15:14] <= 2'b10;    //indicate tuning pan
-                ss_output <= {pan_kp, pan_kd};
-            end
-            2'b10: begin
-                tilt_kp <= sw[15:8];
-                tilt_kd <= sw[7:0];
-                led[15:14] <= 2'b01;    //indicate tuning tilt
-                ss_output <= {tilt_kp, tilt_kd};
-            end
-        endcase
-    end
+    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    // always @(*) begin
+    //     case (PID_Tuning_State)
+    //         2'b00: begin
+    //             led[15:14] <= 2'b00;    //indicate idle state
+    //             ss_output <= 16'd0;
+    //         end
+    //         2'b01: begin
+    //             pan_kp <= sw[15:8];
+    //             pan_kd <= sw[7:0];
+    //             led[15:14] <= 2'b10;    //indicate tuning pan
+    //             ss_output <= {pan_kp, pan_kd};
+    //         end
+    //         2'b10: begin
+    //             tilt_kp <= sw[15:8];
+    //             tilt_kd <= sw[7:0];
+    //             led[15:14] <= 2'b01;    //indicate tuning tilt
+    //             ss_output <= {tilt_kp, tilt_kd};
+    //         end
+    //     endcase
+    // end
 
     //debounced btnL,C,R to switch between pan and tilt tuning
     reg [2:0] btnR_sync = 3'b000;
@@ -2115,25 +2136,25 @@ module Top(
 
 
 
-    // reg [31:0] ssd_slow_cnt = 32'd0;
-    // reg        ssd_slow_en = 1'b0;
-    // always @(posedge clk) begin
-    //     ssd_slow_cnt <= ssd_slow_cnt + 1;
-    //     if (ssd_slow_cnt >= 32'd1) begin
-    //         ssd_slow_cnt <= 32'd0;
-    //         ssd_slow_en <= 1'b1;
-    //     end else begin
-    //         ssd_slow_en <= 1'b0;
-    //     end
-    // end
-    // reg [15:0] ss_output;
-    // always @(*) begin
-    //     if (ssd_slow_en) begin
-    //         ss_output <= {7'd0, DELETE_THIS};
-    //     end else begin
-    //         ss_output <= ss_output;
-    //     end
-    // end
+    reg [31:0] ssd_slow_cnt = 32'd0;
+    reg        ssd_slow_en = 1'b0;
+    always @(posedge clk) begin
+        ssd_slow_cnt <= ssd_slow_cnt + 1;
+        if (ssd_slow_cnt >= 32'd1) begin
+            ssd_slow_cnt <= 32'd0;
+            ssd_slow_en <= 1'b1;
+        end else begin
+            ssd_slow_en <= 1'b0;
+        end
+    end
+    reg [15:0] ss_output;
+    always @(*) begin
+        if (ssd_slow_en) begin
+            ss_output <= {5'd0, boxes_x_vector[29:20]};
+        end else begin
+            ss_output <= ss_output;
+        end
+    end
     Seven_Seg ssd (
         .clk(clk),
         .num(ss_output),

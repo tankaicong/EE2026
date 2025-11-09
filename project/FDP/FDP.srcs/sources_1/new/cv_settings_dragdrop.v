@@ -59,6 +59,10 @@ module cv_settings_dragdrop (
     output wire [53:0] boxes_y, // 6 x 9 bit, {box5..box0}
     output wire [59:0] boxes_x_test,
     output wire [53:0] boxes_y_test,
+    output wire [7:0] rtest, // for testing,
+    output wire [11:0] box_order_vector,
+    output wire [3:0] placed_morph_vector,
+    output wire [3:0] hover_vector,
 
     // hover flags: 1 when mouse is currently over the box (for educational box to pop out)
     // output wire [5:0] hover, // box0..box5
@@ -79,11 +83,14 @@ module cv_settings_dragdrop (
     // concatenated order outputs (leftmost box in LSB, rightmost in MSB)
     // output wire [7:0] morph_order_vector, // [1:0]=leftmost, [7:6]=rightmost
     output wire [3:0] morph_vector,
+    output wire [3:0] box_morph_vector,
     output wire [3:0] pre_order_vector, // [1:0]=leftmost, [3:2]=rightmost
     // New: 4-bit morphology vector by left-to-right order. 1=DILATE, 0=ERODE or not placed
     
     // z-order control: index of box to render on top (foreground)
     output reg  [2:0] front_idx,
+    output reg [9:0] front_idx_box_x,
+    output reg [8:0] front_idx_box_y,
     // debug/telemetry (optional): expose dragging and drop reasons
     // output wire       dragging_o,
     // output reg  [1:0] drop_reason, // 1=fall-edge, 2=sustain-low (bitwise)
@@ -94,6 +101,10 @@ module cv_settings_dragdrop (
     output wire       dilate_click
     // output wire hov2, hov3, hov4, hov5
 );
+
+    assign rtest = {r2, r3, r4, r5};
+    assign placed_morph_vector = {placed5_morph, placed4_morph, placed3_morph, placed2_morph};
+    assign hover_vector = {hov5, hov4, hov3, hov2};
 
     reg [1:0] pre_order0, pre_order1;
     reg [1:0] morph_order0, morph_order1, morph_order2, morph_order3;
@@ -129,6 +140,12 @@ module cv_settings_dragdrop (
     // Dynamic type flags for the 4 morphology boxes (hover + scroll to toggle)
     // is_erodeX == 1 means this box is an ERODE step; 0 means DILATE.
     reg is_erode2, is_erode3, is_erode4, is_erode5;
+    initial begin
+        is_erode2 = 1'b1; // box2 starts as ERODE
+        is_erode3 = 1'b1; // box3 starts as ERODE
+        is_erode4 = 1'b0; // box4 starts as DILATE
+        is_erode5 = 1'b0; // box5 starts as DILATE
+    end
 
     // Flags: placed into drop boxes
     reg placed0_pre, placed1_pre; // GAUSS, MEDIAN
@@ -220,7 +237,7 @@ module cv_settings_dragdrop (
             front_idx <= 3'd0;
 
             // Default types: keep initial semantics (2,3 start as ERODE; 4,5 start as DILATE)
-            is_erode2 <= 1'b0; is_erode3 <= 1'b0; is_erode4 <= 1'b1; is_erode5 <= 1'b1;
+            is_erode2 <= 1'b1; is_erode3 <= 1'b1; is_erode4 <= 1'b0; is_erode5 <= 1'b0;
         end else begin
             // sample left button
             left_q <= mouse_left;
@@ -243,17 +260,17 @@ module cv_settings_dragdrop (
             end else begin
                 // Hover + scroll to set type (not while dragging)
                 if (!dragging) begin
-                    if (scroll_up) begin // set to ERODE
-                        if (hov2) is_erode2 <= 1'b0;
-                        else if (hov3) is_erode3 <= 1'b0;
-                        else if (hov4) is_erode4 <= 1'b0;
-                        else if (hov5) is_erode5 <= 1'b0;
-                    end
-                    if (scroll_down) begin // set to DILATE
+                    if (scroll_down) begin // set to ERODE, NOTE: YES its inverted, NO i dont know why
                         if (hov2) is_erode2 <= 1'b1;
                         else if (hov3) is_erode3 <= 1'b1;
                         else if (hov4) is_erode4 <= 1'b1;
                         else if (hov5) is_erode5 <= 1'b1;
+                    end
+                    if (scroll_up) begin // set to DILATE, NOTE: YES its inverted, NO i dont know why
+                        if (hov2) is_erode2 <= 1'b0;
+                        else if (hov3) is_erode3 <= 1'b0;
+                        else if (hov4) is_erode4 <= 1'b0;
+                        else if (hov5) is_erode5 <= 1'b0;
                     end
                 end
 
@@ -370,6 +387,10 @@ module cv_settings_dragdrop (
                 // Count placed using local next-value (avoid 1-cycle stale read of morph_count)
                 mc = {1'b0, placed2_morph} + {1'b0, placed3_morph} + {1'b0, placed4_morph} + {1'b0, placed5_morph};
                 // Compute “ranks” r2 to r5 = number of other morph boxes strictly to the left, i.e., count of those whose x is less than this box’s x.
+                // NOTE: Piggybacked as a check for where each block is in the pipeline
+                // e.g. when B1 (i.e. prev erode1), B3 (i.e. prev dilate1) is placed in the pipeline as ... --> B3 -> B1 --> ...
+                // r2 (i.e. B1) will be 1, r4 (i.e. B3) will be 0, 
+                // r3,r5 (i.e. B2, B4) will both be 2 (next possible position) but can be ignored by using the placedX_morph flags
                 r2 = (placed3_morph && ((x3 < x2) || ((x3 == x2) && (3 < 2))))
                          + (placed4_morph && ((x4 < x2) || ((x4 == x2) && (4 < 2))))
                          + (placed5_morph && ((x5 < x2) || ((x5 == x2) && (5 < 2))));
@@ -451,42 +472,6 @@ module cv_settings_dragdrop (
     assign boxes_x = {x5[9:0], x4[9:0], x3[9:0], x2[9:0], x1[9:0], x0[9:0]};
     assign boxes_y = {y5[8:0], y4[8:0], y3[8:0], y2[8:0], y1[8:0], y0[8:0]};
 
-    assign boxes_y_test[53:45] = (r5 == 0) ? y2[8:0] :
-                                (r5 == 1) ? y3[8:0] :
-                                (r5 == 2) ? y4[8:0] :
-                                (r5 == 3) ? y5[8:0] : 8'd0;
-    assign boxes_y_test[44:36] = (r4 == 0) ? y2[8:0] :
-                                (r4 == 1) ? y3[8:0] : 
-                                (r4 == 2) ? y4[8:0] :
-                                (r4 == 3) ? y5[8:0] : 8'd0;
-    assign boxes_y_test[35:27] = (r3 == 0) ? y2[8:0] :
-                                (r3 == 1) ? y3[8:0] :
-                                (r3 == 2) ? y4[8:0] :
-                                (r3 == 3) ? y5[8:0] : 8'd0;
-    assign boxes_y_test[26:18] = (r2 == 0) ? y2[8:0] :
-                                (r2 == 1) ? y3[8:0] : 
-                                (r2 == 2) ? y4[8:0] :
-                                (r2 == 3) ? y5[8:0] : 8'd0;
-    assign boxes_y_test[17:0] = {y1[8:0], y0[8:0]};
-
-    assign boxes_x_test[59:50] = (r5 == 0) ? x2[9:0] :
-                                (r5 == 1) ? x3[9:0] :
-                                (r5 == 2) ? x4[9:0] :
-                                (r5 == 3) ? x5[9:0] : 9'd0;
-    assign boxes_x_test[49:40] = (r4 == 0) ? x2[9:0] :
-                                (r4 == 1) ? x3[9:0] :
-                                (r4 == 2) ? x4[9:0] :
-                                (r4 == 3) ? x5[9:0] : 9'd0;
-    assign boxes_x_test[39:30] = (r3 == 0) ? x2[9:0] :
-                                (r3 == 1) ? x3[9:0] :
-                                (r3 == 2) ? x4[9:0] :
-                                (r3 == 3) ? x5[9:0] : 9'd0;
-    assign boxes_x_test[29:20] = (r2 == 0) ? x2[9:0] :
-                                (r2 == 1) ? x3[9:0] :
-                                (r2 == 2) ? x4[9:0] :
-                                (r2 == 3) ? x5[9:0] : 9'd0;
-    assign boxes_x_test[19:0] = {x1[9:0], x0[9:0]};
-
     // Concatenated order
     assign morph_order_vector = {morph_order3, morph_order2, morph_order1, morph_order0};
     // 4-bit morphology vector (LSB = leftmost placed morph box). Bit=1 for DILATE, 0 for ERODE or not placed.
@@ -495,7 +480,71 @@ module cv_settings_dragdrop (
                             (morph_order2 == 2'b10),
                             (morph_order1 == 2'b10),
                             (morph_order0 == 2'b10) };
+    assign box_morph_vector = {~is_erode5, ~is_erode4, ~is_erode3, ~is_erode2};
     assign pre_order_vector = {pre_order1, pre_order0};
     // assign dragging_o = dragging;
+
+    // order of boxes inside the morphology pipeline (0=none, 1=box2, 2=box3, 3=box4, 4=box5)
+    assign box_order_vector[2:0] = (placed2_morph && r2==0) ? 3'd1 :
+                                  (placed3_morph && r3==0) ? 3'd2 :
+                                  (placed4_morph && r4==0) ? 3'd3 :
+                                  (placed5_morph && r5==0) ? 3'd4 : 3'd0;
+    assign box_order_vector[5:3] = (placed2_morph && r2==1) ? 3'd1 :
+                                  (placed3_morph && r3==1) ? 3'd2 :
+                                  (placed4_morph && r4==1) ? 3'd3 :
+                                  (placed5_morph && r5==1) ? 3'd4 : 3'd0;
+    assign box_order_vector[8:6] = (placed2_morph && r2==2) ? 3'd1 :
+                                  (placed3_morph && r3==2) ? 3'd2 :
+                                  (placed4_morph && r4==2) ? 3'd3 :
+                                  (placed5_morph && r5==2) ? 3'd4 : 3'd0;
+    assign box_order_vector[11:9] = (placed2_morph && r2==3) ? 3'd1 :
+                                  (placed3_morph && r3==3) ? 3'd2 :
+                                  (placed4_morph && r4==3) ? 3'd3 :
+                                  (placed5_morph && r5==3) ? 3'd4 : 3'd0;
+
+    // assign x, y positions based on which box is in which order slot in morphology pipeline
+    assign boxes_y_test[17:0] = {y1[8:0], y0[8:0]};    
+    assign boxes_y_test[26:18] = box_order_vector[2:0] == 3'd1 ? y2[8:0] :
+                                box_order_vector[2:0] == 3'd2 ? y3[8:0] :
+                                box_order_vector[2:0] == 3'd3 ? y4[8:0] :
+                                box_order_vector[2:0] == 3'd4 ? y5[8:0] : 
+                                y2[8:0];   // no box placed, default to home position
+    assign boxes_y_test[35:27] = box_order_vector[5:3] == 3'd1 ? y2[8:0] :
+                                box_order_vector[5:3] == 3'd2 ? y3[8:0] :
+                                box_order_vector[5:3] == 3'd3 ? y4[8:0] :
+                                box_order_vector[5:3] == 3'd4 ? y5[8:0] : 
+                                y3[8:0];
+    assign boxes_y_test[44:36] = box_order_vector[8:6] == 3'd1 ? y2[8:0] :
+                                box_order_vector[8:6] == 3'd2 ? y3[8:0] :
+                                box_order_vector[8:6] == 3'd3 ? y4[8:0] :
+                                box_order_vector[8:6] == 3'd4 ? y5[8:0] : 
+                                y4[8:0];
+    assign boxes_y_test[53:45] = box_order_vector[11:9] == 3'd1 ? y2[8:0] :
+                                box_order_vector[11:9] == 3'd2 ? y3[8:0] :
+                                box_order_vector[11:9] == 3'd3 ? y4[8:0] :
+                                box_order_vector[11:9] == 3'd4 ? y5[8:0] : 
+                                y5[8:0];
+
+    assign boxes_x_test[19:0] = {x1[9:0], x0[9:0]};
+    assign boxes_x_test[29:20] = box_order_vector[2:0] == 3'd1 ? x2[9:0] :
+                                box_order_vector[2:0] == 3'd2 ? x3[9:0] :
+                                box_order_vector[2:0] == 3'd3 ? x4[9:0] :
+                                box_order_vector[2:0] == 3'd4 ? x5[9:0] : 
+                                x2[9:0];   // no box placed, default to home position
+    assign boxes_x_test[39:30] = box_order_vector[5:3] == 3'd1 ? x2[9:0] :
+                                box_order_vector[5:3] == 3'd2 ? x3[9:0] :
+                                box_order_vector[5:3] == 3'd3 ? x4[9:0] :
+                                box_order_vector[5:3] == 3'd4 ? x5[9:0] : 
+                                x3[9:0];
+    assign boxes_x_test[49:40] = box_order_vector[8:6] == 3'd1 ? x2[9:0] :
+                                box_order_vector[8:6] == 3'd2 ? x3[9:0] :
+                                box_order_vector[8:6] == 3'd3 ? x4[9:0] :
+                                box_order_vector[8:6] == 3'd4 ? x5[9:0] : 
+                                x4[9:0];
+    assign boxes_x_test[59:50] = box_order_vector[11:9] == 3'd1 ? x2[9:0] :
+                                box_order_vector[11:9] == 3'd2 ? x3[9:0] :
+                                box_order_vector[11:9] == 3'd3 ? x4[9:0] :
+                                box_order_vector[11:9] == 3'd4 ? x5[9:0] : 
+                                x5[9:0];
 
 endmodule

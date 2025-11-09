@@ -1,6 +1,6 @@
 module Single_Port_Buffer
 #(  parameter DATA_WIDTH = 4,
-    parameter BUFFER_SIZE = 92_000,
+    parameter BUFFER_SIZE = 93_000,
     parameter CHOICE = 0        // Choice = 0 for letters/overlay, 1 for text
 )
 (

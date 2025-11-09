@@ -160,10 +160,10 @@ module test_IP_BRAM_overlay(
     integer j;
     always @(posedge clk25) begin
         case (sw)   // just to force bram blocks to be implemented
-            2'b00: frame_pixel <= 12'h333;
-            2'b01: frame_pixel <= bram_pixel_out;
-            2'b10: frame_pixel <= bram_bmp_pixel_out ? 12'hFFF : 12'h000;
-            default: frame_pixel <= 12'h333;
+            2'b00: frame_pixel = 12'h333;   //have to use blocking here else "transparent" overlays pixels below will be black
+            2'b01: frame_pixel = bram_pixel_out;
+            2'b10: frame_pixel = bram_bmp_pixel_out ? 12'hFFF : 12'h000;
+            default: frame_pixel = 12'h333;
         endcase
 
         if (active_area) begin

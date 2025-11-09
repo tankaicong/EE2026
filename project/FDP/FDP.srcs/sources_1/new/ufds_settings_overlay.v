@@ -137,22 +137,22 @@ module ufds_settings_overlay (
     // localparam integer box6 [0:3] = {495, 596, 324, 479};
     // localparam integer box7 [0:3] = {597, 639, 324, 479};
     // localparam integer box1 [0:3] = {21, 31, 435, 469};
-    localparam integer box1 [0:3] = {21, 64, 324, 477};
-    localparam integer box2 [0:3] = {63, 219, 324, 434};
-    localparam integer box3 [0:3] = {220, 324, 324, 434};
-    localparam integer box4 [0:3] = {325, 396, 324, 434};
-    localparam integer box5 [0:3] = {397, 494, 324, 451};
-    localparam integer box6 [0:3] = {495, 596, 324, 451};
-    localparam integer box7 [0:3] = {597, 639, 324, 481};
+    localparam integer box1 [0:3] = {21, 64, 324, 475};
+    localparam integer box2 [0:3] = {63, 219, 324, 432};
+    localparam integer box3 [0:3] = {220, 324, 324, 432};
+    localparam integer box4 [0:3] = {325, 396, 324, 432};
+    localparam integer box5 [0:3] = {397, 494, 324, 449};
+    localparam integer box6 [0:3] = {495, 596, 324, 449};
+    localparam integer box7 [0:3] = {597, 639, 324, 478};
 
 
-    wire in_box1 = (px >= box1[0] + 2 && px <= box1[1] - 2 && py >= box1[2] + 2 && py <= box1[3] - 2);      // Pink left box
-    wire in_box2 = (px >= box2[0] + 2 && px <= box2[1] - 2 && py >= box2[2] + 2 && py <= box2[3] - 2);      // Sample neighbors box
-    wire in_box3 = (px >= box3[0] + 2 && px <= box3[1] - 2 && py >= box3[2] + 2 && py <= box3[3] - 2);      // Union box
-    wire in_box4 = (px >= box4[0] + 2 && px <= box4[1] - 2 && py >= box4[2] + 2 && py <= box4[3] - 2);      // Update stats box
-    wire in_box5 = (px >= box5[0] + 2 && px <= box5[1] - 2 && py >= box5[2] + 2 && py <= box5[3] - 2);      // Filter refine box
-    wire in_box6 = (px >= box6[0] + 2 && px <= box6[1] - 2 && py >= box6[2] + 2 && py <= box6[3] - 2);      // Bounding box box
-    wire in_servo = (px >= box7[0] + 2 && px <= box7[1] - 2 && py >= box7[2] + 2 && py <= box7[3] - 2);      // servo box
+    wire in_box1 = (px >= box1[0] + 2 && px <= box1[1] - 2 && py >= box1[2] + 2 && py <= box1[3]);      // Pink left box
+    wire in_box2 = (px >= box2[0] + 2 && px <= box2[1] - 2 && py >= box2[2] + 2 && py <= box2[3]);      // Sample neighbors box
+    wire in_box3 = (px >= box3[0] + 2 && px <= box3[1] - 2 && py >= box3[2] + 2 && py <= box3[3]);      // Union box
+    wire in_box4 = (px >= box4[0] + 2 && px <= box4[1] - 2 && py >= box4[2] + 2 && py <= box4[3]);      // Update stats box
+    wire in_box5 = (px >= box5[0] + 2 && px <= box5[1] - 2 && py >= box5[2] + 2 && py <= box5[3]);      // Filter refine box
+    wire in_box6 = (px >= box6[0] + 2 && px <= box6[1] - 2 && py >= box6[2] + 2 && py <= box6[3]);      // Bounding box box
+    wire in_servo = (px >= box7[0] + 2 && px <= box7[1] - 2 && py >= box7[2] + 2 && py <= box7[3]);      // servo box
 
     wire mouse_in_box1 = (mouse_x >= box1[0] + 2 && mouse_x <= box1[1] - 2 && mouse_y >= box1[2] + 2 && mouse_y <= box1[3] - 2);
     wire mouse_in_box2 = (mouse_x >= box2[0] + 2 && mouse_x <= box2[1] - 2 && mouse_y >= box2[2] + 2 && mouse_y <= box2[3] - 2);

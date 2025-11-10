@@ -73,6 +73,7 @@ module Top(
         // State machine for different overlays
         case (state)
             S_MENU: begin
+                frame_pixel <= {1'd0, bram_final_pixel_out[11:9], 1'd0, bram_final_pixel_out[7:5], 1'd0, bram_final_pixel_out[3:1]}; // dim camera feed when in menu;
                 if (left_click_edge || right_click_edge || coin_input_edge) begin
                     state <= S_CV_SETTINGS;
                 end
@@ -196,7 +197,8 @@ module Top(
                     left0_l <= left0; right0_l <= right0; cx0_l <= cx0; top0_l <= top0; bottom0_l <= bottom0; cy0_l <= cy0;
                     left1_l <= left1; right1_l <= right1; cx1_l <= cx1; top1_l <= top1; bottom1_l <= bottom1; cy1_l <= cy1;
                     left2_l <= left2; right2_l <= right2; cx2_l <= cx2; top2_l <= top2; bottom2_l <= bottom2; cy2_l <= cy2;
-                    left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;                end
+                    left3_l <= left3; right3_l <= right3; cx3_l <= cx3; top3_l <= top3; bottom3_l <= bottom3; cy3_l <= cy3;
+                end
 
                 if (in_roi && (
                     // Comp 0
@@ -1449,8 +1451,8 @@ module Top(
         .en(1'b1),          // Always enabled
         .x(boxes_x_vector),
         .y(boxes_y_vector),
-        .gauss_t_x(info_pix_x),
-        .gauss_t_y(info_pix_y),
+        .ufds_t_x(info_pix_x),
+        .ufds_t_y(info_pix_y),
         .frame_x(frame_x),
         .frame_y(frame_y),
         .front_idx(front_idx),
@@ -2144,7 +2146,8 @@ module Top(
     // end
     reg [15:0] ss_output;
     always @ (*) begin
-        ss_output <= ufds_tab_idx;
+        ss_output <= sw;
+        led[15] <= 1'b1;
     end
     Seven_Seg ssd (
         .clk(clk),

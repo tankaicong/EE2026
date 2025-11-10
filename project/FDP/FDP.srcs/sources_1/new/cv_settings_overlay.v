@@ -183,10 +183,10 @@ module cv_settings_overlay (
 
     // Change-view toggle positions (centered vertically in bottom-row height)
     localparam [8:0] TOG_Y  = ROW_Y;
-    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X + 1; // after CAM
-    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X + 1; // after PRE
-    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X + 1; // after BITMAP
-    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X + 1; // after MORPH
+    localparam [9:0] TOG0_X = CAM_X   + CAM_W   + GAP_X; // after CAM
+    localparam [9:0] TOG1_X = PRE_X   + PRE_W   + GAP_X; // after PRE
+    localparam [9:0] TOG2_X = BMP_X   + BMP_W   + GAP_X; // after BITMAP
+    localparam [9:0] TOG3_X = MORPH_X + MORPH_W + GAP_X; // after MORPH
 
     // Toggle borders (1px)
     wire in_tog0_border = ((py == TOG_Y) || (py == (TOG_Y + TOG_H - 1))) ? ((px > TOG0_X) && (px < (TOG0_X + TOG_W))) :

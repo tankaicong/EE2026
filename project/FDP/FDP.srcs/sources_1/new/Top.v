@@ -59,7 +59,7 @@ module Top(
 
     always @(posedge clk25) begin
         if (btnU) begin
-            state = S_MENU;
+            state <= S_MENU;
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
@@ -83,7 +83,7 @@ module Top(
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
                     else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
-                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h1C1;
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
@@ -148,7 +148,7 @@ module Top(
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
                     else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
-                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h1C1;
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
@@ -254,7 +254,7 @@ module Top(
                     if (overlay_pixel == 4'h0) frame_pixel <= 12'h000;
                     else if (overlay_pixel == 4'h1) frame_pixel <= 12'hFFF;
                     else if (overlay_pixel == 4'h2) frame_pixel <= 12'h00F;
-                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h0F0;
+                    else if (overlay_pixel == 4'h3) frame_pixel <= 12'h1C1;
                     else if (overlay_pixel == 4'h4) frame_pixel <= 12'hF00;
                     else if (overlay_pixel == 4'h5) frame_pixel <= 12'hFF0;
                     else if (overlay_pixel == 4'h6) frame_pixel <= 12'hF0F;
@@ -1386,7 +1386,7 @@ module Top(
     wire [1:0]  ufds_min_area_sel;
     // wire        ufds_sort_by_prox;
     wire [1:0]  ufds_max_boxes_sel;
-    wire servo_en;
+    wire servo_en, servo_user_en;
 
 
     ufds_settings_overlay ufds_ui (
@@ -1400,7 +1400,7 @@ module Top(
         .tab_idx(ufds_tab_idx), .min_area_sel(ufds_min_area_sel), 
         // .sort_by_prox(ufds_sort_by_prox), 
         .max_boxes_sel(ufds_max_boxes_sel),
-        .servo(servo_en)
+        .servo(servo_user_en)
     );
 
     // Latch UFDS settings for UFDS pipeline (clk domain)
@@ -1754,6 +1754,13 @@ module Top(
     // Servo PWM outputs that are one bit, toggled high/low depending on pwm signal
     wire signed [31:0] servo_x_angle;
     wire signed [31:0] servo_y_angle;
+    wire signed [31:0] servo_x_angle_pid;
+    wire signed [31:0] servo_y_angle_pid;
+    reg signed [31:0] servo_x_angle_start; //for figure 8 controls at start menu
+    reg signed [31:0] servo_y_angle_start; //for figure 8 controls at start menu
+
+    assign servo_x_angle = (state == S_MENU | state == S_CV_SETTINGS) ? servo_x_angle_start : servo_x_angle_pid;   //only use start menu angles when in start menu
+    assign servo_y_angle = (state == S_MENU | state == S_CV_SETTINGS) ? servo_y_angle_start : servo_y_angle_pid;
 
     // reg [9:0] btn_counter [4:0]; //loops around every 1024 counts --> ~ 1 sec to get 100_000 steps
     // initial begin
@@ -1807,6 +1814,7 @@ module Top(
     //     end
     // end
 
+    assign servo_en = (servo_user_en & (state != S_CV_SETTINGS)) | (state == S_MENU); //enable servo when user enables it in UFDS settings and is not in CV settings, or when in start menu
     Servo_Controller servo_controller(
         .clk(clk),
         .reset(btnU),
@@ -1819,7 +1827,7 @@ module Top(
 
 //----------- PID CONTROLLER ----------- //
     //Actual PID stuff
-    wire pid_enable = (comp_count != 0); //enable PID only when at least one object is detected and switch is on
+    wire pid_enable = (comp_count != 0) | (state == S_UFDS_SETTINGS | state == S_FULLSCREEN); //enable PID only when at least one object is detected and switch is on
     reg [3:0] pan_kp = 4'h6;
     reg [3:0] pan_kd = 4'h6;
     reg [3:0] tilt_kp = 4'hB;
@@ -1838,7 +1846,7 @@ module Top(
         .setpoint(32'sd155), //center of frame
         .measurement(cx0_l), //current x position of object
         .invert_error(1'b1), //invert error for pan axis
-        .control_output(servo_x_angle),
+        .control_output(servo_x_angle_pid),
         .KP(pan_kp),
         .KI(32'b0),
         .KD(pan_kd),
@@ -1859,7 +1867,7 @@ module Top(
         .setpoint(32'sd120), //center of frame
         .measurement(cy0_l), //current y position of object
         .invert_error(1'b1), //invert error for tilt axis
-        .control_output(servo_y_angle),
+        .control_output(servo_y_angle_pid),
         .KP(tilt_kp),
         .KI(32'b0),
         .KD(tilt_kd),
@@ -1887,16 +1895,20 @@ module Top(
             end
             btnC_counter <= 32'd0;
         end
+
+        if (state != S_UFDS_SETTINGS) begin
+            PID_Tuning_State <= 1'b0; //force back to idle when leaving UFDS settings
+        end
     end
 
     always @(*) begin
         case (PID_Tuning_State)
             1'b0: begin
                 // Idle state: do not modify anything
-                pan_kp <= pan_kp;
-                pan_kd <= pan_kd;
-                tilt_kp <= tilt_kp;
-                tilt_kd <= tilt_kd;
+                // pan_kp <= pan_kp;
+                // pan_kd <= pan_kd;
+                // tilt_kp <= tilt_kp;
+                // tilt_kd <= tilt_kd;
                 led[15] <= 1'b0; //indicate tuning mode off LED 15
             end
             1'b1: begin
@@ -2160,39 +2172,60 @@ module Top(
 
     //----------- Seven-Segment Display and LED outputs ----------- //
     //Seven seg display outputs for different states
-    reg [23:0] counter_6hz = 24'd0;    //24 bits counter overflows at 6 hz for 100 mhz clk
-    reg clock_enable_6hz = 1'b0;       //clock enable signal for 6 hz
+    reg [25:0] counter_coin_disp = 24'd0;    //24 bits counter overflows at 6 hz for 100 mhz clk
+    reg clock_enable_coin_disp = 1'b0;       //clock enable signal for 6 hz
     reg [17:0] counter_381hz = 18'd0;       //18 bit counter, for 381hz clock enable signal
     reg clock_enable_381hz = 1'b0;         //clock enable signal for 381hz
     always @(posedge clk) begin
-        counter_6hz <= counter_6hz + 1;
-        clock_enable_6hz <= (counter_6hz == 0) ? 1'b1 : 1'b0;
+        counter_coin_disp <= counter_coin_disp + 1;
+        clock_enable_coin_disp <= (counter_coin_disp == 0) ? 1'b1 : 1'b0;
         counter_381hz <= counter_381hz + 1;
         clock_enable_381hz <= (counter_381hz == 0) ? 1'b1 : 1'b0;
     end
 
-    reg [3:0] menu_cnt = 4'd0; //counter for menu display
+    // reg [3:0] menu_cnt = 4'd0; //counter for menu display
+    reg menu_cnt = 1'd0;
+    reg [31:0] servo_cnt = 32'd0; //counter for servo figure 8 movement in menu
     reg [15:0] ss_output = 16'd0; //hex encoded ouptut for seven seg
     reg [31:0] seg_output = 32'hFFFFFFFF; //raw output for four 7-seg displays
     always @(posedge clk) begin
-        led[3:0] <= Last_Stage;
         case (state)
             S_MENU: begin
-                if (clock_enable_6hz) begin
+                if (clock_enable_coin_disp) begin
                     menu_cnt <= menu_cnt + 1;
-                    if (menu_cnt == 4'd9) menu_cnt <= 4'd0;
-                    case (menu_cnt)
-                        4'd0: seg_output <= {8'b10001110, 8'b10000110, 8'b10000110, 8'b10100001};   //FEEd
-                        4'd1: seg_output <= {8'b10000110, 8'b10000110, 8'b10100001, 8'b11111111};   //EEd_
-                        4'd2: seg_output <= {8'b10000110, 8'b10100001, 8'b11111111, 8'b11000110};   //Ed_C
-                        4'd3: seg_output <= {8'b10100001, 8'b11111111, 8'b11000110, 8'b11000000};   //d_CO
-                        4'd4: seg_output <= {8'b11111111, 8'b11000110, 8'b11000000, 8'b11111001};   //_COI
-                        4'd5: seg_output <= {8'b11000110, 8'b11000000, 8'b11111001, 8'b11001000};   //COIN
-                        4'd6: seg_output <= {8'b11000000, 8'b11111001, 8'b11001000, 8'b11111111};   //OIN_
-                        4'd7: seg_output <= {8'b11111001, 8'b11001000, 8'b11111111, 8'b10001110};   //IN_F
-                        4'd8: seg_output <= {8'b11001000, 8'b11111111, 8'b10001110, 8'b10000110};   //N_FE
-                        4'd9: seg_output <= {8'b11111111, 8'b10001110, 8'b10000110, 8'b10000110};   //_FEE
-                    endcase
+                    // if (menu_cnt == 4'd9) menu_cnt <= 4'd0;
+                    // case (menu_cnt)
+                        // 4'd0: seg_output <= {8'b10001110, 8'b10000110, 8'b10000110, 8'b10100001};   //FEEd
+                        // 4'd1: seg_output <= {8'b10000110, 8'b10000110, 8'b10100001, 8'b11111111};   //EEd_
+                        // 4'd2: seg_output <= {8'b10000110, 8'b10100001, 8'b11111111, 8'b11000110};   //Ed_C
+                        // 4'd3: seg_output <= {8'b10100001, 8'b11111111, 8'b11000110, 8'b11000000};   //d_CO
+                        // 4'd4: seg_output <= {8'b11111111, 8'b11000110, 8'b11000000, 8'b11111001};   //_COI
+                        // 4'd5: seg_output <= {8'b11000110, 8'b11000000, 8'b11111001, 8'b11001000};   //COIN
+                        // 4'd6: seg_output <= {8'b11000000, 8'b11111001, 8'b11001000, 8'b11111111};   //OIN_
+                        // 4'd7: seg_output <= {8'b11111001, 8'b11001000, 8'b11111111, 8'b10001110};   //IN_F
+                        // 4'd8: seg_output <= {8'b11001000, 8'b11111111, 8'b10001110, 8'b10000110};   //N_FE
+                        // 4'd9: seg_output <= {8'b11111111, 8'b10001110, 8'b10000110, 8'b10000110};   //_FEE
+                    // endcase
+                    1'd0: seg_output <= {8'b10001110, 8'b10000110, 8'b10000110, 8'b10100001};   //FEEd
+                    1'd1: seg_output <= {8'b11000110, 8'b11000000, 8'b11111001, 8'b11001000};   //COIN
+                end
+                if (clock_enable_381hz) begin
+                    //use 381 hz clock to make servo do figure 8 when in menu without using sine function
+                    //servo x angle from 0 to 200000, 100000 is middle
+                    //servo y angle from 50000 to 133333, 91666 is middle
+                    servo_cnt <= servo_cnt + 1;
+                    servo_y_angle_start <= 110000;
+                    if (servo_cnt < 762) begin
+                        servo_x_angle_start <= 100000 + (servo_cnt) * 65;
+                    end else if (servo_cnt < 2286) begin
+                        servo_x_angle_start <= 149530 - (servo_cnt - 762) * 65;
+                        // servo_y_angle_start <= 53566 + (servo_cnt - 762) * 50;
+                    end else if (servo_cnt < 3048) begin
+                        servo_x_angle_start <= 50470 + (servo_cnt - 2286) * 65;
+                    end else begin
+                        servo_cnt <= 32'd0;
+                    end
+                    
                 end
             end
             S_CV_SETTINGS: begin
@@ -2202,10 +2235,15 @@ module Top(
                     2'b10: seg_output <= {8'b10000011, 8'b11001100, 8'b11011000, 8'b10001100}; //BMP
                     2'b11: seg_output <= {8'b10000110, 8'b11001110, 8'b10100001, 8'b11000111}; //ErdL
                 endcase
+                servo_x_angle_start <= 32'sd100_000; //keep servos at center when in CV settings
+                servo_y_angle_start <= 32'sd100_000;
             end
             S_UFDS_SETTINGS: begin
                 if (servo_en) ss_output <= {pan_kp, pan_kd, tilt_kp, tilt_kd}; //display kp and kd values
                 else seg_output <= {8'b11000001, 8'b10001110, 8'b10100001, 8'b10010010}; //UFdS
+            end
+            S_FULLSCREEN: begin
+                seg_output <= {8'b10001110, 8'b11000001, 8'b11000111, 8'b11000111}; //FULL
             end
         endcase
     end

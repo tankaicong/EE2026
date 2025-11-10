@@ -405,7 +405,7 @@ module ufds_settings_overlay (
             end
 
             // Rectangle overlay for tab
-            if (px >= 470 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
+            if (px >= 469 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
                 overlay_en = 1'b1; overlay_rgb = OFFWHITE;
             end
 

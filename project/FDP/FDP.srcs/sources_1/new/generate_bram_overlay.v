@@ -206,7 +206,7 @@ module generate_bram_overlay(
     wire [0 : (NUM_ufds - 1)] ufds_ptr_look_ahead_in;
     genvar ui;
     generate
-        for (ui=0; ui<NUM_ufds; ui=ui+1) begin : UFDS_OVERLAYS
+        for (ui=1; ui<=NUM_ufds; ui=ui+1) begin : UFDS_OVERLAYS
             assign ufds_ptr_in[ui] = ufds_settings_mode && (frame_x >= lookup[(NUM_usr + ui)*ATTRS + 0] && frame_x < (lookup[(NUM_usr + ui)*ATTRS + 0] + lookup[(NUM_usr + ui)*ATTRS + 2]) && frame_y >= lookup[(NUM_usr + ui)*ATTRS + 1] && frame_y < (lookup[(NUM_usr + ui)*ATTRS + 1] + lookup[(NUM_usr + ui)*ATTRS + 3]));
             assign ufds_ptr_look_ahead_in[ui] = ufds_settings_mode && (frame_x_next >= lookup[(NUM_usr + ui)*ATTRS + 0] && frame_x_next < (lookup[(NUM_usr + ui)*ATTRS + 0] + lookup[(NUM_usr + ui)*ATTRS + 2]) && frame_y_next >= lookup[(NUM_usr + ui)*ATTRS + 1] && frame_y_next < (lookup[(NUM_usr + ui)*ATTRS + 1] + lookup[(NUM_usr + ui)*ATTRS + 3]));
         end
@@ -326,6 +326,26 @@ module generate_bram_overlay(
     integer i,j,k;
     reg [2:0] sel; // 0:gauss 1:median 2:erode1 3:erode2 4:dilate1 5:dilate2 7:none
     always @ (posedge clk25) begin
+
+        // Elements within info box has least priority
+            if (fr_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-23)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-23)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-23)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-23)*ATTRS + 0] - ufds_t_x);
+        else if (fr_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-22)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-22)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-22)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-22)*ATTRS + 0] - ufds_t_x);
+        else if (fr_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-21)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-21)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-21)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-21)*ATTRS + 0] - ufds_t_x);
+        else if (union_tab_pic_1_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-20)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-20)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-20)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-20)*ATTRS + 0] - ufds_t_x);
+        else if (union_tab_pic_2_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-19)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-19)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-19)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-19)*ATTRS + 0] - ufds_t_x);
+        else if (union_tab_hdr_ptr_look_ahead_in)       overlay_addr <= lookup[(NUM_ACTL-18)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-18)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-18)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-18)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-17)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-17)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-17)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-17)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-16)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-16)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-16)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-16)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-15)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-15)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-15)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-15)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_hdr_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-14)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-14)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-14)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-14)*ATTRS + 0] - ufds_t_x);
+        else if (filter_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-13)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-13)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-13)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-13)*ATTRS + 0] - ufds_t_x);
+        else if (filter_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-12)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-12)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-12)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-12)*ATTRS + 0] - ufds_t_x);
+        else if (filter_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-11)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-11)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-11)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-11)*ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-10)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-10)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-10)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-10)*ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-9) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-9) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-9)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-9)* ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-8) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-8) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-8)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-8)* ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_hdr_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-7) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-7) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-7)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-7)* ATTRS + 0] - ufds_t_x);        
+
         for (i=0; i<NUM_usr; i=i+1) begin
             if (usr_ptr_look_ahead_in[i]) begin
                 if ((i >= 14) && (i <= 17)) begin
@@ -391,27 +411,8 @@ module generate_bram_overlay(
             3'd6: overlay_addr <= lookup[24*ATTRS + 4] + (frame_y_next - ufds_t_y) * lookup[24*ATTRS + 2] + (frame_x_next - ufds_t_x);
             default: ;  // keep last overlay_addr from static elements
         endcase
-
-        // Elements within info box has least priority
-            if (fr_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-23)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-23)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-23)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-23)*ATTRS + 0] - ufds_t_x);
-        else if (fr_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-22)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-22)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-22)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-22)*ATTRS + 0] - ufds_t_x);
-        else if (fr_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-21)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-21)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-21)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-21)*ATTRS + 0] - ufds_t_x);
-        else if (union_tab_pic_1_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-20)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-20)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-20)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-20)*ATTRS + 0] - ufds_t_x);
-        else if (union_tab_pic_2_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-19)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-19)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-19)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-19)*ATTRS + 0] - ufds_t_x);
-        else if (union_tab_hdr_ptr_look_ahead_in)       overlay_addr <= lookup[(NUM_ACTL-18)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-18)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-18)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-18)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-17)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-17)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-17)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-17)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-16)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-16)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-16)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-16)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-15)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-15)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-15)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-15)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_hdr_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-14)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-14)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-14)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-14)*ATTRS + 0] - ufds_t_x);
-        else if (filter_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-13)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-13)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-13)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-13)*ATTRS + 0] - ufds_t_x);
-        else if (filter_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-12)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-12)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-12)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-12)*ATTRS + 0] - ufds_t_x);
-        else if (filter_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-11)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-11)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-11)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-11)*ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-10)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-10)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-10)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-10)*ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-9) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-9) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-9)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-9)* ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-8) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-8) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-8)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-8)* ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_hdr_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-7) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-7) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-7)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-7)* ATTRS + 0] - ufds_t_x);        
     end
-    
+
     assign to_write = en ? ((|usr_ptr_in) || (|ufds_ptr_in) || (|menu_ptr_in) || 
         // (|usr_active_ptr_in) || 
         gauss_block_ptr_in || median_block_ptr_in || erode_1_block_ptr_in || erode_2_block_ptr_in || dilate_1_block_ptr_in || dilate_2_block_ptr_in ||

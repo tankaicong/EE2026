@@ -720,7 +720,7 @@ module threshold_subsection (
 
         // display color boxes
         // Left Box
-        if ((px_src > BOX_START_LEFT_X) && (px_src < (BOX_START_LEFT_X + BOX_WIDTH_HEIGHT)) && 
+        if ((px_src > BOX_START_LEFT_X) && (px_src <= (BOX_START_LEFT_X + BOX_WIDTH_HEIGHT)) && 
         (py_src >= BOX_START_LEFT_Y) && (py_src < (BOX_START_LEFT_Y + BOX_WIDTH_HEIGHT))) begin
             // red box
             pixel_active = 1'b1;

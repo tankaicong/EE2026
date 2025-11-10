@@ -289,7 +289,7 @@ module cv_settings_overlay (
                 end
             end
             // Vertical bisecting line (floor(89/2) = 44 px from left)
-            if ((px == (10'd33 + 10'd44)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
+            if ((px > (10'd33 + 10'd44 - 2)) && (px < (10'd33 + 10'd44 + 2)) && (py >= 9'd348) && (py < (9'd348 + 9'd42))) begin
                 overlay_en = 1'b1; overlay_rgb = BLACK;
             end
 
@@ -329,9 +329,9 @@ module cv_settings_overlay (
             // if ((px == 278 || px == 349) && py >= 435 && py <= 468) begin     // Vertical x2
             //     overlay_en = 1'b1; overlay_rgb = BLUE;
             // end
-            if ((px >= 279 && px <= 348 && py >= 436 && py < 469) && (mouse_x >= 279 && mouse_x <= 348 && mouse_y >= 436 && mouse_y < 469)) begin
-                overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
-            end
+            // if ((px >= 279 && px <= 348 && py >= 436 && py < 469) && (mouse_x >= 279 && mouse_x <= 348 && mouse_y >= 436 && mouse_y < 469)) begin
+            //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
+            // end
             // if (in_bitmap_rect) begin
             //     overlay_en = 1'b1; overlay_rgb = LIGHTBLUE;
             // end

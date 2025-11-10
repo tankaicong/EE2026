@@ -19,8 +19,8 @@ module Top(
     output servo_x_pwm,
     output servo_y_pwm,
 
-    output [7:0] seg,
-    output [3:0] an,
+    output reg [7:0] seg,
+    output reg [3:0] an,
 
     // UART pins
     output uart_tx,
@@ -1682,9 +1682,9 @@ module Top(
     wire right_click_deb  = right_deb;
  
     // VGA mouse - clamp to screen bounds
-    // wire [9:0] mouse_x_vga = (mouse_x_sync >= 12'd639) ? 10'd639 : mouse_x_sync[9:0];
+    wire [9:0] mouse_x_vga = (mouse_x_sync >= 12'd639) ? 10'd639 : (mouse_x_sync < 12'd20) ? 10'd20 : mouse_x_sync[9:0];
     wire [8:0] mouse_y_vga = (mouse_y_sync >= 12'd479) ? 9'd479 : mouse_y_sync[8:0];
-    wire [9:0] mouse_x_vga = mouse_x_sync;
+    // wire [9:0] mouse_x_vga = mouse_x_sync;
     // wire [8:0] mouse_y_vga = mouse_y_sync;
     // VGA-space 3x3 logical cursor region retained (for any logic that still expects it)
     // wire [9:0] vga_dx = (frame_x > mouse_x_vga) ? (frame_x - mouse_x_vga) : (mouse_x_vga - frame_x);
@@ -1820,16 +1820,15 @@ module Top(
 //----------- PID CONTROLLER ----------- //
     //Actual PID stuff
     wire pid_enable = (comp_count != 0); //enable PID only when at least one object is detected and switch is on
-    reg [7:0] pan_kp = 8'd0;
-    reg [7:0] pan_kd = 8'd0;
-
-    reg [7:0] tilt_kp = 8'd0;
-    reg [7:0] tilt_kd = 8'd0;
+    reg [3:0] pan_kp = 4'h6;
+    reg [3:0] pan_kd = 4'h6;
+    reg [3:0] tilt_kp = 4'hB;
+    reg [3:0] tilt_kd = 4'h4;
 
     PID_Controller #(
         .KP_BITSHIFT_LEFT(32'd0),   //bitshift values chosen to have good starting values at 6 out of 16
         .KI_BITSHIFT_RIGHT(32'd0),
-        .KD_BITSHIFT_RIGHT(32'd6),
+        .KD_BITSHIFT_RIGHT(32'd5),
         .INTEGRAL_LIMIT(32'd50_000)
     )
     pan_pid_controller(
@@ -1869,46 +1868,46 @@ module Top(
     );
 
     //Simple state machine for PID pan and tilt tuning
-    reg [1:0] PID_Tuning_State = 2'b00; //0 for pan, 1 for tilt
-    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
-    // always @(*) begin
-    //     case (PID_Tuning_State)
-    //         2'b00: begin
-    //             led[15:14] <= 2'b00;    //indicate idle state
-    //             ss_output <= 16'd0;
-    //         end
-    //         2'b01: begin
-    //             pan_kp <= sw[15:8];
-    //             pan_kd <= sw[7:0];
-    //             led[15:14] <= 2'b10;    //indicate tuning pan
-    //             ss_output <= {pan_kp, pan_kd};
-    //         end
-    //         2'b10: begin
-    //             tilt_kp <= sw[15:8];
-    //             tilt_kd <= sw[7:0];
-    //             led[15:14] <= 2'b01;    //indicate tuning tilt
-    //             ss_output <= {tilt_kp, tilt_kd};
-    //         end
-    //     endcase
-    // end
+    reg PID_Tuning_State = 1'b0; //0 for idle, 1 for tune
+    reg [31:0] btnC_counter;
 
-    //debounced btnL,C,R to switch between pan and tilt tuning
-    reg [2:0] btnR_sync = 3'b000;
-    reg [2:0] btnC_sync = 3'b000;
-    reg [2:0] btnL_sync = 3'b000;
-    always @(posedge clk25) begin
-        btnR_sync <= {btnR_sync[1:0], btnR};
-        btnC_sync <= {btnC_sync[1:0], btnC};
-        btnL_sync <= {btnL_sync[1:0], btnL};
-        if (btnL_sync == 3'b001) begin
-            PID_Tuning_State <= 2'b01; //tune pan
+    //on full press AND release cycle of btnC with debouncing, toggle PID tuning state
+    reg [1:0] btnC_sync = 2'b00;
+    reg       btnC_prev = 1'b0;
+
+    always @(posedge clk) begin
+        btnC_sync <= {btnC_sync[0], btnC};
+        btnC_prev <= btnC_sync[1];
+        if (btnC_sync[1] && btnC_counter < 32'hFFFFFFFF) btnC_counter <= btnC_counter + 1;
+
+        // on falling edge (stably released), check hold time and toggle once
+        if (~btnC_sync[1] && btnC_prev) begin
+            if (btnC_counter >= 32'd1_000_000) begin // debounce / long-press threshold
+                PID_Tuning_State <= ~PID_Tuning_State;
+            end
+            btnC_counter <= 32'd0;
         end
-        else if (btnR_sync == 3'b001) begin
-            PID_Tuning_State <= 2'b10; //tune tilt
-        end
-        else if (btnC_sync == 3'b001) begin
-            PID_Tuning_State <= 2'b00; //idle
-        end
+    end
+
+    always @(*) begin
+        case (PID_Tuning_State)
+            1'b0: begin
+                // Idle state: do not modify anything
+                pan_kp <= pan_kp;
+                pan_kd <= pan_kd;
+                tilt_kp <= tilt_kp;
+                tilt_kd <= tilt_kd;
+                led[15] <= 1'b0; //indicate tuning mode off LED 15
+            end
+            1'b1: begin
+                // Tuning state: assign switch values to kp and kd
+                pan_kp <= sw[15:12];
+                pan_kd <= sw[11:8];
+                tilt_kp <= sw[7:4];
+                tilt_kd <= sw[3:0];
+                led[15] <= 1'b1; //indicate tuning mode on LED 15
+            end
+        endcase
     end
 
 
@@ -2144,16 +2143,122 @@ module Top(
     //         ss_output <= ss_output;
     //     end
     // end
-    reg [15:0] ss_output;
-    always @ (*) begin
-        ss_output <= sw;
-        led[15] <= 1'b1;
+    // reg [15:0] ss_output;
+    // always @ (*) begin
+    //     ss_output <= sw;
+    //     led[15] <= 1'b1;
+    // end
+    // reg [15:0] ss_output = 16'd0; //seven seg output for kp and kd
+    // Seven_Seg ssd (
+    //     .clk(clk),
+    //     .num(ss_output),
+    //     .dd(4'b0000),
+    //     .seg(seg),
+    //     .an(an)
+    // );
+
+
+    //----------- Seven-Segment Display and LED outputs ----------- //
+    //Seven seg display outputs for different states
+    reg [23:0] counter_6hz = 24'd0;    //24 bits counter overflows at 6 hz for 100 mhz clk
+    reg clock_enable_6hz = 1'b0;       //clock enable signal for 6 hz
+    reg [17:0] counter_381hz = 18'd0;       //18 bit counter, for 381hz clock enable signal
+    reg clock_enable_381hz = 1'b0;         //clock enable signal for 381hz
+    always @(posedge clk) begin
+        counter_6hz <= counter_6hz + 1;
+        clock_enable_6hz <= (counter_6hz == 0) ? 1'b1 : 1'b0;
+        counter_381hz <= counter_381hz + 1;
+        clock_enable_381hz <= (counter_381hz == 0) ? 1'b1 : 1'b0;
     end
-    Seven_Seg ssd (
-        .clk(clk),
-        .num(ss_output),
-        .dd(4'b0000),
-        .seg(seg),
-        .an(an)
-    );
+
+    reg [3:0] menu_cnt = 4'd0; //counter for menu display
+    reg [15:0] ss_output = 16'd0; //hex encoded ouptut for seven seg
+    reg [31:0] seg_output = 32'hFFFFFFFF; //raw output for four 7-seg displays
+    always @(posedge clk) begin
+        led[3:0] <= Last_Stage;
+        case (state)
+            S_MENU: begin
+                if (clock_enable_6hz) begin
+                    menu_cnt <= menu_cnt + 1;
+                    if (menu_cnt == 4'd9) menu_cnt <= 4'd0;
+                    case (menu_cnt)
+                        4'd0: seg_output <= {8'b10001110, 8'b10000110, 8'b10000110, 8'b10100001};   //FEEd
+                        4'd1: seg_output <= {8'b10000110, 8'b10000110, 8'b10100001, 8'b11111111};   //EEd_
+                        4'd2: seg_output <= {8'b10000110, 8'b10100001, 8'b11111111, 8'b11000110};   //Ed_C
+                        4'd3: seg_output <= {8'b10100001, 8'b11111111, 8'b11000110, 8'b11000000};   //d_CO
+                        4'd4: seg_output <= {8'b11111111, 8'b11000110, 8'b11000000, 8'b11111001};   //_COI
+                        4'd5: seg_output <= {8'b11000110, 8'b11000000, 8'b11111001, 8'b11001000};   //COIN
+                        4'd6: seg_output <= {8'b11000000, 8'b11111001, 8'b11001000, 8'b11111111};   //OIN_
+                        4'd7: seg_output <= {8'b11111001, 8'b11001000, 8'b11111111, 8'b10001110};   //IN_F
+                        4'd8: seg_output <= {8'b11001000, 8'b11111111, 8'b10001110, 8'b10000110};   //N_FE
+                        4'd9: seg_output <= {8'b11111111, 8'b10001110, 8'b10000110, 8'b10000110};   //_FEE
+                    endcase
+                end
+            end
+            S_CV_SETTINGS: begin
+                case (Final_Out_Control)
+                    2'b00: seg_output <= {8'b11001110, 8'b10001000, 8'b11000011, 8'b11100001}; //RAW
+                    2'b01: seg_output <= {8'b10001100, 8'b11001110, 8'b10000110, 8'b11111111}; //PRE
+                    2'b10: seg_output <= {8'b10000011, 8'b11001100, 8'b11011000, 8'b10001100}; //BMP
+                    2'b11: seg_output <= {8'b10000110, 8'b11001110, 8'b10100001, 8'b11000111}; //ErdL
+                endcase
+            end
+            S_UFDS_SETTINGS: begin
+                if (servo_en) ss_output <= {pan_kp, pan_kd, tilt_kp, tilt_kd}; //display kp and kd values
+                else seg_output <= {8'b11000001, 8'b10001110, 8'b10100001, 8'b10010010}; //UFdS
+            end
+        endcase
+    end
+
+    reg [1:0] char_counter = 2'd0;
+    reg [7:0] hex_seg [15:0];
+    initial begin
+        hex_seg[0]  = 8'b11000000; //0
+        hex_seg[1]  = 8'b11111001; //1
+        hex_seg[2]  = 8'b10100100; //2
+        hex_seg[3]  = 8'b10110000; //3
+        hex_seg[4]  = 8'b10011001; //4
+        hex_seg[5]  = 8'b10010010; //5
+        hex_seg[6]  = 8'b10000010; //6
+        hex_seg[7]  = 8'b11111000; //7
+        hex_seg[8]  = 8'b10000000; //8
+        hex_seg[9]  = 8'b10010000; //9
+        hex_seg[10] = 8'b10001000; //A
+        hex_seg[11] = 8'b10000011; //B
+        hex_seg[12] = 8'b11000110; //C
+        hex_seg[13] = 8'b10100001; //D
+        hex_seg[14] = 8'b10000110; //E
+        hex_seg[15] = 8'b10001110; //F
+    end
+    
+    always @(posedge clk) begin
+        if (btnU) begin
+            seg <= 8'b11111111; an <= 4'h1111;
+        end
+        else if (clock_enable_381hz) begin
+            char_counter <= char_counter + 1;
+            case (char_counter)
+                2'd0: begin
+                    an <= 4'b1110;
+                    if (servo_en) seg <= hex_seg[tilt_kd];
+                    else seg <= seg_output[7:0];
+                end
+                2'd1: begin
+                    an <= 4'b1101;
+                    if (servo_en) seg <= hex_seg[tilt_kp];
+                    else seg <= seg_output[15:8];
+                end
+                2'd2: begin
+                    an <= 4'b1011;
+                    if (servo_en) seg <= hex_seg[pan_kd];
+                    else seg <= seg_output[23:16];
+                end
+                2'd3: begin
+                    an <= 4'b0111;
+                    if (servo_en) seg <= hex_seg[pan_kp];
+                    else seg <= seg_output[31:24];
+                end
+            endcase
+        end
+    end
 endmodule

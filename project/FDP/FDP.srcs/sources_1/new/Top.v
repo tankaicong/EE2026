@@ -58,8 +58,10 @@ module Top(
     wire [9:0] convolution_cutoff_y = (Final_Out_Control == 2'b11) ? (480 - (Total_Count-1)*2) : 480 - (Pre_Count-1)*2;
 
     always @(posedge clk25) begin
-        if (btnU) begin
+        // if (btnU) begin
+        if (vga_reset) begin
             state <= S_MENU;
+            prev_state <= S_MENU;
         end 
         else begin 
             // every pixel that is not overwritten should be the camera's output
@@ -275,8 +277,8 @@ module Top(
             end
 
             S_FULLSCREEN: begin
-                if (right_click_edge && prev_state == S_CV_SETTINGS) state = S_CV_SETTINGS;
-                if (right_click_edge && prev_state == S_UFDS_SETTINGS) state = S_UFDS_SETTINGS;
+                if (right_click_edge && prev_state == S_CV_SETTINGS) state <= S_CV_SETTINGS;
+                if (right_click_edge && prev_state == S_UFDS_SETTINGS) state <= S_UFDS_SETTINGS;
 
                 // Renamed manual mode
                 // --- Crosshair drawing with user-selected color ---

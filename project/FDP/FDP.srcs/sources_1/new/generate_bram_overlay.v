@@ -80,73 +80,72 @@ module generate_bram_overlay(
         578,  446, 38, 12, 12582, 	// 22 ufds
         320,  330, 196, 18, 13038, 	// 23 image processing
         362,  296, 281, 27, 16566, 	// 24 gaussian edu tab
-
-
-        33,  301, 52, 18, 24153, 	// 25 Object
-        87,  301, 169, 12, 25089, 	// 26 Det Union Find
-        258,  301, 60, 18, 27117, 	// 27 Disjoint
-        320,  301, 26, 12, 28197, 	// 28 Set
-        24,  379, 35, 12, 28509, 	// 29 Post
-        24,  393, 36, 12, 28929, 	// 30 Feed
-        36,  435, 15, 12, 5621, 	// 31 open eye 4
-        32,  448, 25, 8, 5097, 	// 32 yellow arrow 5
-        62,  444, 49, 12, 29361, 	// 33 Ready
-        77,  375, 4, 4, 29949, 	// 34 Up→right
-        69,  331, 146, 18, 29965, 	// 35 Sample neighbour
-        100,  353, 83, 12, 32593, 	// 36 Findroots
+        
+        34,  301, 52, 18, 24153, 	// 25 Object
+        88,  301, 169, 12, 25089, 	// 26 Det Union Find
+        259,  301, 60, 18, 27117, 	// 27 Disjoint
+        321,  301, 26, 12, 28197, 	// 28 Set
+        25,  379, 35, 12, 28509, 	// 29 Post
+        25,  393, 36, 12, 28929, 	// 30 Feed
+        37,  435, 15, 12, 5621, 	// 31 open eye 4
+        32,  448, 25, 8, 5097, 	    // 32 yellow arrow 5
+        63,  444, 49, 12, 29361, 	// 33 Ready
+        77,  375, 4, 4, 29949, 	    // 34 Up→right
+        70,  331, 146, 18, 29965, 	// 35 Sample neighbour
+        101,  353, 83, 12, 32593, 	// 36 Findroots
         81,  372, 13, 10, 33589, 	// 37 small arrow
-        105,  372, 13, 10, 33589, 	// 38 small arrow 1
-        139,  372, 13, 10, 33589, 	// 39 small arrow 2
-        164,  372, 13, 10, 33589, 	// 40 small arrow 3
-        95,  371, 9, 12, 33719, 	// 41 L(eft)
-        120,  371, 18, 12, 33827, 	// 42 U(p) L(eft)
-        153,  371, 10, 12, 34043, 	// 43 U(p)
-        178,  371, 21, 12, 34163, 	// 44 U(p) R(ight)
-        102,  385, 88, 44, 34415, 	// 45 FR grid
+        106,  372, 13, 10, 33589, 	// 38 small arrow 1
+        140,  372, 13, 10, 33589, 	// 39 small arrow 2
+        165,  372, 13, 10, 33589, 	// 40 small arrow 3
+        96,  371, 9, 12, 33719, 	// 41 L(eft)
+        121,  371, 18, 12, 33827, 	// 42 U(p) L(eft)
+        154,  371, 10, 12, 34043, 	// 43 U(p)
+        179,  371, 21, 12, 34163, 	// 44 U(p) R(ight)
+        103,  385, 88, 44, 34415, 	// 45 FR grid
         201,  375, 6, 4, 38287, 	// 46 right→down
         203,  401, 4, 4, 38311, 	// 47 down→right
         214,  398, 13, 10, 33589, 	// 48 small arrow 4
-        249,  331, 44, 12, 38327, 	// 49 Union
-        224,  346, 96, 17, 38855, 	// 50 Components
-        244,  377, 55, 46, 40487, 	// 51 UC grid
+        250,  331, 44, 12, 38327, 	// 49 Union
+        225,  346, 96, 17, 38855, 	// 50 Components
+        245,  377, 55, 46, 40487, 	// 51 UC grid
         317,  398, 13, 10, 33589, 	// 52 small arrow 5
-        332,  331, 55, 17, 43017, 	// 53 Update
-        339,  351, 42, 12, 43952, 	// 54 Stats
-        334,  377, 55, 46, 44456, 	// 55 US grid
+        334,  331, 55, 17, 43017, 	// 53 Update
+        341,  351, 42, 12, 43952, 	// 54 Stats
+        335,  377, 55, 46, 44456, 	// 55 US grid
         363,  446, 10, 13, 46986, 	// 56 down arrow 1
         337,  446, 10, 13, 46986, 	// 57 down arrow 2
         338,  442, 6, 4, 38287, 	// 58 right→down 2
         318,  460, 67, 12, 47116, 	// 59 Advance
-        195,  458, 92, 12, 47920, 	// 60 Frame end =
+        194,  458, 92, 12, 47920, 	// 60 Frame end =
         288,  458, 10, 12, 49024, 	// 61 0 (zero)
-        120,  447, 36, 12, 49144, 	// 62 bit =
-        157,  447, 10, 12, 49024, 	// 63 0 (zero) 2
-        77,  471, 4, 4, 49576, 	// 64 left→up
+        121,  447, 36, 12, 49144, 	// 62 bit =
+        158,  447, 10, 12, 49024, 	// 63 0 (zero) 2
+        77,  471, 4, 4, 49576, 	    // 64 left→up
         74,  458, 10, 13, 49592, 	// 65 up arrow
         85,  396, 3, 12, 49722, 	// 66 1 (one)
         400,  465, 4, 4, 49758, 	// 67 right→up
         400,  401, 4, 4, 49774, 	// 68 up→right
         404,  398, 13, 10, 33589, 	// 69 small arrow 6
-        425,  331, 42, 12, 49790, 	// 70 Filter
-        432,  346, 29, 12, 50294, 	// 71 and
-        421,  361, 50, 12, 50642, 	// 72 Refine
-        409,  459, 92, 12, 47920, 	// 73 Frame end = 2
-        503,  459, 3, 12, 49722, 	// 74 1 (one) 2
+        426,  331, 42, 12, 49790, 	// 70 Filter
+        433,  346, 29, 12, 50294, 	// 71 and
+        422,  361, 50, 12, 50642, 	// 72 Refine
+        410,  459, 92, 12, 47920, 	// 73 Frame end = 2
+        504,  459, 3, 12, 49722, 	// 74 1 (one) 2
         489,  398, 13, 10, 33589, 	// 75 small arrow 7
-        509,  331, 74, 18, 51242, 	// 76 Bounding
-        531,  352, 30, 12, 52574, 	// 77 Box
-        510,  394, 3, 18, 52934, 	// 78 num1
-        528,  394, 13, 18, 52988, 	// 79 num2
-        552,  394, 11, 18, 53222, 	// 80 num3
-        574,  394, 15, 18, 53420, 	// 81 num4
-        425,  390, 20, 23, 53690, 	// 82 big 4
-        458,  391, 20, 21, 54150, 	// 83 big 16
-        424,  421, 23, 21, 54570, 	// 84 big 36
-        456,  421, 23, 21, 55053, 	// 85 big 64
-        608,  328, 24, 30, 55536, 	// 86 T
-        607,  358, 26, 30, 56256, 	// 87 R
-        606,  388, 28, 60, 57036, 	// 88 AC
-        607,  448, 26, 30, 58716, 	// 89 K
+        510,  331, 74, 18, 51242, 	// 76 Bounding
+        532,  352, 30, 12, 52574, 	// 77 Box
+        511,  394, 3, 18, 52934, 	// 78 num1
+        529,  394, 13, 18, 52988, 	// 79 num2
+        553,  394, 11, 18, 53222, 	// 80 num3
+        575,  394, 15, 18, 53420, 	// 81 num4
+        426,  389, 20, 23, 53690, 	// 82 big 4
+        459,  390, 20, 21, 54150, 	// 83 big 16
+        425,  420, 23, 21, 54570, 	// 84 big 36
+        457,  420, 23, 21, 55053, 	// 85 big 64
+        607,  328, 24, 30, 55536, 	// 86 T
+        606,  358, 26, 30, 56256, 	// 87 R
+        605,  388, 28, 60, 57036, 	// 88 AC
+        606,  448, 26, 30, 58716, 	// 89 K
         164,  115, 56, 60, 59496, 	// 90 O
         224,  115, 52, 60, 62856, 	// 91 B
         280,  115, 52, 60, 65976, 	// 92 J
@@ -275,21 +274,21 @@ module generate_bram_overlay(
     wire fr_tab_hdr_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd1) && (frame_x_next >= (ufds_t_x + lookup[(NUM_ACTL-21)*ATTRS + 0]) && frame_x_next < (ufds_t_x + lookup[(NUM_ACTL-21)*ATTRS + 0] + lookup[(NUM_ACTL-21)*ATTRS + 2])) && (frame_y_next >= (ufds_t_y + lookup[(NUM_ACTL-21)*ATTRS + 1]) && frame_y_next < (ufds_t_y + lookup[(NUM_ACTL-21)*ATTRS + 1] + lookup[(NUM_ACTL-21)*ATTRS + 3]));
 
     // UFDS, Union Components
-    wire union_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x >= (lookup[(NUM_ACTL-20)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-20)*ATTRS] + lookup[(NUM_ACTL-20)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-20)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-20)*ATTRS + 1] + lookup[(NUM_ACTL-20)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire union_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x_next >= (lookup[(NUM_ACTL-20)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-20)*ATTRS] + lookup[(NUM_ACTL-20)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-20)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-20)*ATTRS + 1] + lookup[(NUM_ACTL-20)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire union_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x >= (lookup[(NUM_ACTL-20)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-20)*ATTRS] + lookup[(NUM_ACTL-20)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-20)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-20)*ATTRS + 1] + lookup[(NUM_ACTL-20)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire union_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x_next >= (lookup[(NUM_ACTL-20)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-20)*ATTRS] + lookup[(NUM_ACTL-20)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-20)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-20)*ATTRS + 1] + lookup[(NUM_ACTL-20)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
-    wire union_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x >= (lookup[(NUM_ACTL-19)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-19)*ATTRS] + lookup[(NUM_ACTL-19)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-19)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-19)*ATTRS + 1] + lookup[(NUM_ACTL-19)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire union_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x_next >= (lookup[(NUM_ACTL-19)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-19)*ATTRS] + lookup[(NUM_ACTL-19)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-19)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-19)*ATTRS + 1] + lookup[(NUM_ACTL-19)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire union_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x >= (lookup[(NUM_ACTL-19)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-19)*ATTRS] + lookup[(NUM_ACTL-19)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-19)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-19)*ATTRS + 1] + lookup[(NUM_ACTL-19)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire union_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x_next >= (lookup[(NUM_ACTL-19)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-19)*ATTRS] + lookup[(NUM_ACTL-19)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-19)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-19)*ATTRS + 1] + lookup[(NUM_ACTL-19)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
     wire union_tab_hdr_ptr_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x >= (lookup[(NUM_ACTL-18)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-18)*ATTRS] + lookup[(NUM_ACTL-18)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-18)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-18)*ATTRS + 1] + lookup[(NUM_ACTL-18)*ATTRS + 3] + ufds_t_y));
     wire union_tab_hdr_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd2) && (frame_x_next >= (lookup[(NUM_ACTL-18)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-18)*ATTRS] + lookup[(NUM_ACTL-18)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-18)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-18)*ATTRS + 1] + lookup[(NUM_ACTL-18)*ATTRS + 3] + ufds_t_y));
 
     // UFDS, Update Stats
-    wire update_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x >= (lookup[(NUM_ACTL-17)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-17)*ATTRS] + lookup[(NUM_ACTL-17)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-17)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-17)*ATTRS + 1] + lookup[(NUM_ACTL-17)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire update_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-17)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-17)*ATTRS] + lookup[(NUM_ACTL-17)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-17)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-17)*ATTRS + 1] + lookup[(NUM_ACTL-17)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire update_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x >= (lookup[(NUM_ACTL-17)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-17)*ATTRS] + lookup[(NUM_ACTL-17)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-17)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-17)*ATTRS + 1] + lookup[(NUM_ACTL-17)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire update_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-17)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-17)*ATTRS] + lookup[(NUM_ACTL-17)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-17)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-17)*ATTRS + 1] + lookup[(NUM_ACTL-17)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
-    wire update_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x >= (lookup[(NUM_ACTL-16)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-16)*ATTRS] + lookup[(NUM_ACTL-16)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-16)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-16)*ATTRS + 1] + lookup[(NUM_ACTL-16)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire update_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-16)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-16)*ATTRS] + lookup[(NUM_ACTL-16)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-16)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-16)*ATTRS + 1] + lookup[(NUM_ACTL-16)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire update_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x >= (lookup[(NUM_ACTL-16)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-16)*ATTRS] + lookup[(NUM_ACTL-16)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-16)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-16)*ATTRS + 1] + lookup[(NUM_ACTL-16)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire update_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-16)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-16)*ATTRS] + lookup[(NUM_ACTL-16)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-16)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-16)*ATTRS + 1] + lookup[(NUM_ACTL-16)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
     wire update_tab_hdr_ptr_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x >= (lookup[(NUM_ACTL-15)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-15)*ATTRS] + lookup[(NUM_ACTL-15)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-15)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-15)*ATTRS + 1] + lookup[(NUM_ACTL-15)*ATTRS + 3] + ufds_t_y));
     wire update_tab_hdr_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-15)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-15)*ATTRS] + lookup[(NUM_ACTL-15)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-15)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-15)*ATTRS + 1] + lookup[(NUM_ACTL-15)*ATTRS + 3] + ufds_t_y));
@@ -298,21 +297,21 @@ module generate_bram_overlay(
     wire update_tab_hdr_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd3) && (frame_x_next >= (lookup[(NUM_ACTL-14)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-14)*ATTRS] + lookup[(NUM_ACTL-14)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-14)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-14)*ATTRS + 1] + lookup[(NUM_ACTL-14)*ATTRS + 3] + ufds_t_y));
 
     // UFDS, Filter stats
-    wire filter_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x >= (lookup[(NUM_ACTL-13)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-13)*ATTRS] + lookup[(NUM_ACTL-13)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-13)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-13)*ATTRS + 1] + lookup[(NUM_ACTL-13)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire filter_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x_next >= (lookup[(NUM_ACTL-13)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-13)*ATTRS] + lookup[(NUM_ACTL-13)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-13)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-13)*ATTRS + 1] + lookup[(NUM_ACTL-13)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire filter_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x >= (lookup[(NUM_ACTL-13)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-13)*ATTRS] + lookup[(NUM_ACTL-13)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-13)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-13)*ATTRS + 1] + lookup[(NUM_ACTL-13)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire filter_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x_next >= (lookup[(NUM_ACTL-13)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-13)*ATTRS] + lookup[(NUM_ACTL-13)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-13)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-13)*ATTRS + 1] + lookup[(NUM_ACTL-13)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
-    wire filter_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x >= (lookup[(NUM_ACTL-12)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-12)*ATTRS] + lookup[(NUM_ACTL-12)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-12)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-12)*ATTRS + 1] + lookup[(NUM_ACTL-12)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire filter_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x_next >= (lookup[(NUM_ACTL-12)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-12)*ATTRS] + lookup[(NUM_ACTL-12)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-12)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-12)*ATTRS + 1] + lookup[(NUM_ACTL-12)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire filter_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x >= (lookup[(NUM_ACTL-12)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-12)*ATTRS] + lookup[(NUM_ACTL-12)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-12)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-12)*ATTRS + 1] + lookup[(NUM_ACTL-12)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire filter_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x_next >= (lookup[(NUM_ACTL-12)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-12)*ATTRS] + lookup[(NUM_ACTL-12)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-12)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-12)*ATTRS + 1] + lookup[(NUM_ACTL-12)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
     wire filter_tab_hdr_ptr_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x >= (lookup[(NUM_ACTL-11)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-11)*ATTRS] + lookup[(NUM_ACTL-11)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-11)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-11)*ATTRS + 1] + lookup[(NUM_ACTL-11)*ATTRS + 3] + ufds_t_y));
     wire filter_tab_hdr_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd4) && (frame_x_next >= (lookup[(NUM_ACTL-11)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-11)*ATTRS] + lookup[(NUM_ACTL-11)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-11)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-11)*ATTRS + 1] + lookup[(NUM_ACTL-11)*ATTRS + 3] + ufds_t_y));
 
     // UFDS, Bounding Box
-    wire bb_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x >= (lookup[(NUM_ACTL-10)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-10)*ATTRS] + lookup[(NUM_ACTL-10)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-10)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-10)*ATTRS + 1] + lookup[(NUM_ACTL-10)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire bb_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x_next >= (lookup[(NUM_ACTL-10)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-10)*ATTRS] + lookup[(NUM_ACTL-10)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-10)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-10)*ATTRS + 1] + lookup[(NUM_ACTL-10)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire bb_tab_pic_1_ptr_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x >= (lookup[(NUM_ACTL-10)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-10)*ATTRS] + lookup[(NUM_ACTL-10)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-10)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-10)*ATTRS + 1] + lookup[(NUM_ACTL-10)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire bb_tab_pic_1_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x_next >= (lookup[(NUM_ACTL-10)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-10)*ATTRS] + lookup[(NUM_ACTL-10)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-10)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-10)*ATTRS + 1] + lookup[(NUM_ACTL-10)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
-    wire bb_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x >= (lookup[(NUM_ACTL-9)*ATTRS] + ufds_t_x) && frame_x <= (lookup[(NUM_ACTL-9)*ATTRS] + lookup[(NUM_ACTL-9)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-9)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-9)*ATTRS + 1] + lookup[(NUM_ACTL-9)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
-    wire bb_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x_next >= (lookup[(NUM_ACTL-9)*ATTRS] + ufds_t_x) && frame_x_next <= (lookup[(NUM_ACTL-9)*ATTRS] + lookup[(NUM_ACTL-9)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-9)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-9)*ATTRS + 1] + lookup[(NUM_ACTL-9)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
+    wire bb_tab_pic_2_ptr_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x >= (lookup[(NUM_ACTL-9)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-9)*ATTRS] + lookup[(NUM_ACTL-9)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-9)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-9)*ATTRS + 1] + lookup[(NUM_ACTL-9)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
+    wire bb_tab_pic_2_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x_next >= (lookup[(NUM_ACTL-9)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-9)*ATTRS] + lookup[(NUM_ACTL-9)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-9)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-9)*ATTRS + 1] + lookup[(NUM_ACTL-9)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
 
     wire bb_tab_hdr_ptr_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x >= (lookup[(NUM_ACTL-8)*ATTRS] + ufds_t_x) && frame_x < (lookup[(NUM_ACTL-8)*ATTRS] + lookup[(NUM_ACTL-8)*ATTRS + 2] + ufds_t_x)) && (frame_y >= (lookup[(NUM_ACTL-8)*ATTRS + 1] + ufds_t_y) && frame_y < (lookup[(NUM_ACTL-8)*ATTRS + 1] + lookup[(NUM_ACTL-8)*ATTRS + 3] + ufds_t_y)) && frame_y < 326;
     wire bb_tab_hdr_ptr_look_ahead_in = (ufds_settings_mode) && (info_idx == 3'd5) && (frame_x_next >= (lookup[(NUM_ACTL-8)*ATTRS] + ufds_t_x) && frame_x_next < (lookup[(NUM_ACTL-8)*ATTRS] + lookup[(NUM_ACTL-8)*ATTRS + 2] + ufds_t_x)) && (frame_y_next >= (lookup[(NUM_ACTL-8)*ATTRS + 1] + ufds_t_y) && frame_y_next < (lookup[(NUM_ACTL-8)*ATTRS + 1] + lookup[(NUM_ACTL-8)*ATTRS + 3] + ufds_t_y)) && frame_y_next < 326;
@@ -328,23 +327,16 @@ module generate_bram_overlay(
     always @ (posedge clk25) begin
 
         // Elements within info box has least priority
-            if (fr_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-23)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-23)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-23)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-23)*ATTRS + 0] - ufds_t_x);
+             if (fr_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-23)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-23)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-23)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-23)*ATTRS + 0] - ufds_t_x);
         else if (fr_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-22)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-22)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-22)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-22)*ATTRS + 0] - ufds_t_x);
-        else if (fr_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-21)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-21)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-21)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-21)*ATTRS + 0] - ufds_t_x);
         else if (union_tab_pic_1_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-20)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-20)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-20)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-20)*ATTRS + 0] - ufds_t_x);
         else if (union_tab_pic_2_ptr_look_ahead_in)     overlay_addr <= lookup[(NUM_ACTL-19)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-19)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-19)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-19)*ATTRS + 0] - ufds_t_x);
-        else if (union_tab_hdr_ptr_look_ahead_in)       overlay_addr <= lookup[(NUM_ACTL-18)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-18)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-18)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-18)*ATTRS + 0] - ufds_t_x);
         else if (update_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-17)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-17)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-17)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-17)*ATTRS + 0] - ufds_t_x);
         else if (update_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-16)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-16)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-16)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-16)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-15)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-15)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-15)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-15)*ATTRS + 0] - ufds_t_x);
-        else if (update_tab_hdr_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-14)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-14)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-14)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-14)*ATTRS + 0] - ufds_t_x);
         else if (filter_tab_pic_1_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-13)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-13)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-13)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-13)*ATTRS + 0] - ufds_t_x);
         else if (filter_tab_pic_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-12)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-12)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-12)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-12)*ATTRS + 0] - ufds_t_x);
-        else if (filter_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-11)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-11)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-11)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-11)*ATTRS + 0] - ufds_t_x);
         else if (bb_tab_pic_1_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-10)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-10)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-10)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-10)*ATTRS + 0] - ufds_t_x);
         else if (bb_tab_pic_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-9) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-9) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-9)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-9)* ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-8) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-8) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-8)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-8)* ATTRS + 0] - ufds_t_x);
-        else if (bb_tab_hdr_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-7) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-7) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-7)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-7)* ATTRS + 0] - ufds_t_x);        
 
         for (i=0; i<NUM_usr; i=i+1) begin
             if (usr_ptr_look_ahead_in[i]) begin
@@ -411,6 +403,15 @@ module generate_bram_overlay(
             3'd6: overlay_addr <= lookup[24*ATTRS + 4] + (frame_y_next - ufds_t_y) * lookup[24*ATTRS + 2] + (frame_x_next - ufds_t_x);
             default: ;  // keep last overlay_addr from static elements
         endcase
+
+        // Edu page title should have higher priority than UFDS tab header
+             if (fr_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-21)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-21)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-21)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-21)*ATTRS + 0] - ufds_t_x);
+        else if (union_tab_hdr_ptr_look_ahead_in)       overlay_addr <= lookup[(NUM_ACTL-18)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-18)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-18)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-18)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-15)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-15)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-15)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-15)*ATTRS + 0] - ufds_t_x);
+        else if (update_tab_hdr_2_ptr_look_ahead_in)    overlay_addr <= lookup[(NUM_ACTL-14)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-14)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-14)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-14)*ATTRS + 0] - ufds_t_x);
+        else if (filter_tab_hdr_ptr_look_ahead_in)      overlay_addr <= lookup[(NUM_ACTL-11)*ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-11)*ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-11)*ATTRS + 2] )  + (frame_x_next - lookup[(NUM_ACTL-11)*ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_hdr_ptr_look_ahead_in)          overlay_addr <= lookup[(NUM_ACTL-8) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-8) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-8)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-8)* ATTRS + 0] - ufds_t_x);
+        else if (bb_tab_hdr_2_ptr_look_ahead_in)        overlay_addr <= lookup[(NUM_ACTL-7) *ATTRS + 4] + ( (frame_y_next - lookup[(NUM_ACTL-7) *ATTRS + 1] - ufds_t_y) * lookup[(NUM_ACTL-7)*ATTRS +  2] )  + (frame_x_next - lookup[(NUM_ACTL-7)* ATTRS + 0] - ufds_t_x);        
     end
 
     assign to_write = en ? ((|usr_ptr_in) || (|ufds_ptr_in) || (|menu_ptr_in) || 

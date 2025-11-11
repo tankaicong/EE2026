@@ -41,8 +41,8 @@ module Servo_Controller(
         if (reset || !servo_en) begin
             // Disable servos
             pwm_counter <= 0;
-            servo_x_pwm <= 0;
-            servo_y_pwm <= 0;
+            servo_x_pwm <= 1;
+            servo_y_pwm <= 1;
         end else begin
             // Reset counter every 20 ms
             if (pwm_counter >= 2_000_000 - 1) pwm_counter <= 0;

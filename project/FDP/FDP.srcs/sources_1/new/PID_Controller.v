@@ -33,6 +33,7 @@ module PID_Controller
 (
     input clk,
     input reset,
+    input set_home,
     input enable,
     input signed [31:0] setpoint,
     input signed [31:0] measurement,
@@ -44,6 +45,8 @@ module PID_Controller
     input signed [31:0] SERVO_MAX,
     input signed [31:0] SERVO_MIN
 );
+
+    initial control_output = 32'sd100_000; //initialise to mid position
 
     // Internal signals
     reg signed [31:0] error;
@@ -58,7 +61,7 @@ module PID_Controller
 
     // Update step
     always @(posedge clk or posedge reset) begin
-        if (reset) begin
+        if (reset | set_home) begin
             control_output <= 32'sd100_000;
             integral <= 32'sd0;
             prev_error <= 32'sd0;

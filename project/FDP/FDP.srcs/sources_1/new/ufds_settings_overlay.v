@@ -67,60 +67,60 @@ module ufds_settings_overlay (
     // Black and yellow arrow lines (inside only)
     wire gen_black = (
         // Official pixel count from Excel
-        // ((px >= 36 && px <= 50) && (py >= 435 && py <= 446)) ||                                     // Black square for eye
-        // ((px == 77 || px == 80) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
-        // ((px == 203 || px == 206) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
-        // ((py == 401 || py == 404) && ((px >= 207 && px <= 213) || (px >= 227 && px <= 236))) ||     // Both sides of roots to union
-        // ((py == 401 || py == 404) && ((px >= 307 && px <= 316))) ||                                 // Left of components to update stats
-        // ((px >= 81 && px <= 313) && (py == 471 || py == 474)) ||                                    // Horizontal line from advance to ready
-        // ((px >= 116 && px <= 339) && (py == 442 || py == 445)) ||                                   // Horizontal line from ready to advance
-        // ((px == 366 || px == 369) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
-        // ((px >= 386 && px <= 399) && (py == 465 || py == 468)) ||                                   // Horizontal line from advance to filter
-        // ((px == 400 || px == 403) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
-        // ((px >= 484 && px <= 488) && (py == 401 || py == 404))                                      // Horizontal line from filter to bounding
+        ((px >= 36 && px <= 50) && (py >= 435 && py <= 446)) ||                                     // Black square for eye
+        ((px == 77 || px == 80) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
+        ((px == 203 || px == 206) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
+        ((py == 401 || py == 404) && ((px >= 207 && px <= 213) || (px >= 227 && px <= 236))) ||     // Both sides of roots to union
+        ((py == 401 || py == 404) && ((px >= 307 && px <= 316))) ||                                 // Left of components to update stats
+        ((px >= 81 && px <= 313) && (py == 471 || py == 474)) ||                                    // Horizontal line from advance to ready
+        ((px >= 116 && px <= 339) && (py == 442 || py == 445)) ||                                   // Horizontal line from ready to advance
+        ((px == 366 || px == 369) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
+        ((px >= 386 && px <= 399) && (py == 465 || py == 468)) ||                                   // Horizontal line from advance to filter
+        ((px == 400 || px == 403) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
+        ((px >= 484 && px <= 488) && (py == 401 || py == 404))                                      // Horizontal line from filter to bounding
 
         // Revised pixel count to fix off-by-one
-        ((px >= 37 && px <= 50) && (py >= 435 && py <= 446)) ||                                     // Black square for eye
-        ((px == 78 || px == 81) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
-        ((px == 204 || px == 207) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
-        ((py == 401 || py == 404) && ((px >= 208 && px <= 214) || (px >= 228 && px <= 237))) ||     // Both sides of roots to union
-        ((py == 401 || py == 404) && ((px >= 308 && px <= 317))) ||                                 // Left of components to update stats
-        ((px >= 82 && px <= 314) && (py == 471 || py == 474)) ||                                    // Horizontal line from advance to ready
-        ((px >= 117 && px <= 340) && (py == 442 || py == 445)) ||                                   // Horizontal line from ready to advance
-        ((px == 367 || px == 370) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
-        ((px >= 387 && px <= 400) && (py == 465 || py == 468)) ||                                   // Horizontal line from advance to filter
-        ((px == 401 || px == 404) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
-        ((px >= 485 && px <= 489) && (py == 401 || py == 404))                                      // Horizontal line from filter to bounding
+        // ((px >= 37 && px <= 50) && (py >= 435 && py <= 446)) ||                                     // Black square for eye
+        // ((px == 78 || px == 81) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
+        // ((px == 204 || px == 207) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
+        // ((py == 401 || py == 404) && ((px >= 208 && px <= 214) || (px >= 228 && px <= 237))) ||     // Both sides of roots to union
+        // ((py == 401 || py == 404) && ((px >= 308 && px <= 317))) ||                                 // Left of components to update stats
+        // ((px >= 82 && px <= 314) && (py == 471 || py == 474)) ||                                    // Horizontal line from advance to ready
+        // ((px >= 117 && px <= 340) && (py == 442 || py == 445)) ||                                   // Horizontal line from ready to advance
+        // ((px == 367 || px == 370) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
+        // ((px >= 387 && px <= 400) && (py == 465 || py == 468)) ||                                   // Horizontal line from advance to filter
+        // ((px == 401 || px == 404) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
+        // ((px >= 485 && px <= 489) && (py == 401 || py == 404))                                      // Horizontal line from filter to bounding
     );
 
-    wire gen_yellow = (
+    wire gen_bumblebee = (
         // Official pixel count from Excel
-        // ((px >= 21 && px <= 30) && (py == 451 || py == 452)) ||                                     // Leftmost yellow line inside pink box
+        ((px >= 21 && px <= 30) && (py == 451 || py == 452)) ||                                     // Leftmost yellow line inside pink box
 
-        // ((px == 78 || px == 79) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
-        // ((px == 204 || px == 205) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
-        // ((py == 402 || py == 403) && ((px >= 207 && px <= 213) || (px >= 227 && px <= 236))) ||     // Both sides of roots to union
-        // ((py == 402 || py == 403) && ((px >= 307 && px <= 316))) ||                                 // Left of components to update stats
-        // ((px >= 81 && px <= 313) && (py == 472 || py == 473)) ||                                    // Horizontal line from advance to ready
-        // ((px >= 116 && px <= 339) && (py == 443 || py == 444)) ||                                   // Horizontal line from ready to advance
-        // ((px == 367 || px == 368) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
-        // ((px >= 386 && px <= 399) && (py == 466 || py == 467)) ||                                   // Horizontal line from advance to filter
-        // ((px == 401 || px == 402) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
-        // ((px >= 484 && px <= 488) && (py == 402 || py == 403))                                      // Horizontal line from filter to bounding
+        ((px == 78 || px == 79) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
+        ((px == 204 || px == 205) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
+        ((py == 402 || py == 403) && ((px >= 207 && px <= 213) || (px >= 227 && px <= 236))) ||     // Both sides of roots to union
+        ((py == 402 || py == 403) && ((px >= 307 && px <= 316))) ||                                 // Left of components to update stats
+        ((px >= 81 && px <= 313) && (py == 472 || py == 473)) ||                                    // Horizontal line from advance to ready
+        ((px >= 116 && px <= 339) && (py == 443 || py == 444)) ||                                   // Horizontal line from ready to advance
+        ((px == 367 || px == 368) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
+        ((px >= 386 && px <= 399) && (py == 466 || py == 467)) ||                                   // Horizontal line from advance to filter
+        ((px == 401 || px == 402) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
+        ((px >= 484 && px <= 488) && (py == 402 || py == 403))                                      // Horizontal line from filter to bounding
 
         // Revised pixel count to fix off-by-one
-        ((px >= 22 && px <= 31) && (py == 451 || py == 452)) ||                                     // Leftmost yellow line inside pink box
+        // ((px >= 22 && px <= 31) && (py == 451 || py == 452)) ||                                     // Leftmost yellow line inside pink box
 
-        ((px == 79 || px == 80) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
-        ((px == 205 || px == 206) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
-        ((py == 402 || py == 403) && ((px >= 208 && px <= 214) || (px >= 228 && px <= 237))) ||     // Both sides of roots to union
-        ((py == 402 || py == 403) && ((px >= 308 && px <= 317))) ||                                 // Left of components to update stats
-        ((px >= 82 && px <= 314) && (py == 472 || py == 473)) ||                                    // Horizontal line from advance to ready
-        ((px >= 117 && px <= 340) && (py == 443 || py == 444)) ||                                   // Horizontal line from ready to advance
-        ((px == 368 || px == 369) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
-        ((px >= 387 && px <= 400) && (py == 466 || py == 467)) ||                                   // Horizontal line from advance to filter
-        ((px == 402 || px == 403) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
-        ((px >= 485 && px <= 489) && (py == 402 || py == 403))                                      // Horizontal line from filter to bounding
+        // ((px == 79 || px == 80) && (py >= 379 && py <= 441)) ||                                     // Leftmost vertical "ready" to "samples"
+        // ((px == 205 || px == 206) && (py >= 379 && py <= 400)) ||                                   // Vertical sample neighbors to union
+        // ((py == 402 || py == 403) && ((px >= 208 && px <= 214) || (px >= 228 && px <= 237))) ||     // Both sides of roots to union
+        // ((py == 402 || py == 403) && ((px >= 308 && px <= 317))) ||                                 // Left of components to update stats
+        // ((px >= 82 && px <= 314) && (py == 472 || py == 473)) ||                                    // Horizontal line from advance to ready
+        // ((px >= 117 && px <= 340) && (py == 443 || py == 444)) ||                                   // Horizontal line from ready to advance
+        // ((px == 368 || px == 369) && (py >= 424 && py <= 445)) ||                                   // Vertical line from update stats to advance
+        // ((px >= 387 && px <= 400) && (py == 466 || py == 467)) ||                                   // Horizontal line from advance to filter
+        // ((px == 402 || px == 403) && (py >= 405 && py <= 464)) ||                                   // Vertical line from advance to filter
+        // ((px >= 485 && px <= 489) && (py == 402 || py == 403))                                      // Horizontal line from filter to bounding
     );
 
     wire gen_magenta = (
@@ -405,7 +405,7 @@ module ufds_settings_overlay (
             end
 
             // Rectangle overlay for tab
-            if (px >= 470 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
+            if (px >= 469 && px <= 590 && py >= (info_tab_top_y + 3) && py < (info_tab_top_y + INFO_BAR_OFFSET)) begin
                 overlay_en = 1'b1; overlay_rgb = OFFWHITE;
             end
 
@@ -463,7 +463,7 @@ module ufds_settings_overlay (
             if (border_box7) begin overlay_en=1; if (servo) overlay_rgb = BUMBLEBEE; else overlay_rgb=GREY; end
 
             if (gen_black) begin overlay_en=1; overlay_rgb=BLACK; end
-            if (gen_yellow) begin overlay_en=1; overlay_rgb=YELLOW; end
+            if (gen_bumblebee) begin overlay_en=1; overlay_rgb=BUMBLEBEE; end
 
             if (gen_magenta) begin overlay_en=1; overlay_rgb=MAGENTA; end
 

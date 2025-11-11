@@ -70,7 +70,7 @@ localparam integer WIDTH = 310;
 localparam integer HEIGHT = 240;
 localparam integer x_bitsize = 9;
 localparam integer y_bitsize = 8;
-localparam integer label_bits = 8; // rmb label == 0 is the background and supports up to 4095 labels (can reduce if dont need this many labels)
+localparam integer label_bits = 7; // rmb label == 0 is the background and supports up to 4095 labels (can reduce if dont need this many labels)
 // runtime-configurable min area (from UI)
 reg [16:0] MIN_AREA_RT;
 always @(*) begin
@@ -101,7 +101,8 @@ reg toggle_line; // 0: prev=buff0, curr=buff1; 1: prev=buff1, curr=buff0
  * Quick-Union Disjoint Set ADT implementation (specifically weighted union) 
  * and the stats to store for each label
  */
-localparam integer MAX_LABELS = 256; // can reduce if dont need this many labels
+//theoretical max component count is WIDTH/2 = 155 (alternating vertical lines connected only at last row)
+localparam integer MAX_LABELS = 128; // can reduce if dont need this many labels
 localparam integer FIND_MAX_ITERATIONS = 8; // to prevent infinite loop in find, since loops in functions are combinational. Height of tree is O(log n) = 4
 
 (* ram_style = "block" *) reg [label_bits-1:0] parent [0:MAX_LABELS-1]; // C++ eq: vector<int> parent (MAX_LABELS);

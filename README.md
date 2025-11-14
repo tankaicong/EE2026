@@ -1,8 +1,8 @@
 # Gamified CV
 
-THIS IS A WORK IN HEAVY PROGESS
-
 A game to create a computer vision pipeline that is used to play an actual game.
+
+![](asset.png)
 
 
 ## Brain Dump

@@ -12,6 +12,6 @@ Check out the video demo here: [https://youtu.be/kuJl6z97Nus](https://youtu.be/k
 
 ## Detailed Writeup
 
-Detailed writeup explaining every aspect of the project can be found at [https://tankaicong.com/projects/ee2026/](https://tankaicong.com/projects/ee2026/)
+Detailed writeup explaining every aspect of the project can be found at [https://tankaicong.com/projects/ee2026/](https://tankaicong.com/projects/ee2026/) and [https://kennethwongcunwi.com/projects/object-tracker-fpga](https://kennethwongcunwi.com/projects/object-tracker-fpga)
 
 ![Project picture](./proj_ee2026_cover.jpg)
